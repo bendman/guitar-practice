@@ -8,6 +8,7 @@ const MUTED = "#8a8580";
 const DIM = "#5a5550";
 const GREEN = "#6ecf72";
 const RED = "#cf6e6e";
+const CORRECT = "#FFE566";
 
 const NOTES = [
   { id: "do", label: "Do", type: "note" },
@@ -48,7 +49,6 @@ function freqToNoteId(freq) {
   let minDist = Infinity;
   for (const [id, freqs] of Object.entries(NOTE_FREQS)) {
     for (const f of freqs) {
-      // Use cents distance for musical accuracy
       const cents = Math.abs(1200 * Math.log2(freq / f));
       if (cents < minDist) {
         minDist = cents;
@@ -59,43 +59,63 @@ function freqToNoteId(freq) {
   return minDist < 50 ? closest : null; // within 50 cents
 }
 
-// Autocorrelation pitch detection
+// Returns { noteId, cents, signedCents } for the nearest note regardless of threshold
+function freqToNoteInfo(freq) {
+  if (freq < 60 || freq > 2000) return null;
+  let closest = null;
+  let closestFreq = null;
+  let minDist = Infinity;
+  for (const [id, freqs] of Object.entries(NOTE_FREQS)) {
+    for (const f of freqs) {
+      const cents = Math.abs(1200 * Math.log2(freq / f));
+      if (cents < minDist) {
+        minDist = cents;
+        closest = id;
+        closestFreq = f;
+      }
+    }
+  }
+  if (!closest) return null;
+  const signedCents = Math.round(1200 * Math.log2(freq / closestFreq));
+  return { noteId: closest, cents: Math.round(minDist), signedCents };
+}
+
+// Autocorrelation pitch detection — returns { freq, rms }; freq is null if too quiet or no clear pitch
 function detectPitch(buffer, sampleRate) {
   const n = buffer.length;
-  // Check if there's enough signal
   let rms = 0;
   for (let i = 0; i < n; i++) rms += buffer[i] * buffer[i];
   rms = Math.sqrt(rms / n);
-  if (rms < 0.01) return null; // too quiet
+  if (rms < 0.01) return { freq: null, rms };
 
-  // Autocorrelation
-  const minPeriod = Math.floor(sampleRate / 2000); // ~2000 Hz max
-  const maxPeriod = Math.floor(sampleRate / 60);    // ~60 Hz min
+  const minPeriod = Math.floor(sampleRate / 2000);
+  const maxPeriod = Math.floor(sampleRate / 60);
   let bestCorr = 0;
   let bestPeriod = 0;
+  // Normalize by RMS² so the threshold is relative to signal power (range [-1, 1])
+  const normFactor = rms * rms;
 
   for (let period = minPeriod; period <= maxPeriod; period++) {
     let corr = 0;
     for (let i = 0; i < n - period; i++) {
       corr += buffer[i] * buffer[i + period];
     }
-    corr /= (n - period);
+    corr /= (n - period) * normFactor;
     if (corr > bestCorr) {
       bestCorr = corr;
       bestPeriod = period;
     }
   }
 
-  if (bestCorr < 0.01) return null;
-
-  // Parabolic interpolation for sub-sample accuracy
+  // Parabolic interpolation for sub-sample accuracy (scale-invariant, normalization doesn't matter)
   const prev = bestPeriod > minPeriod ? autocorrAt(buffer, bestPeriod - 1) : 0;
   const curr = autocorrAt(buffer, bestPeriod);
   const next = bestPeriod < maxPeriod ? autocorrAt(buffer, bestPeriod + 1) : 0;
   const shift = (prev - next) / (2 * (prev - 2 * curr + next)) || 0;
   const refinedPeriod = bestPeriod + shift;
 
-  return sampleRate / refinedPeriod;
+  const freq = bestCorr < 0.1 ? null : sampleRate / refinedPeriod;
+  return { freq, rms, corr: bestCorr };
 }
 
 function autocorrAt(buffer, period) {
@@ -170,7 +190,7 @@ function usePitchDetection(active) {
         const loop = () => {
           if (cancelled) return;
           analyser.getFloatTimeDomainData(buffer);
-          const freq = detectPitch(buffer, ctx.sampleRate);
+          const { freq } = detectPitch(buffer, ctx.sampleRate);
           const noteId = freq ? freqToNoteId(freq) : null;
           setDetectedNote(noteId);
           rafRef.current = requestAnimationFrame(loop);
@@ -194,6 +214,140 @@ function usePitchDetection(active) {
   return detectedNote;
 }
 
+// --- Debug pitch hook (dev only) ---
+function useDebugPitch(active) {
+  const [data, setData] = useState({ freq: null, rms: 0, corr: 0, noteInfo: null });
+  const audioCtxRef = useRef(null);
+  const streamRef = useRef(null);
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    if (!active) {
+      cancelAnimationFrame(rafRef.current);
+      if (audioCtxRef.current) audioCtxRef.current.close().catch(() => {});
+      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
+      audioCtxRef.current = null;
+      streamRef.current = null;
+      setData({ freq: null, rms: 0, noteInfo: null });
+      return;
+    }
+
+    let cancelled = false;
+
+    async function start() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
+        streamRef.current = stream;
+        const ctx = new AudioContext();
+        audioCtxRef.current = ctx;
+        const source = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 4096;
+        source.connect(analyser);
+        const buffer = new Float32Array(analyser.fftSize);
+
+        const loop = () => {
+          if (cancelled) return;
+          analyser.getFloatTimeDomainData(buffer);
+          const { freq, rms, corr } = detectPitch(buffer, ctx.sampleRate);
+          setData({ freq, rms, corr, noteInfo: freq ? freqToNoteInfo(freq) : null });
+          rafRef.current = requestAnimationFrame(loop);
+        };
+        rafRef.current = requestAnimationFrame(loop);
+      } catch (err) {
+        console.error("Mic access failed:", err);
+      }
+    }
+    start();
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafRef.current);
+      if (audioCtxRef.current) audioCtxRef.current.close().catch(() => {});
+      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
+    };
+  }, [active]);
+
+  return data;
+}
+
+function DebugView({ onBack }) {
+  const { freq, rms, corr, noteInfo } = useDebugPitch(true);
+  const rmsPercent = Math.min(rms / 0.3, 1);
+  const withinThreshold = noteInfo && noteInfo.cents < 50;
+  const noteLabel = noteInfo ? NOTES.find((n) => n.id === noteInfo.noteId)?.label : null;
+
+  return (
+    <div style={{ ...s.configRoot, justifyContent: "flex-start", paddingTop: 40 }}>
+      <div style={s.configInner}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}>
+          <button onClick={onBack} style={{ ...s.resetBtn, fontSize: 13, color: MUTED }}>← Retour</button>
+          <span style={{ fontSize: 11, color: DIM, textTransform: "uppercase", letterSpacing: "1.5px" }}>Debug micro</span>
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontSize: 11, color: MUTED, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 8 }}>Niveau RMS</div>
+          <div style={{ height: 8, background: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" }}>
+            <div style={{
+              height: "100%",
+              width: `${rmsPercent * 100}%`,
+              background: rms < 0.01 ? DIM : rms < 0.05 ? ACCENT : GREEN,
+              borderRadius: 4,
+              transition: "width 0.05s ease",
+            }} />
+          </div>
+          <div style={{ fontSize: 11, color: DIM, marginTop: 4 }}>
+            {rms.toFixed(4)}{rms < 0.01 ? " — trop silencieux" : ""}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontSize: 11, color: MUTED, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 8 }}>Corrélation (seuil 0.10)</div>
+          <div style={{ height: 8, background: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" }}>
+            <div style={{
+              height: "100%",
+              width: `${Math.min(corr, 1) * 100}%`,
+              background: corr < 0.1 ? DIM : corr < 0.3 ? ACCENT : GREEN,
+              borderRadius: 4,
+              transition: "width 0.05s ease",
+            }} />
+          </div>
+          <div style={{ fontSize: 11, color: DIM, marginTop: 4 }}>
+            {corr.toFixed(3)}{corr < 0.1 ? " — sous le seuil" : " — détecté"}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontSize: 11, color: MUTED, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 12 }}>Fréquence détectée</div>
+          <div style={{ fontSize: 56, fontWeight: 700, color: freq ? TEXT : DIM, letterSpacing: "-1px", lineHeight: 1 }}>
+            {freq ? `${freq.toFixed(1)} Hz` : "—"}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontSize: 11, color: MUTED, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 12 }}>Note la plus proche</div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
+            <div style={{ fontSize: 56, fontWeight: 700, lineHeight: 1, color: !noteInfo ? DIM : withinThreshold ? GREEN : ACCENT }}>
+              {noteLabel || "—"}
+            </div>
+            {noteInfo && (
+              <div style={{ fontSize: 18, color: withinThreshold ? GREEN : ACCENT, fontWeight: 600 }}>
+                {noteInfo.signedCents > 0 ? "+" : ""}{noteInfo.signedCents}¢
+              </div>
+            )}
+          </div>
+          {noteInfo && (
+            <div style={{ fontSize: 11, color: DIM, marginTop: 8 }}>
+              {noteInfo.cents}¢ d'écart · seuil : 50¢ · {withinThreshold ? "✓ dans le seuil" : "✗ hors seuil"}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function GuitarPractice() {
   const [interval, setInterval_] = useState(2);
   const [enabled, setEnabled] = useState(() =>
@@ -208,6 +362,7 @@ export default function GuitarPractice() {
   const [practiceTime, setPracticeTime] = useState(0);
   const [listening, setListening] = useState(false);
   const [hitStatus, setHitStatus] = useState(null); // null | "correct" | "wrong"
+  const [inDebug, setInDebug] = useState(false);
 
   const lastIdRef = useRef(null);
   const practiceTimeRef = useRef(0);
@@ -333,18 +488,29 @@ export default function GuitarPractice() {
   }, [inSession]);
 
   // Determine note display color based on detection
-  const noteColor = !listening || !current || current.type !== "note"
-    ? "#ffffff"
-    : hitStatus === "correct"
-    ? GREEN
-    : hitStatus === "wrong"
-    ? RED
-    : "#ffffff";
+  const noteColor = "#ffffff";
+
+  if (import.meta.env.DEV && inDebug) {
+    return <DebugView onBack={() => setInDebug(false)} />;
+  }
 
   // --- SESSION VIEW ---
   if (inSession) {
+    const isCorrect = listening && hitStatus === "correct" && !paused;
     return (
       <div style={s.sessionRoot}>
+        <style>{`
+          @keyframes correct-pop {
+            0%   { transform: scale(0.4); opacity: 0; }
+            55%  { transform: scale(1.12); opacity: 1; }
+            100% { transform: scale(1);   opacity: 1; }
+          }
+          @keyframes correct-glow {
+            0%   { opacity: 0; }
+            25%  { opacity: 1; }
+            100% { opacity: 0.6; }
+          }
+        `}</style>
         <div
           style={{
             ...s.progressBg,
@@ -352,6 +518,13 @@ export default function GuitarPractice() {
             opacity: paused ? 0.15 : 1,
           }}
         />
+        {isCorrect && (
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
+            background: `radial-gradient(ellipse at center, ${CORRECT}28 0%, transparent 65%)`,
+            animation: "correct-glow 0.35s ease-out forwards",
+          }} />
+        )}
         <div style={s.sessionCenter}>
           <div style={s.practiceTimerSession}>{formatTime(practiceTime)}</div>
           <div style={s.countBadge}>#{count}</div>
@@ -359,30 +532,38 @@ export default function GuitarPractice() {
             ...s.noteDisplay,
             opacity: paused ? 0.2 : 1,
             color: paused ? "#ffffff" : noteColor,
-            textShadow: hitStatus === "correct"
-              ? `0 2px 20px ${GREEN}4D`
-              : hitStatus === "wrong"
-              ? `0 2px 20px ${RED}4D`
-              : `0 2px 20px ${ACCENT}4D`,
+            textShadow: `0 2px 20px ${ACCENT}4D`,
           }}>
             {current?.label || "—"}
           </div>
-          <div style={{ ...s.typeBadge, opacity: paused ? 0.2 : 1 }}>
-            {current?.type === "chord" ? "Accord" : "Note"}
-          </div>
-          {listening && current?.type === "note" && !paused && (
-            <div style={s.detectionHint}>
-              {hitStatus === "correct"
-                ? "✓"
-                : detectedNote
-                ? NOTES.find((n) => n.id === detectedNote)?.label || "?"
-                : "🎤 …"}
-            </div>
-          )}
-          {listening && current?.type === "chord" && !paused && (
-            <div style={{ ...s.detectionHint, color: DIM }}>
-              détection notes uniquement
-            </div>
+          {isCorrect ? (
+            <div style={{
+              fontSize: 120,
+              fontWeight: 700,
+              lineHeight: 1,
+              color: CORRECT,
+              textShadow: `0 0 30px ${CORRECT}BB, 0 0 70px ${CORRECT}55`,
+              animation: "correct-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
+              marginTop: 12,
+            }}>✓</div>
+          ) : (
+            <>
+              <div style={{ ...s.typeBadge, opacity: paused ? 0.2 : 1 }}>
+                {current?.type === "chord" ? "Accord" : "Note"}
+              </div>
+              {listening && current?.type === "note" && !paused && (
+                <div style={s.detectionHint}>
+                  {detectedNote
+                    ? NOTES.find((n) => n.id === detectedNote)?.label || "?"
+                    : "🎤 …"}
+                </div>
+              )}
+              {listening && current?.type === "chord" && !paused && (
+                <div style={{ ...s.detectionHint, color: DIM }}>
+                  détection notes uniquement
+                </div>
+              )}
+            </>
           )}
           {paused && <div style={s.pauseOverlay}>⏸ Pause</div>}
         </div>
@@ -503,6 +684,14 @@ export default function GuitarPractice() {
                 Réinitialiser
               </button>
             </div>
+          </div>
+        )}
+
+        {import.meta.env.DEV && (
+          <div style={{ marginTop: 32, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
+            <button onClick={() => setInDebug(true)} style={{ ...s.resetBtn, fontSize: 11, color: DIM }}>
+              debug micro
+            </button>
           </div>
         )}
       </div>
