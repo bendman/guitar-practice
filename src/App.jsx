@@ -187,12 +187,22 @@ function usePitchDetection(active) {
 
         const buffer = new Float32Array(analyser.fftSize);
 
+        let lastSeen = null;
+        let runCount = 0;
+        const REQUIRED_FRAMES = 5; // ~83ms at 60fps — filters harmonics and transients
+
         const loop = () => {
           if (cancelled) return;
           analyser.getFloatTimeDomainData(buffer);
           const { freq } = detectPitch(buffer, ctx.sampleRate);
           const noteId = freq ? freqToNoteId(freq) : null;
-          setDetectedNote(noteId);
+          if (noteId !== null && noteId === lastSeen) {
+            runCount++;
+          } else {
+            lastSeen = noteId;
+            runCount = noteId !== null ? 1 : 0;
+          }
+          setDetectedNote(runCount >= REQUIRED_FRAMES ? noteId : null);
           rafRef.current = requestAnimationFrame(loop);
         };
         rafRef.current = requestAnimationFrame(loop);
@@ -348,35 +358,61 @@ function DebugView({ onBack }) {
   );
 }
 
+const SETTINGS_KEY = 'guitar-practice-settings';
+
+function loadSettings() {
+  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) ?? {}; }
+  catch { return {}; }
+}
+
 export default function GuitarPractice() {
-  const [interval, setInterval_] = useState(2);
-  const [enabled, setEnabled] = useState(() =>
-    Object.fromEntries(ALL.map((item) => [item.id, true]))
-  );
+  const [interval, setInterval_] = useState(() => {
+    const s = loadSettings();
+    return typeof s.interval === 'number' ? s.interval : 2;
+  });
+  const [enabled, setEnabled] = useState(() => {
+    const defaults = Object.fromEntries(ALL.map((item) => [item.id, true]));
+    const s = loadSettings();
+    return s.enabled ? { ...defaults, ...s.enabled } : defaults;
+  });
   const [inSession, setInSession] = useState(false);
   const [paused, setPaused] = useState(false);
   const [current, setCurrent] = useState(null);
   const [progress, setProgress] = useState(0);
   const [count, setCount] = useState(0);
-  const [tts, setTts] = useState(false);
+  const [tts, setTts] = useState(() => loadSettings().tts ?? false);
   const [practiceTime, setPracticeTime] = useState(0);
-  const [listening, setListening] = useState(false);
+  const [listening, setListening] = useState(() => loadSettings().listening ?? false);
   const [hitStatus, setHitStatus] = useState(null); // null | "correct" | "wrong"
+  const [streak, setStreak] = useState(0);
   const [inDebug, setInDebug] = useState(false);
 
   const lastIdRef = useRef(null);
   const practiceTimeRef = useRef(0);
   const hitForCurrentRef = useRef(false);
-  const refs = useRef({ interval, tts, pool: [] });
+  const withinTimeRef = useRef(true);   // was correct note hit before the interval expired?
+  const advanceFnRef = useRef(null);    // callable from outside the timer effect
+  const timerIdRef = useRef(null);      // stored so external callers can cancel it
+  const startRef = useRef(performance.now()); // shared with RAF so advance() updates progress origin
+  const refs = useRef({ interval, tts, listening, currentType: null, pool: [] });
   refs.current = {
     interval,
     tts,
+    listening,
+    currentType: current?.type,
     pool: ALL.filter((item) => enabled[item.id]),
   };
 
   const pool = refs.current.pool;
   const micActive = listening && inSession && !paused;
   const detectedNote = usePitchDetection(micActive);
+
+  // Persist settings whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ interval, enabled, tts, listening }));
+    } catch {}
+  }, [interval, enabled, tts, listening]);
 
   // Check detected note against current target
   useEffect(() => {
@@ -386,46 +422,78 @@ export default function GuitarPractice() {
     if (detectedNote === current.id) {
       setHitStatus("correct");
       hitForCurrentRef.current = true;
+      // If the time window already expired, advance immediately (no streak credit).
+      // If still within the window, just show ✓ and let the timer advance on schedule.
+      if (!withinTimeRef.current) {
+        advanceFnRef.current?.(false);
+      }
     } else {
       setHitStatus("wrong");
     }
   }, [detectedNote, current, micActive]);
 
-  // Reset hit status when current note changes
+  // Reset per-note state when note changes
   useEffect(() => {
     hitForCurrentRef.current = false;
-    if (!listening) setHitStatus(null);
-    else setHitStatus(null);
+    withinTimeRef.current = true;
+    setHitStatus(null);
   }, [current, listening]);
 
   // Session timer + progress animation + practice clock
   useEffect(() => {
     if (!inSession || paused) return;
 
-    let timerId;
     let rafId;
-    let start = performance.now();
     let lastFrame = performance.now();
+    startRef.current = performance.now();
+    withinTimeRef.current = true;
 
-    const advance = () => {
+    // Pick and show the next note, then re-arm the timer.
+    // giveCredit: whether this advance counts toward the streak.
+    const doAdvance = (giveCredit) => {
+      setStreak(giveCredit ? (s) => s + 1 : 0);
       const next = pickRandom(refs.current.pool, lastIdRef.current);
+      clearTimeout(timerIdRef.current);
       if (next) {
         lastIdRef.current = next.id;
         if (refs.current.tts) sayAloud(next);
         setTimeout(() => {
           setCurrent(next);
           setCount((c) => c + 1);
-          start = performance.now();
+          // Start progress bar and schedule next timeout at the same moment
+          // so the bar always fills exactly when the timeout fires.
+          startRef.current = performance.now();
+          withinTimeRef.current = true;
+          timerIdRef.current = setTimeout(onTimeout, refs.current.interval * 1000);
         }, 200);
       }
-      timerId = setTimeout(advance, refs.current.interval * 1000);
     };
 
-    timerId = setTimeout(advance, interval * 1000);
+    const onTimeout = () => {
+      const listenerNote = refs.current.listening && refs.current.currentType === "note";
+      if (listenerNote) {
+        if (hitForCurrentRef.current) {
+          // Note was played correctly within the interval — advance with streak credit.
+          doAdvance(true);
+        } else {
+          // Time expired without a correct note — freeze bar at 100% and wait.
+          // The hitStatus effect calls advanceFnRef when correct note is detected.
+          if (withinTimeRef.current) {
+            withinTimeRef.current = false;
+            setStreak(0);
+          }
+        }
+      } else {
+        doAdvance(false);
+      }
+    };
+
+    advanceFnRef.current = doAdvance;
+    timerIdRef.current = setTimeout(onTimeout, interval * 1000);
 
     const animate = () => {
       const now = performance.now();
-      const pct = Math.min((now - start) / (refs.current.interval * 1000), 1);
+      const pct = Math.min((now - startRef.current) / (refs.current.interval * 1000), 1);
       setProgress(pct);
       practiceTimeRef.current += (now - lastFrame) / 1000;
       setPracticeTime(practiceTimeRef.current);
@@ -435,7 +503,7 @@ export default function GuitarPractice() {
     rafId = requestAnimationFrame(animate);
 
     return () => {
-      clearTimeout(timerId);
+      clearTimeout(timerIdRef.current);
       cancelAnimationFrame(rafId);
     };
   }, [inSession, paused, interval]);
@@ -448,6 +516,8 @@ export default function GuitarPractice() {
     setCount(1);
     setProgress(0);
     setHitStatus(null);
+    setStreak(0);
+    withinTimeRef.current = true;
     setInSession(true);
     setPaused(false);
     if (tts && first) sayAloud(first);
@@ -459,7 +529,12 @@ export default function GuitarPractice() {
     setCurrent(null);
     setProgress(0);
     setHitStatus(null);
+    setStreak(0);
     speechSynthesis.cancel();
+  };
+
+  const forceAccept = () => {
+    advanceFnRef.current?.(false);
   };
 
   const toggleGroup = (group) => {
@@ -527,7 +602,14 @@ export default function GuitarPractice() {
         )}
         <div style={s.sessionCenter}>
           <div style={s.practiceTimerSession}>{formatTime(practiceTime)}</div>
-          <div style={s.countBadge}>#{count}</div>
+          <div style={s.countBadge}>
+            #{count}
+            {listening && streak > 0 && (
+              <span style={{ marginLeft: 14, color: CORRECT, fontWeight: 700 }}>
+                {streak} 🔥
+              </span>
+            )}
+          </div>
           <div style={{
             ...s.noteDisplay,
             opacity: paused ? 0.2 : 1,
@@ -571,6 +653,11 @@ export default function GuitarPractice() {
           <button onClick={() => setPaused((p) => !p)} style={s.btnPause}>
             {paused ? "▶ Reprendre" : "⏸ Pause"}
           </button>
+          {listening && current?.type === "note" && !paused && !isCorrect && (
+            <button onClick={forceAccept} style={s.btnForce}>
+              → Accepter
+            </button>
+          )}
           <button onClick={stopSession} style={s.btnStop}>
             ✕ Arrêter
           </button>
@@ -757,6 +844,7 @@ const s = {
   pauseOverlay: { position: "absolute", fontSize: 20, color: MUTED, letterSpacing: "2px" },
   sessionControls: { display: "flex", gap: 12, padding: 20, justifyContent: "center", position: "relative", zIndex: 1 },
   btnPause: { ...btn, border: `2px solid ${ACCENT}66`, background: `${ACCENT}1A`, color: ACCENT },
+  btnForce: { ...btn, border: "2px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: MUTED, fontSize: 12 },
   btnStop: { ...btn, border: "2px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: MUTED },
   keyHints: { ...base, textAlign: "center", padding: "8px 20px 16px", fontSize: 11, color: DIM, letterSpacing: "0.5px", position: "relative", zIndex: 1 },
 };
