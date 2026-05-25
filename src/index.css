@@ -1,2 +1,29 @@
+:root {
+  --font: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  --bg: #1a1816;
+  --accent: #d4a574;
+  --text: #e8e4df;
+  --muted: #8a8580;
+  --dim: #5a5550;
+  --green: #6ecf72;
+  --red: #cf6e6e;
+  --correct: #FFE566;
+
+  --border-faint: rgba(255, 255, 255, 0.06);
+  --border-soft: rgba(255, 255, 255, 0.08);
+  --surface-faint: rgba(255, 255, 255, 0.04);
+  --surface-soft: rgba(255, 255, 255, 0.06);
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #1a1816; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  letter-spacing: 0.3px;
+}
+
+button {
+  font-family: var(--font);
+  letter-spacing: 0.3px;
+}
