@@ -20,6 +20,37 @@ const NOTES = [
   { id: "si", label: "Si", type: "note" },
 ];
 
+// Sharp variants — have their own NOTE_FREQS entries
+const CHROMATIC_SHARPS = [
+  { id: "do_sharp",  label: "Do#",  speak: "Do dièse",  type: "note", defaultEnabled: false },
+  { id: "re_sharp",  label: "Ré#",  speak: "Ré dièse",  type: "note", defaultEnabled: false },
+  { id: "fa_sharp",  label: "Fa#",  speak: "Fa dièse",  type: "note", defaultEnabled: false },
+  { id: "sol_sharp", label: "Sol#", speak: "Sol dièse", type: "note", defaultEnabled: false },
+  { id: "la_sharp",  label: "La#",  speak: "La dièse",  type: "note", defaultEnabled: false },
+];
+
+// Flat variants — same frequencies as their enharmonic sharp, resolved via enharmonicId
+const CHROMATIC_FLATS = [
+  { id: "re_flat",  label: "Ré♭",  speak: "Ré bémol",  type: "note", defaultEnabled: false, enharmonicId: "do_sharp"  },
+  { id: "mi_flat",  label: "Mi♭",  speak: "Mi bémol",  type: "note", defaultEnabled: false, enharmonicId: "re_sharp"  },
+  { id: "sol_flat", label: "Sol♭", speak: "Sol bémol", type: "note", defaultEnabled: false, enharmonicId: "fa_sharp"  },
+  { id: "la_flat",  label: "La♭",  speak: "La bémol",  type: "note", defaultEnabled: false, enharmonicId: "sol_sharp" },
+  { id: "si_flat",  label: "Si♭",  speak: "Si bémol",  type: "note", defaultEnabled: false, enharmonicId: "la_sharp"  },
+];
+
+const CHROMATIC_NOTES = [...CHROMATIC_SHARPS, ...CHROMATIC_FLATS];
+
+// Display order: each entry is a natural note + optional [sharp, flat] pair
+const NOTES_DISPLAY_ORDER = [
+  { natural: NOTES[0], chromatic: [CHROMATIC_SHARPS[0], CHROMATIC_FLATS[0]] },
+  { natural: NOTES[1], chromatic: [CHROMATIC_SHARPS[1], CHROMATIC_FLATS[1]] },
+  { natural: NOTES[2] },
+  { natural: NOTES[3], chromatic: [CHROMATIC_SHARPS[2], CHROMATIC_FLATS[2]] },
+  { natural: NOTES[4], chromatic: [CHROMATIC_SHARPS[3], CHROMATIC_FLATS[3]] },
+  { natural: NOTES[5], chromatic: [CHROMATIC_SHARPS[4], CHROMATIC_FLATS[4]] },
+  { natural: NOTES[6] },
+];
+
 const CHORDS = [
   { id: "mi_maj", label: "Mi Majeur", speak: "«Mi» Majeur", type: "chord" },
   { id: "mi_min", label: "Mi Mineur", speak: "«Mi» Mineur", type: "chord" },
@@ -29,18 +60,23 @@ const CHORDS = [
   { id: "la_dim", label: "La Diminué", speak: "«La» Diminué", type: "chord" },
 ];
 
-const ALL = [...NOTES, ...CHORDS];
+const ALL = [...NOTES, ...CHROMATIC_NOTES, ...CHORDS];
 
 // Note frequencies for all guitar-relevant octaves (C2–C6)
 // Maps note id -> array of frequencies across octaves
 const NOTE_FREQS = {
-  do:  [65.41, 130.81, 261.63, 523.25, 1046.50],
-  re:  [73.42, 146.83, 293.66, 587.33, 1174.66],
-  mi:  [82.41, 164.81, 329.63, 659.26, 1318.51],
-  fa:  [87.31, 174.61, 349.23, 698.46, 1396.91],
-  sol: [98.00, 196.00, 392.00, 783.99, 1567.98],
-  la:  [110.00, 220.00, 440.00, 880.00, 1760.00],
-  si:  [123.47, 246.94, 493.88, 987.77, 1975.53],
+  do:        [65.41,  130.81, 261.63, 523.25,  1046.50],
+  do_sharp:  [69.30,  138.59, 277.18, 554.37,  1108.73],
+  re:        [73.42,  146.83, 293.66, 587.33,  1174.66],
+  re_sharp:  [77.78,  155.56, 311.13, 622.25,  1244.51],
+  mi:        [82.41,  164.81, 329.63, 659.26,  1318.51],
+  fa:        [87.31,  174.61, 349.23, 698.46,  1396.91],
+  fa_sharp:  [92.50,  185.00, 369.99, 739.99,  1479.98],
+  sol:       [98.00,  196.00, 392.00, 783.99,  1567.98],
+  sol_sharp: [103.83, 207.65, 415.30, 830.61,  1661.22],
+  la:        [110.00, 220.00, 440.00, 880.00,  1760.00],
+  la_sharp:  [116.54, 233.08, 466.16, 932.33,  1864.66],
+  si:        [123.47, 246.94, 493.88, 987.77,  1975.53],
 };
 
 function freqToNoteId(freq) {
@@ -286,7 +322,7 @@ function DebugView({ onBack }) {
   const { freq, rms, corr, noteInfo } = useDebugPitch(true);
   const rmsPercent = Math.min(rms / 0.3, 1);
   const withinThreshold = noteInfo && noteInfo.cents < 50;
-  const noteLabel = noteInfo ? NOTES.find((n) => n.id === noteInfo.noteId)?.label : null;
+  const noteLabel = noteInfo ? [...NOTES, ...CHROMATIC_NOTES].find((n) => n.id === noteInfo.noteId)?.label : null;
 
   return (
     <div style={{ ...s.configRoot, justifyContent: "flex-start", paddingTop: 40 }}>
@@ -371,7 +407,7 @@ export default function GuitarPractice() {
     return typeof s.interval === 'number' ? s.interval : 2;
   });
   const [enabled, setEnabled] = useState(() => {
-    const defaults = Object.fromEntries(ALL.map((item) => [item.id, true]));
+    const defaults = Object.fromEntries(ALL.map((item) => [item.id, item.defaultEnabled !== false]));
     const s = loadSettings();
     return s.enabled ? { ...defaults, ...s.enabled } : defaults;
   });
@@ -419,7 +455,7 @@ export default function GuitarPractice() {
     if (!micActive || !current || current.type !== "note" || hitForCurrentRef.current) return;
     if (detectedNote === null) return;
 
-    if (detectedNote === current.id) {
+    if (detectedNote === (current.enharmonicId ?? current.id)) {
       setHitStatus("correct");
       hitForCurrentRef.current = true;
       // If the time window already expired, advance immediately (no streak credit).
@@ -636,7 +672,7 @@ export default function GuitarPractice() {
               {listening && current?.type === "note" && !paused && (
                 <div style={s.detectionHint}>
                   {detectedNote
-                    ? NOTES.find((n) => n.id === detectedNote)?.label || "?"
+                    ? [...NOTES, ...CHROMATIC_SHARPS].find((n) => n.id === detectedNote)?.label || "?"
                     : "🎤 …"}
                 </div>
               )}
@@ -735,7 +771,41 @@ export default function GuitarPractice() {
           </div>
         </div>
 
-        {renderGroup("Notes", NOTES)}
+        <div style={s.section}>
+          <div style={s.sectionHeader}>
+            <span style={s.sectionLabel}>Notes</span>
+            <button onClick={() => toggleGroup([...NOTES, ...CHROMATIC_NOTES])} style={s.toggleAllBtn}>
+              {[...NOTES, ...CHROMATIC_NOTES].every((item) => enabled[item.id])
+                ? "Tout désélectionner"
+                : "Tout sélectionner"}
+            </button>
+          </div>
+          <div style={{ ...s.chipGrid, alignItems: "flex-start" }}>
+            {NOTES_DISPLAY_ORDER.map(({ natural, chromatic }) => (
+              <div key={natural.id} style={{ display: "contents" }}>
+                <button
+                  onClick={() => setEnabled((p) => ({ ...p, [natural.id]: !p[natural.id] }))}
+                  style={{ ...s.chip, ...(enabled[natural.id] ? s.chipOn : s.chipOff) }}
+                >
+                  {natural.label}
+                </button>
+                {chromatic && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {chromatic.map((note) => (
+                      <button
+                        key={note.id}
+                        onClick={() => setEnabled((p) => ({ ...p, [note.id]: !p[note.id] }))}
+                        style={{ ...s.chip, ...(enabled[note.id] ? s.chipOn : s.chipOff), ...s.chipChromatic }}
+                      >
+                        {note.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
         {renderGroup("Accords", CHORDS)}
 
         {renderToggle("Annoncer à voix haute", tts, setTts)}
@@ -820,6 +890,7 @@ const s = {
   chip: { ...base, fontSize: 14, fontWeight: 600, padding: "8px 16px", borderRadius: 6, border: "2px solid transparent", cursor: "pointer", transition: "all 0.15s ease" },
   chipOn: { background: `${ACCENT}26`, borderColor: ACCENT, color: ACCENT },
   chipOff: { background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)", color: DIM },
+  chipChromatic: { fontSize: 10, padding: "3px 8px", lineHeight: 1.2 },
   ttsRow: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: 4 },
   ttsLabel: { fontSize: 13, fontWeight: 600, color: MUTED },
   ttsToggle: { width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer", position: "relative", transition: "background 0.2s ease", padding: 0, flexShrink: 0 },
