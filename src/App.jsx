@@ -747,6 +747,14 @@ export default function GuitarPractice() {
 
   return (
     <div style={s.configRoot}>
+      {import.meta.env.DEV && (
+        <button
+          onClick={() => setInDebug(true)}
+          style={{ position: "fixed", top: 12, right: 12, zIndex: 100, ...s.resetBtn, fontSize: 10, color: DIM, opacity: 0.5 }}
+        >
+          debug
+        </button>
+      )}
       <div style={s.configInner}>
         <h1 style={s.title}>Exercice Guitare</h1>
         <p style={s.subtitle}>Trouve les notes et accords sur le manche</p>
@@ -774,28 +782,49 @@ export default function GuitarPractice() {
         <div style={s.section}>
           <div style={s.sectionHeader}>
             <span style={s.sectionLabel}>Notes</span>
-            <button onClick={() => toggleGroup([...NOTES, ...CHROMATIC_NOTES])} style={s.toggleAllBtn}>
-              {[...NOTES, ...CHROMATIC_NOTES].every((item) => enabled[item.id])
-                ? "Tout désélectionner"
-                : "Tout sélectionner"}
-            </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={() => setEnabled((prev) => ({
+                  ...prev,
+                  ...Object.fromEntries([...NOTES, ...CHROMATIC_NOTES].map((n) => [n.id, false])),
+                }))}
+                style={s.presetBtn}
+              >Aucune</button>
+              <span style={{ color: DIM, fontSize: 11, userSelect: "none" }}>/</span>
+              <button
+                onClick={() => setEnabled((prev) => ({
+                  ...prev,
+                  ...Object.fromEntries(NOTES.map((n) => [n.id, true])),
+                  ...Object.fromEntries(CHROMATIC_NOTES.map((n) => [n.id, false])),
+                }))}
+                style={s.presetBtn}
+              >Naturelles</button>
+              <span style={{ color: DIM, fontSize: 11, userSelect: "none" }}>/</span>
+              <button
+                onClick={() => setEnabled((prev) => ({
+                  ...prev,
+                  ...Object.fromEntries([...NOTES, ...CHROMATIC_NOTES].map((n) => [n.id, true])),
+                }))}
+                style={s.presetBtn}
+              >Toutes</button>
+            </div>
           </div>
-          <div style={{ ...s.chipGrid, alignItems: "flex-start" }}>
+          <div style={{ ...s.chipGrid, gap: 5 }}>
             {NOTES_DISPLAY_ORDER.map(({ natural, chromatic }) => (
               <div key={natural.id} style={{ display: "contents" }}>
                 <button
                   onClick={() => setEnabled((p) => ({ ...p, [natural.id]: !p[natural.id] }))}
-                  style={{ ...s.chip, ...(enabled[natural.id] ? s.chipOn : s.chipOff) }}
+                  style={{ ...s.chip, ...(enabled[natural.id] ? s.chipOn : s.chipOff), width: "64px", boxSizing: "border-box", padding: "8px 8px" }}
                 >
                   {natural.label}
                 </button>
                 {chromatic && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5, width: "64px" }}>
                     {chromatic.map((note) => (
                       <button
                         key={note.id}
                         onClick={() => setEnabled((p) => ({ ...p, [note.id]: !p[note.id] }))}
-                        style={{ ...s.chip, ...(enabled[note.id] ? s.chipOn : s.chipOff), ...s.chipChromatic }}
+                        style={{ ...s.chip, ...(enabled[note.id] ? s.chipOn : s.chipOff), ...s.chipChromatic, flex: 1 }}
                       >
                         {note.label}
                       </button>
@@ -844,13 +873,6 @@ export default function GuitarPractice() {
           </div>
         )}
 
-        {import.meta.env.DEV && (
-          <div style={{ marginTop: 32, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
-            <button onClick={() => setInDebug(true)} style={{ ...s.resetBtn, fontSize: 11, color: DIM }}>
-              debug micro
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -891,6 +913,7 @@ const s = {
   chipOn: { background: `${ACCENT}26`, borderColor: ACCENT, color: ACCENT },
   chipOff: { background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)", color: DIM },
   chipChromatic: { fontSize: 10, padding: "3px 8px", lineHeight: 1.2 },
+  presetBtn: { background: "none", border: "none", color: ACCENT, fontSize: 11, cursor: "pointer", fontFamily: FONT, padding: 0 },
   ttsRow: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: 4 },
   ttsLabel: { fontSize: 13, fontWeight: 600, color: MUTED },
   ttsToggle: { width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer", position: "relative", transition: "background 0.2s ease", padding: 0, flexShrink: 0 },
