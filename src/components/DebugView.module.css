@@ -1,0 +1,94 @@
+.root {
+  composes: configRoot from "./shared.module.css";
+  justify-content: flex-start;
+  padding-top: 40px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.backBtn {
+  composes: resetBtn from "./shared.module.css";
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.headerLabel {
+  font-size: 11px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.block { margin-bottom: 32px; }
+
+.blockLabel {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.barTrack {
+  height: 8px;
+  background: var(--surface-soft);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.05s ease;
+}
+
+.barCaption {
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 4px;
+}
+
+.bigValue {
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.bigValueMuted { color: var(--dim); }
+.bigValueText { color: var(--text); }
+.bigValueGreen { color: var(--green); }
+.bigValueAccent { color: var(--accent); }
+
+.bigLabel {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+}
+
+.noteRow {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.centsBadge {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.centsBadgeGreen { color: var(--green); }
+.centsBadgeAccent { color: var(--accent); }
+
+.noteCaption {
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 8px;
+}

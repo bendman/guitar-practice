@@ -1,0 +1,80 @@
+.fullPage {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.configRoot {
+  composes: fullPage;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+}
+
+.configInner {
+  width: 100%;
+  max-width: 480px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.5px;
+  color: #f5f0ea;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 6px 0 32px;
+}
+
+.section { margin-bottom: 28px; }
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.startBtn {
+  width: 100%;
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--accent);
+  color: var(--bg);
+  margin-top: 12px;
+  transition: all 0.15s ease;
+}
+
+.startBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.resetBtn {
+  font-size: 11px;
+  background: none;
+  border: none;
+  color: var(--dim);
+  cursor: pointer;
+  padding: 0;
+}
