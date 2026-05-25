@@ -733,14 +733,15 @@ export default function GuitarPractice() {
     </div>
   );
 
-  const renderToggle = (label, value, onChange) => (
-    <div style={s.ttsRow}>
+  const renderToggle = (label, value, onChange, disabled = false) => (
+    <div style={{ ...s.ttsRow, opacity: disabled ? 0.35 : 1 }}>
       <span style={s.ttsLabel}>{label}</span>
       <button
-        onClick={() => onChange(!value)}
-        style={{ ...s.ttsToggle, background: value ? ACCENT : "rgba(255,255,255,0.1)" }}
+        onClick={() => !disabled && onChange(!value)}
+        disabled={disabled}
+        style={{ ...s.ttsToggle, background: value && !disabled ? ACCENT : "rgba(255,255,255,0.1)", cursor: disabled ? "not-allowed" : "pointer" }}
       >
-        <div style={{ ...s.ttsKnob, left: value ? 23 : 3 }} />
+        <div style={{ ...s.ttsKnob, left: value && !disabled ? 23 : 3 }} />
       </button>
     </div>
   );
@@ -838,12 +839,19 @@ export default function GuitarPractice() {
         {renderGroup("Accords", CHORDS)}
 
         {renderToggle("Annoncer à voix haute", tts, setTts)}
-        {renderToggle("Détecter les notes (micro)", listening, setListening)}
-        {listening && (
-          <div style={s.listenHint}>
-            Notes uniquement · le texte change de couleur quand la bonne note est jouée
-          </div>
-        )}
+        {(() => {
+          const hasNotes = pool.some((item) => item.type === "note");
+          return (
+            <>
+              {renderToggle("Détecter les notes (micro)", listening, setListening, !hasNotes)}
+              {listening && hasNotes && (
+                <div style={s.listenHint}>
+                  Notes uniquement · le texte change de couleur quand la bonne note est jouée
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         <button
           onClick={startSession}
