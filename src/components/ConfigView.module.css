@@ -1,0 +1,82 @@
+.intervalValue {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.slider {
+  width: 100%;
+  height: 6px;
+  appearance: auto;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.sliderLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 4px;
+}
+
+.listenHint {
+  font-size: 11px;
+  color: var(--dim);
+  padding: 4px 0 8px;
+  line-height: 1.5;
+}
+
+.practiceTimeBox {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: var(--surface-faint);
+  border-radius: 8px;
+  border: 1px solid var(--border-faint);
+}
+
+.practiceTimeValue {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.practiceTimeSubRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.practiceTimeLabel {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.debugBtn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 100;
+  font-size: 10px;
+  color: var(--dim);
+  opacity: 0.5;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toggleAllBtn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: var(--font);
+  padding: 0;
+}

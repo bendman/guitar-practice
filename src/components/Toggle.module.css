@@ -1,0 +1,46 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-faint);
+  margin-top: 4px;
+}
+
+.rowDisabled { opacity: 0.35; }
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.track {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.trackOn { background: var(--accent); }
+
+.track:disabled { cursor: not-allowed; }
+
+.knob {
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: #fff;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: left 0.2s ease;
+}
+
+.knobOn { left: 23px; }

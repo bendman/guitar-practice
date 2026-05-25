@@ -1,0 +1,169 @@
+.root {
+  composes: fullPage from "./shared.module.css";
+  position: relative;
+  overflow: hidden;
+}
+
+.progressBg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.12), rgba(212, 165, 116, 0.06));
+  border-right: 2px solid rgba(212, 165, 116, 0.3);
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.correctGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse at center, rgba(255, 229, 102, 0.16) 0%, transparent 65%);
+  animation: correctGlow 0.35s ease-out forwards;
+}
+
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.practiceTimer {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1px;
+  margin-bottom: 24px;
+}
+
+.countBadge {
+  font-size: 12px;
+  color: var(--dim);
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+
+.streak {
+  margin-left: 14px;
+  color: var(--correct);
+  font-weight: 700;
+}
+
+.noteDisplay {
+  font-size: 80px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  transition: all 0.2s ease;
+  text-align: center;
+  line-height: 1.1;
+  color: #ffffff;
+  text-shadow: 0 2px 20px rgba(212, 165, 116, 0.3);
+}
+
+.noteDisplayPaused { opacity: 0.2; }
+
+.correctMark {
+  font-size: 120px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--correct);
+  text-shadow: 0 0 30px rgba(255, 229, 102, 0.73), 0 0 70px rgba(255, 229, 102, 0.33);
+  animation: correctPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  margin-top: 12px;
+}
+
+.typeBadge {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 16px;
+  transition: opacity 0.2s ease;
+}
+
+.typeBadgePaused { opacity: 0.2; }
+
+.detectionHint {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 20px;
+  letter-spacing: 0.5px;
+}
+
+.detectionHintDim { color: var(--dim); }
+
+.pauseOverlay {
+  position: absolute;
+  font-size: 20px;
+  color: var(--muted);
+  letter-spacing: 2px;
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.btn {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 28px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btnPause {
+  composes: btn;
+  border: 2px solid rgba(212, 165, 116, 0.4);
+  background: rgba(212, 165, 116, 0.1);
+  color: var(--accent);
+}
+
+.btnForce {
+  composes: btn;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.btnStop {
+  composes: btn;
+  border: 2px solid var(--border-soft);
+  background: var(--surface-faint);
+  color: var(--muted);
+}
+
+.keyHints {
+  text-align: center;
+  padding: 8px 20px 16px;
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes correctPop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  55%  { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes correctGlow {
+  0%   { opacity: 0; }
+  25%  { opacity: 1; }
+  100% { opacity: 0.6; }
+}

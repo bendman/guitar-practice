@@ -1,0 +1,72 @@
+.headerActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toggleAllBtn,
+.presetBtn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: var(--font);
+  padding: 0;
+}
+
+.presetSep {
+  color: var(--dim);
+  font-size: 11px;
+  user-select: none;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gridTight { gap: 5px; }
+
+.chip {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--surface-faint);
+  border-color: var(--border-soft);
+  color: var(--dim);
+}
+
+.chipOn {
+  background: rgba(212, 165, 116, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.chipNatural {
+  width: 64px;
+  padding: 8px 8px;
+}
+
+.chromaticCol {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 64px;
+}
+
+.chipChromatic {
+  font-size: 10px;
+  padding: 3px 8px;
+  line-height: 1.2;
+  flex: 1;
+}
+
+.notesRow {
+  display: contents;
+}
