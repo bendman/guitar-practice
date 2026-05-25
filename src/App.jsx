@@ -3,6 +3,7 @@ import { ALL } from "./constants";
 import { usePitchDetection } from "./usePitchDetection";
 import { useSession } from "./useSession";
 import { summarizeSession } from "./summarizeSession";
+import { loadStats, saveStats, resetStats, mergeSessionIntoStats } from "./stats";
 import ConfigView from "./components/ConfigView";
 import SessionView from "./components/SessionView";
 import SummaryView from "./components/SummaryView";
@@ -31,6 +32,7 @@ export default function GuitarPractice() {
   const [listening, setListening] = useState(() => loadSettings().listening ?? false);
   const [inDebug, setInDebug] = useState(false);
   const [sessionSummary, setSessionSummary] = useState(null);
+  const [stats, setStats] = useState(loadStats);
 
   const pool = ALL.filter((item) => enabled[item.id]);
 
@@ -67,8 +69,16 @@ export default function GuitarPractice() {
 
   const stopSession = () => {
     const raw = session.finish();
-    setSessionSummary(summarizeSession({ ...raw, wasListening: listening }));
+    const summary = summarizeSession({ ...raw, wasListening: listening });
+    setSessionSummary(summary);
+    setStats((prev) => {
+      const next = mergeSessionIntoStats(prev, summary);
+      saveStats(next);
+      return next;
+    });
   };
+
+  const resetAllStats = () => setStats(resetStats());
 
   if (import.meta.env.DEV && inDebug) {
     return <DebugView onBack={() => setInDebug(false)} />;
@@ -111,6 +121,8 @@ export default function GuitarPractice() {
       pool={pool}
       practiceTime={session.practiceTime}
       resetPracticeTime={session.resetPracticeTime}
+      stats={stats}
+      resetStats={resetAllStats}
       onStart={session.start}
       showDebugLink={import.meta.env.DEV}
       onShowDebug={() => setInDebug(true)}
