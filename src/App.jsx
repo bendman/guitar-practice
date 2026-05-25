@@ -422,6 +422,7 @@ export default function GuitarPractice() {
   const [hitStatus, setHitStatus] = useState(null); // null | "correct" | "wrong"
   const [streak, setStreak] = useState(0);
   const [inDebug, setInDebug] = useState(false);
+  const [sessionSummary, setSessionSummary] = useState(null);
 
   const lastIdRef = useRef(null);
   const practiceTimeRef = useRef(0);
@@ -430,12 +431,17 @@ export default function GuitarPractice() {
   const advanceFnRef = useRef(null);    // callable from outside the timer effect
   const timerIdRef = useRef(null);      // stored so external callers can cancel it
   const startRef = useRef(performance.now()); // shared with RAF so advance() updates progress origin
-  const refs = useRef({ interval, tts, listening, currentType: null, pool: [] });
+  const sessionResultsRef = useRef([]);
+  const bestStreakRef = useRef(0);
+  const streakRef = useRef(0);
+  const responseTimeRef = useRef(null);
+  const refs = useRef({ interval, tts, listening, currentType: null, current: null, pool: [] });
   refs.current = {
     interval,
     tts,
     listening,
     currentType: current?.type,
+    current,
     pool: ALL.filter((item) => enabled[item.id]),
   };
 
@@ -458,6 +464,7 @@ export default function GuitarPractice() {
     if (detectedNote === (current.enharmonicId ?? current.id)) {
       setHitStatus("correct");
       hitForCurrentRef.current = true;
+      responseTimeRef.current = (performance.now() - startRef.current) / 1000;
       // If the time window already expired, advance immediately (no streak credit).
       // If still within the window, just show ✓ and let the timer advance on schedule.
       if (!withinTimeRef.current) {
@@ -487,7 +494,18 @@ export default function GuitarPractice() {
     // Pick and show the next note, then re-arm the timer.
     // giveCredit: whether this advance counts toward the streak.
     const doAdvance = (giveCredit) => {
-      setStreak(giveCredit ? (s) => s + 1 : 0);
+      if (giveCredit) {
+        streakRef.current += 1;
+        if (streakRef.current > bestStreakRef.current) bestStreakRef.current = streakRef.current;
+        setStreak(streakRef.current);
+      } else {
+        streakRef.current = 0;
+        setStreak(0);
+      }
+      const outgoing = refs.current.current;
+      if (outgoing) {
+        sessionResultsRef.current.push({ id: outgoing.id, label: outgoing.label, type: outgoing.type, correct: giveCredit, responseTime: giveCredit ? responseTimeRef.current : null });
+      }
       const next = pickRandom(refs.current.pool, lastIdRef.current);
       clearTimeout(timerIdRef.current);
       if (next) {
@@ -516,6 +534,7 @@ export default function GuitarPractice() {
           // The hitStatus effect calls advanceFnRef when correct note is detected.
           if (withinTimeRef.current) {
             withinTimeRef.current = false;
+            streakRef.current = 0;
             setStreak(0);
           }
         }
@@ -546,6 +565,9 @@ export default function GuitarPractice() {
 
   const startSession = () => {
     if (pool.length === 0) return;
+    sessionResultsRef.current = [];
+    bestStreakRef.current = 0;
+    streakRef.current = 0;
     const first = pickRandom(pool, null);
     lastIdRef.current = first?.id;
     setCurrent(first);
@@ -560,14 +582,56 @@ export default function GuitarPractice() {
   };
 
   const stopSession = () => {
+    const results = sessionResultsRef.current;
+    const noteResults = results.filter(r => r.type === 'note');
+    const correctCount = noteResults.filter(r => r.correct).length;
+    const totalNotes = noteResults.length;
+    const accuracy = totalNotes > 0 ? Math.round((correctCount / totalNotes) * 100) : 0;
+    const wasListening = listening && totalNotes > 0;
+
+    const noteMap = {};
+    for (const r of results) {
+      if (r.type !== 'note') continue;
+      if (!noteMap[r.id]) noteMap[r.id] = { id: r.id, label: r.label, attempts: 0, misses: 0, responseTimes: [] };
+      noteMap[r.id].attempts += 1;
+      if (!r.correct) noteMap[r.id].misses += 1;
+      if (r.responseTime !== null && r.responseTime !== undefined) noteMap[r.id].responseTimes.push(r.responseTime);
+    }
+    const missedItems = Object.values(noteMap)
+      .filter(n => n.misses > 0)
+      .map(n => {
+        const rt = n.responseTimes;
+        const avgResponseTime = rt.length > 0 ? rt.reduce((a, b) => a + b, 0) / rt.length : null;
+        return { ...n, missRate: Math.round((n.misses / n.attempts) * 100), avgResponseTime };
+      })
+      .sort((a, b) => b.missRate - a.missRate);
+
+    const allResponseTimes = noteResults.map(r => r.responseTime).filter(t => t !== null && t !== undefined);
+    const avgResponseTime = allResponseTimes.length > 0 ? allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length : null;
+
+    setSessionSummary({
+      totalCount: results.length,
+      correctCount,
+      totalNotes,
+      accuracy,
+      avgResponseTime,
+      bestStreak: bestStreakRef.current,
+      practiceTime: practiceTimeRef.current,
+      wasListening,
+      missedItems,
+    });
+
     setInSession(false);
     setPaused(false);
     setCurrent(null);
     setProgress(0);
     setHitStatus(null);
     setStreak(0);
+    streakRef.current = 0;
     speechSynthesis.cancel();
   };
+
+  const dismissSummary = () => setSessionSummary(null);
 
   const forceAccept = () => {
     advanceFnRef.current?.(false);
@@ -700,6 +764,101 @@ export default function GuitarPractice() {
         </div>
         <div style={s.keyHints}>
           <span>▲▼ intervalle ({interval.toFixed(1)}s)</span>
+        </div>
+      </div>
+    );
+  }
+
+  // --- SUMMARY VIEW ---
+  if (!inSession && sessionSummary !== null) {
+    const { totalCount, correctCount, totalNotes, accuracy, avgResponseTime, bestStreak, practiceTime: pt, wasListening, missedItems } = sessionSummary;
+    return (
+      <div style={s.configRoot}>
+        <div style={s.configInner}>
+          <h1 style={s.title}>Résumé de session</h1>
+          <p style={s.subtitle}>Voici les résultats de ta session</p>
+
+          <div style={s.section}>
+            <div style={s.summaryStatRow}>
+              <span style={s.summaryStatLabel}>Durée</span>
+              <span style={s.summaryStatValue}>{formatTime(pt)}</span>
+            </div>
+            <div style={s.summaryStatRow}>
+              <span style={s.summaryStatLabel}>Éléments présentés</span>
+              <span style={s.summaryStatValue}>{totalCount}</span>
+            </div>
+            {wasListening && (
+              <>
+                <div style={s.summaryStatRow}>
+                  <span style={s.summaryStatLabel}>Notes correctes</span>
+                  <span style={s.summaryStatValue}>
+                    {correctCount} / {totalNotes}
+                    <span style={{ color: MUTED, fontSize: 13, marginLeft: 10 }}>{accuracy}%</span>
+                  </span>
+                </div>
+                {avgResponseTime !== null && (
+                  <div style={s.summaryStatRow}>
+                    <span style={s.summaryStatLabel}>Temps de réponse moy.</span>
+                    <span style={s.summaryStatValue}>{avgResponseTime.toFixed(1)}s</span>
+                  </div>
+                )}
+                {bestStreak > 0 && (
+                  <div style={s.summaryStatRow}>
+                    <span style={s.summaryStatLabel}>Meilleure série</span>
+                    <span style={s.summaryStatValue}>{bestStreak} 🔥</span>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {wasListening && missedItems.length > 0 && (
+            <div style={s.section}>
+              <span style={s.sectionLabel}>Notes à travailler</span>
+              <table style={s.summaryTable}>
+                <thead>
+                  <tr>
+                    <th style={{ ...s.summaryTh, textAlign: "left" }}>Note</th>
+                    <th style={s.summaryTh}>Tentatives</th>
+                    <th style={s.summaryTh}>Correctes</th>
+                    <th style={s.summaryTh}>Taux d'erreur</th>
+                    <th style={s.summaryTh}>Temps moy.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {missedItems.map(item => (
+                    <tr key={item.id}>
+                      <td style={{ ...s.summaryTd, color: TEXT, fontWeight: 600 }}>{item.label}</td>
+                      <td style={{ ...s.summaryTd, textAlign: "center" }}>{item.attempts}</td>
+                      <td style={{ ...s.summaryTd, textAlign: "center" }}>{item.attempts - item.misses}</td>
+                      <td style={{ ...s.summaryTd, textAlign: "center", color: item.missRate >= 70 ? RED : item.missRate >= 40 ? ACCENT : MUTED }}>
+                        {item.missRate}%
+                      </td>
+                      <td style={{ ...s.summaryTd, textAlign: "center" }}>
+                        {item.avgResponseTime !== null ? `${item.avgResponseTime.toFixed(1)}s` : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {wasListening && missedItems.length === 0 && totalNotes > 0 && (
+            <div style={{ ...s.section, color: GREEN, fontSize: 14, fontWeight: 600, textAlign: "center", padding: "12px 0" }}>
+              Parfait — toutes les notes correctes !
+            </div>
+          )}
+
+          {!wasListening && (
+            <div style={{ ...s.section, color: MUTED, fontSize: 12, lineHeight: 1.6 }}>
+              Détection désactivée<br /> (aucune statistique de précision disponible)
+            </div>
+          )}
+
+          <button onClick={dismissSummary} style={{ ...s.startBtn, marginTop: 8 }}>
+            Nouvelle session
+          </button>
         </div>
       </div>
     );
@@ -949,4 +1108,11 @@ const s = {
   btnForce: { ...btn, border: "2px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: MUTED, fontSize: 12 },
   btnStop: { ...btn, border: "2px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: MUTED },
   keyHints: { ...base, textAlign: "center", padding: "8px 20px 16px", fontSize: 11, color: DIM, letterSpacing: "0.5px", position: "relative", zIndex: 1 },
+
+  summaryStatRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" },
+  summaryStatLabel: { fontSize: 12, color: MUTED, textTransform: "uppercase", letterSpacing: "1px" },
+  summaryStatValue: { fontSize: 16, fontWeight: 700, color: TEXT },
+  summaryTable: { width: "100%", borderCollapse: "collapse", fontFamily: FONT },
+  summaryTh: { fontSize: 10, color: DIM, textTransform: "uppercase", letterSpacing: "1px", padding: "6px 8px", textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.08)" },
+  summaryTd: { fontSize: 13, color: MUTED, padding: "10px 8px", borderBottom: "1px solid rgba(255,255,255,0.04)" },
 };
