@@ -1,5 +1,6 @@
 import { CHORDS } from "../constants";
 import { formatTime } from "../util";
+import { accuracyPercent } from "../stats";
 import NotesPicker from "./NotesPicker";
 import Toggle from "./Toggle";
 import shared from "./shared.module.css";
@@ -44,9 +45,12 @@ export default function ConfigView({
   tts, setTts,
   listening, setListening,
   pool, practiceTime, resetPracticeTime,
+  stats, resetStats,
   onStart, showDebugLink, onShowDebug,
 }) {
   const hasNotes = pool.some((item) => item.type === "note");
+  const acc = accuracyPercent(stats);
+  const hasStats = stats.totalSessions > 0;
 
   return (
     <div className={shared.configRoot}>
@@ -108,6 +112,35 @@ export default function ConfigView({
             <div className={s.practiceTimeSubRow}>
               <span className={s.practiceTimeLabel}>Temps de pratique</span>
               <button onClick={resetPracticeTime} className={shared.resetBtn}>
+                Réinitialiser
+              </button>
+            </div>
+          </div>
+        )}
+
+        {hasStats && (
+          <div className={s.statsBox}>
+            <div className={s.statsGrid}>
+              <div className={s.statCell}>
+                <div className={s.statValue}>{stats.bestStreak}</div>
+                <div className={s.statLabel}>Meilleure série</div>
+              </div>
+              <div className={s.statCell}>
+                <div className={s.statValue}>{stats.totalSessions}</div>
+                <div className={s.statLabel}>Sessions</div>
+              </div>
+              <div className={s.statCell}>
+                <div className={s.statValue}>{stats.totalCorrect}</div>
+                <div className={s.statLabel}>Notes réussies</div>
+              </div>
+              <div className={s.statCell}>
+                <div className={s.statValue}>{acc != null ? `${acc}%` : "—"}</div>
+                <div className={s.statLabel}>Précision</div>
+              </div>
+            </div>
+            <div className={s.statsFooter}>
+              <span className={s.practiceTimeLabel}>Statistiques globales</span>
+              <button onClick={resetStats} className={shared.resetBtn}>
                 Réinitialiser
               </button>
             </div>
