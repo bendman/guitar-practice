@@ -51,7 +51,7 @@ export default function ConfigView({
   const title = isNotesMode ? "Notes" : "Accords";
   const startLabel = pool.length === 0
     ? "Sélectionne au moins un élément"
-    : `Commencer (${pool.length})`;
+    : "Commencer";
 
   return (
     <div className={shared.screen}>

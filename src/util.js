@@ -20,3 +20,15 @@ export function formatTime(secs) {
   const s = Math.floor(secs % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
+
+// Long-form duration for accumulated time: "2h 07m 42s", "12m 30s", "45s".
+export function formatDuration(secs) {
+  const total = Math.floor(secs);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const ss = s.toString().padStart(2, "0");
+  if (h > 0) return `${h}h ${m.toString().padStart(2, "0")}m ${ss}s`;
+  if (m > 0) return `${m}m ${ss}s`;
+  return `${s}s`;
+}

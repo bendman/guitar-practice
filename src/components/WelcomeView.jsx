@@ -1,4 +1,4 @@
-import { formatTime } from "../util";
+import { formatTime, formatDuration } from "../util";
 import { accuracyPercent } from "../stats";
 import shared from "./shared.module.css";
 import s from "./WelcomeView.module.css";
@@ -36,6 +36,10 @@ export default function WelcomeView({
 
           {hasStats && (
             <div className={s.statsBox}>
+              <div className={s.totalTimeRow}>
+                <div className={s.totalTimeValue}>{formatDuration(stats.totalPracticeTime)}</div>
+                <div className={s.totalTimeLabel}>Temps total d'entraînement</div>
+              </div>
               <div className={s.statsGrid}>
                 <div className={s.statCell}>
                   <div className={s.statValue}>{stats.bestStreak}</div>

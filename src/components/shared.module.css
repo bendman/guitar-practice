@@ -1,5 +1,8 @@
 .fullPage {
-  min-height: 100dvh;
+  /* svh = smallest viewport state (browser chrome + system nav fully shown).
+     Using svh instead of dvh guarantees the footer stays above the Android nav
+     even mid-transition or in PWA standalone mode where dvh can over-report. */
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -26,9 +29,17 @@
 .screenFooter {
   display: flex;
   gap: 12px;
-  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  padding: 12px 20px max(16px, calc(12px + env(safe-area-inset-bottom)));
   background: linear-gradient(to top, var(--bg) 70%, rgba(26, 24, 22, 0));
   border-top: 1px solid var(--border-soft);
+}
+
+/* Match the body's 480px max-width on desktop so buttons don't stretch full-bleed. */
+@media (min-width: 520px) {
+  .screenFooter {
+    padding-left: calc((100% - 480px) / 2);
+    padding-right: calc((100% - 480px) / 2);
+  }
 }
 
 .footerBtn {

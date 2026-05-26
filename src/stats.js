@@ -5,6 +5,7 @@ const EMPTY = {
   totalSessions: 0,
   totalCorrect: 0,
   totalNotes: 0,
+  totalPracticeTime: 0,
 };
 
 export function loadStats() {
@@ -35,6 +36,7 @@ export function mergeSessionIntoStats(stats, summary) {
     totalSessions: stats.totalSessions + 1,
     totalCorrect: stats.totalCorrect,
     totalNotes: stats.totalNotes,
+    totalPracticeTime: stats.totalPracticeTime + (summary.practiceTime ?? 0),
   };
   if (summary.wasListening) {
     next.totalCorrect += summary.correctCount ?? 0;

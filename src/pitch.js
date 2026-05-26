@@ -43,7 +43,8 @@ export function detectPitch(buffer, sampleRate) {
   let rms = 0;
   for (let i = 0; i < n; i++) rms += buffer[i] * buffer[i];
   rms = Math.sqrt(rms / n);
-  if (rms < 0.01) return { freq: null, rms, corr: 0 };
+  // Just skip true silence; the hook's attack/release gate handles note-level gating.
+  if (rms < 0.001) return { freq: null, rms, corr: 0 };
 
   const minPeriod = Math.floor(sampleRate / 2000);
   const maxPeriod = Math.floor(sampleRate / 60);

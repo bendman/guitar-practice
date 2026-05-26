@@ -41,7 +41,7 @@ export default function GuitarPractice() {
   const pool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
 
   const session = useSession({ interval: intervalSecs, pool, listening: mode === "notes" && listening, tts });
-  const detectedNote = usePitchDetection(session.micActive);
+  const detectedNote = usePitchDetection(session.micActive, session.count);
 
   useEffect(() => {
     session.onDetectedNote(detectedNote);

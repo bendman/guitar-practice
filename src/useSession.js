@@ -35,6 +35,7 @@ export function useSession({ interval, pool, listening, tts }) {
   const streakRef = useRef(0);
   const hitForCurrentRef = useRef(false);
   const practiceTimeRef = useRef(0);
+  const sessionStartTimeRef = useRef(0);
 
   // Latest non-reactive inputs for the timer loop (kept in a ref so mid-session
   // changes to pool/listening/tts take effect on next tick without restart).
@@ -156,6 +157,7 @@ export function useSession({ interval, pool, listening, tts }) {
     resultsRef.current = [];
     bestStreakRef.current = 0;
     streakRef.current = 0;
+    sessionStartTimeRef.current = practiceTimeRef.current;
     const first = pickRandom(pool, null);
     lastIdRef.current = first?.id;
     setCurrent(first);
@@ -170,11 +172,12 @@ export function useSession({ interval, pool, listening, tts }) {
   };
 
   // Stop the session and return its aggregated raw data for summarization.
+  // practiceTime is the *per-session* duration so persistent stats can sum it.
   const finish = () => {
     const out = {
       results: resultsRef.current,
       bestStreak: bestStreakRef.current,
-      practiceTime: practiceTimeRef.current,
+      practiceTime: practiceTimeRef.current - sessionStartTimeRef.current,
     };
     setInSession(false);
     setPaused(false);

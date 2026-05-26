@@ -49,6 +49,29 @@
   border: 1px solid var(--border-faint);
 }
 
+.totalTimeRow {
+  text-align: center;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-faint);
+}
+
+.totalTimeValue {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+  line-height: 1.1;
+}
+
+.totalTimeLabel {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 6px;
+}
+
 .statsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;

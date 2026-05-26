@@ -3,14 +3,14 @@
   "configurations": [
     {
       "name": "dev",
-      "runtimeExecutable": "/Users/bendman/.nvm/versions/node/v22.22.2/bin/npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "/Users/bendman/.nvm/versions/node/v22.22.2/bin/node",
+      "runtimeArgs": ["./node_modules/vite/bin/vite.js"],
       "port": 5173
     },
     {
       "name": "preview",
-      "runtimeExecutable": "/Users/bendman/.nvm/versions/node/v22.22.2/bin/npm",
-      "runtimeArgs": ["run", "preview"],
+      "runtimeExecutable": "/Users/bendman/.nvm/versions/node/v22.22.2/bin/node",
+      "runtimeArgs": ["./node_modules/vite/bin/vite.js", "preview"],
       "port": 4173
     }
   ]
