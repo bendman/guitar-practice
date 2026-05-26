@@ -1,5 +1,6 @@
 import { NOTES, CHROMATIC_SHARPS } from "../constants";
 import { formatTime } from "../util";
+import shared from "./shared.module.css";
 import s from "./SessionView.module.css";
 
 const NOTE_LABELS = [...NOTES, ...CHROMATIC_SHARPS];
@@ -32,6 +33,7 @@ export default function SessionView({
         className={s.progressBg}
         style={{ width: `${progress * 100}%`, opacity: paused ? 0.15 : 1 }}
       />
+      {isCorrect && <div className={s.correctFlash} />}
       {isCorrect && <div className={s.correctGlow} />}
       <div className={s.center}>
         <div className={s.practiceTimer}>{formatTime(practiceTime)}</div>
@@ -41,29 +43,29 @@ export default function SessionView({
             <span className={s.streak}>{streak} 🔥</span>
           )}
         </div>
-        <div className={`${s.noteDisplay} ${paused ? s.noteDisplayPaused : ""}`}>
+        <div className={`${s.noteDisplay} ${isCorrect ? s.noteDisplayCorrect : ""}`}>
           {current?.label || "—"}
         </div>
         {isCorrect ? (
           <div className={s.correctMark}>✓</div>
         ) : (
           <>
-            <div className={`${s.typeBadge} ${paused ? s.typeBadgePaused : ""}`}>
+            <div className={s.typeBadge}>
               {current?.type === "chord" ? "Accord" : "Note"}
             </div>
             {listening && current?.type === "note" && !paused && (
               <div className={s.detectionHint}>{detectedLabel(detectedNote)}</div>
             )}
-            {listening && current?.type === "chord" && !paused && (
-              <div className={`${s.detectionHint} ${s.detectionHintDim}`}>
-                détection notes uniquement
-              </div>
-            )}
           </>
         )}
-        {paused && <div className={s.pauseOverlay}>⏸ Pause</div>}
       </div>
-      <div className={s.controls}>
+      {paused && (
+        <>
+          <div className={s.pauseScrim} />
+          <div className={s.pauseOverlay}>⏸ Pause</div>
+        </>
+      )}
+      <div className={shared.screenFooter}>
         <button onClick={onPauseToggle} className={s.btnPause}>
           {paused ? "▶ Reprendre" : "⏸ Pause"}
         </button>

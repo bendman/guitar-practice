@@ -4,6 +4,7 @@ import { usePitchDetection } from "./usePitchDetection";
 import { useSession } from "./useSession";
 import { summarizeSession } from "./summarizeSession";
 import { loadStats, saveStats, resetStats, mergeSessionIntoStats } from "./stats";
+import WelcomeView from "./components/WelcomeView";
 import ConfigView from "./components/ConfigView";
 import SessionView from "./components/SessionView";
 import SummaryView from "./components/SummaryView";
@@ -33,25 +34,25 @@ export default function GuitarPractice() {
   const [inDebug, setInDebug] = useState(false);
   const [sessionSummary, setSessionSummary] = useState(null);
   const [stats, setStats] = useState(loadStats);
+  const [screen, setScreen] = useState("welcome"); // "welcome" | "config"
+  const [mode, setMode] = useState(null); // "notes" | "chords"
 
-  const pool = ALL.filter((item) => enabled[item.id]);
+  const targetType = mode === "chords" ? "chord" : "note";
+  const pool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
 
-  const session = useSession({ interval: intervalSecs, pool, listening, tts });
+  const session = useSession({ interval: intervalSecs, pool, listening: mode === "notes" && listening, tts });
   const detectedNote = usePitchDetection(session.micActive);
 
-  // Feed detected notes into the session.
   useEffect(() => {
     session.onDetectedNote(detectedNote);
   }, [detectedNote]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Persist settings whenever they change.
   useEffect(() => {
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify({ interval: intervalSecs, enabled, tts, listening }));
     } catch { /* ignore quota / disabled storage */ }
   }, [intervalSecs, enabled, tts, listening]);
 
-  // Keyboard controls during session.
   useEffect(() => {
     if (!session.inSession) return;
     const handler = (e) => {
@@ -69,7 +70,7 @@ export default function GuitarPractice() {
 
   const stopSession = () => {
     const raw = session.finish();
-    const summary = summarizeSession({ ...raw, wasListening: listening });
+    const summary = summarizeSession({ ...raw, wasListening: mode === "notes" && listening });
     setSessionSummary(summary);
     setStats((prev) => {
       const next = mergeSessionIntoStats(prev, summary);
@@ -79,6 +80,17 @@ export default function GuitarPractice() {
   };
 
   const resetAllStats = () => setStats(resetStats());
+
+  const goWelcome = () => {
+    setSessionSummary(null);
+    setMode(null);
+    setScreen("welcome");
+  };
+
+  const pickMode = (m) => {
+    setMode(m);
+    setScreen("config");
+  };
 
   if (import.meta.env.DEV && inDebug) {
     return <DebugView onBack={() => setInDebug(false)} />;
@@ -92,7 +104,7 @@ export default function GuitarPractice() {
         streak={session.streak}
         progress={session.progress}
         paused={session.paused}
-        listening={listening}
+        listening={mode === "notes" && listening}
         detectedNote={detectedNote}
         hitStatus={session.hitStatus}
         practiceTime={session.practiceTime}
@@ -105,25 +117,38 @@ export default function GuitarPractice() {
   }
 
   if (sessionSummary !== null) {
-    return <SummaryView summary={sessionSummary} onDismiss={() => setSessionSummary(null)} />;
+    return <SummaryView summary={sessionSummary} onDismiss={goWelcome} />;
+  }
+
+  if (screen === "config") {
+    return (
+      <ConfigView
+        mode={mode}
+        interval={intervalSecs}
+        setInterval={setIntervalSecs}
+        enabled={enabled}
+        setEnabled={setEnabled}
+        tts={tts}
+        setTts={setTts}
+        listening={listening}
+        setListening={setListening}
+        pool={pool}
+        onStart={session.start}
+        onBack={goWelcome}
+        showDebugLink={import.meta.env.DEV}
+        onShowDebug={() => setInDebug(true)}
+      />
+    );
   }
 
   return (
-    <ConfigView
-      interval={intervalSecs}
-      setInterval={setIntervalSecs}
-      enabled={enabled}
-      setEnabled={setEnabled}
-      tts={tts}
-      setTts={setTts}
-      listening={listening}
-      setListening={setListening}
-      pool={pool}
-      practiceTime={session.practiceTime}
-      resetPracticeTime={session.resetPracticeTime}
+    <WelcomeView
       stats={stats}
       resetStats={resetAllStats}
-      onStart={session.start}
+      practiceTime={session.practiceTime}
+      resetPracticeTime={session.resetPracticeTime}
+      onPickNotes={() => pickMode("notes")}
+      onPickChords={() => pickMode("chords")}
       showDebugLink={import.meta.env.DEV}
       onShowDebug={() => setInDebug(true)}
     />

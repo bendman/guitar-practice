@@ -6,16 +6,58 @@
   color: var(--text);
 }
 
-.configRoot {
+.screen {
   composes: fullPage;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 20px;
 }
 
-.configInner {
+.screenBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 20px 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.screenBodyInner {
   width: 100%;
   max-width: 480px;
+}
+
+.screenFooter {
+  display: flex;
+  gap: 12px;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--bg) 70%, rgba(26, 24, 22, 0));
+  border-top: 1px solid var(--border-soft);
+}
+
+.footerBtn {
+  flex: 1;
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.footerBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.footerBtnPrimary {
+  composes: footerBtn;
+  border: none;
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.footerBtnSecondary {
+  composes: footerBtn;
+  border: 2px solid var(--border-soft);
+  background: var(--surface-faint);
+  color: var(--muted);
 }
 
 .title {
@@ -49,25 +91,6 @@
   color: var(--muted);
   display: block;
   margin-bottom: 10px;
-}
-
-.startBtn {
-  width: 100%;
-  padding: 16px;
-  font-size: 15px;
-  font-weight: 700;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  background: var(--accent);
-  color: var(--bg);
-  margin-top: 12px;
-  transition: all 0.15s ease;
-}
-
-.startBtn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
 }
 
 .resetBtn {
