@@ -7,7 +7,7 @@ export default function WelcomeView({
   stats, resetStats,
   practiceTime, resetPracticeTime,
   onPickNotes, onPickChords,
-  showDebugLink, onShowDebug,
+  showDebugLink, onShowDebug, onShowChords,
 }) {
   const acc = accuracyPercent(stats);
   const hasStats = stats.totalSessions > 0;
@@ -15,7 +15,10 @@ export default function WelcomeView({
   return (
     <div className={shared.screen}>
       {showDebugLink && (
-        <button onClick={onShowDebug} className={s.debugBtn}>debug</button>
+        <>
+          <button onClick={onShowChords} className={s.debugBtn} style={{ right: 72 }}>accords</button>
+          <button onClick={onShowDebug} className={s.debugBtn}>debug</button>
+        </>
       )}
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
