@@ -49,14 +49,31 @@ export const NOTES_DISPLAY_ORDER = [
   { natural: NOTES[6] },
 ];
 
-export const CHORDS = [
-  { id: "mi_maj", label: "Mi Majeur", speak: "«Mi» Majeur", type: "chord" },
-  { id: "mi_min", label: "Mi Mineur", speak: "«Mi» Mineur", type: "chord" },
-  { id: "mi_dim", label: "Mi Diminué", speak: "«Mi» Diminué", type: "chord" },
-  { id: "la_maj", label: "La Majeur", speak: "«La» Majeur", type: "chord" },
-  { id: "la_min", label: "La Mineur", speak: "«La» Mineur", type: "chord" },
-  { id: "la_dim", label: "La Diminué", speak: "«La» Diminué", type: "chord" },
+export const CHORD_ROOTS = [
+  { id: "mi", label: "Mi", speak: "«Mi»" },
+  { id: "la", label: "La", speak: "«La»" },
 ];
+
+export const CHORD_QUALITIES = [
+  { id: "maj",  label: "Majeur",    speak: "Majeur" },
+  { id: "min",  label: "Mineur",    speak: "Mineur" },
+  { id: "dim",  label: "Diminué",   speak: "Diminué" },
+  { id: "maj7", label: "Maj 7",     speak: "Majeur 7" },
+  { id: "min7", label: "Min 7",     speak: "Mineur 7" },
+  { id: "dim7", label: "Dim 7",     speak: "Diminué 7" },
+  { id: "dom7", label: "7",         speak: "7" },
+];
+
+export const CHORDS = CHORD_ROOTS.flatMap((root) =>
+  CHORD_QUALITIES.map((q) => ({
+    id: `${root.id}_${q.id}`,
+    label: `${root.label} ${q.label}`,
+    speak: `${root.speak} ${q.speak}`,
+    type: "chord",
+    rootId: root.id,
+    qualityId: q.id,
+  }))
+);
 
 export const ALL = [...NOTES, ...CHROMATIC_NOTES, ...CHORDS];
 

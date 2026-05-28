@@ -1,4 +1,4 @@
-import { CHORDS } from "../constants";
+import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES } from "../constants";
 import NotesPicker from "./NotesPicker";
 import Toggle from "./Toggle";
 import shared from "./shared.module.css";
@@ -14,6 +14,7 @@ function ChordsGroup({ enabled, setEnabled }) {
       return next;
     });
   };
+  const toggle = (id) => setEnabled((p) => ({ ...p, [id]: !p[id] }));
   return (
     <div className={shared.section}>
       <div className={shared.sectionHeader}>
@@ -22,15 +23,25 @@ function ChordsGroup({ enabled, setEnabled }) {
           {allOn ? "Tout désélectionner" : "Tout sélectionner"}
         </button>
       </div>
-      <div className={chip.grid}>
-        {CHORDS.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setEnabled((p) => ({ ...p, [item.id]: !p[item.id] }))}
-            className={`${chip.chip} ${enabled[item.id] ? chip.chipOn : ""}`}
-          >
-            {item.label}
-          </button>
+      <div className={s.chordGrid}>
+        {CHORD_ROOTS.map((root) => (
+          <div key={root.id} className={s.chordRow}>
+            <div className={s.chordRoot}>{root.label}</div>
+            <div className={s.chordQualities}>
+              {CHORD_QUALITIES.map((q) => {
+                const id = `${root.id}_${q.id}`;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => toggle(id)}
+                    className={`${chip.chip} ${enabled[id] ? chip.chipOn : ""} ${s.chordChip}`}
+                  >
+                    {q.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         ))}
       </div>
     </div>

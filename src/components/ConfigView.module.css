@@ -122,3 +122,37 @@
   font-family: var(--font);
   padding: 0;
 }
+
+.chordGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chordRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chordRoot {
+  flex: 0 0 28px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+}
+
+.chordQualities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1;
+}
+
+.chordChip {
+  font-size: 12px;
+  padding: 6px 10px;
+  min-width: 52px;
+  text-align: center;
+}
