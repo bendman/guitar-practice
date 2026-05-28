@@ -9,8 +9,45 @@ import ConfigView from "./components/ConfigView";
 import SessionView from "./components/SessionView";
 import SummaryView from "./components/SummaryView";
 import DebugView from "./components/DebugView";
+import ChordDiagram from "./components/ChordDiagram";
 
 const SETTINGS_KEY = "guitar-practice-settings";
+
+// TEMP design preview — remove before shipping
+const DEMO_CHORDS = [
+  { label: "Mi Majeur", fingering: { frets: [0, 2, 2, 1, 0, 0] } },
+  { label: "Mi Mineur", fingering: { frets: [0, 2, 2, 0, 0, 0] } },
+  { label: "Mi Diminué", fingering: { frets: [0, 1, 2, 0, -1, -1] } },
+  { label: "Mi Maj 7", fingering: { frets: [0, 2, 1, 1, 0, 0] } },
+  { label: "Mi Min 7", fingering: { frets: [0, 2, 0, 0, 0, 0] } },
+  { label: "Mi Demi-diminué", fingering: { frets: [0, 1, 0, 0, -1, -1] } },
+  { label: "Mi 7", fingering: { frets: [0, 2, 0, 1, 0, 0] } },
+  { label: "La Majeur", fingering: { frets: [-1, 0, 2, 2, 2, 0] } },
+  { label: "La Mineur", fingering: { frets: [-1, 0, 2, 2, 1, 0] } },
+  { label: "La Diminué", fingering: { frets: [-1, 0, 1, 2, 1, -1] } },
+  { label: "La Maj 7", fingering: { frets: [-1, 0, 2, 1, 2, 0] } },
+  { label: "La Min 7", fingering: { frets: [-1, 0, 2, 0, 1, 0] } },
+  { label: "La Demi-diminué", fingering: { frets: [-1, 0, 1, 0, 1, -1] } },
+  { label: "La 7", fingering: { frets: [-1, 0, 2, 0, 2, 0] } },
+];
+
+function ChordDiagramPreview() {
+  return (
+    <div style={{ minHeight: "100vh", padding: 32 }}>
+      <h2 style={{ fontWeight: 500, marginBottom: 24, color: "var(--muted)", fontSize: 16 }}>
+        ChordDiagram — design preview
+      </h2>
+      <div style={{ display: "flex", gap: 32, flexWrap: "wrap", alignItems: "flex-start" }}>
+        {DEMO_CHORDS.map((c) => (
+          <div key={c.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+            <ChordDiagram fingering={c.fingering} />
+            <span style={{ color: "var(--text)", fontSize: 13 }}>{c.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function loadSettings() {
   try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) ?? {}; }
@@ -24,6 +61,8 @@ function initialEnabled() {
 }
 
 export default function GuitarPractice() {
+  if (true) return <ChordDiagramPreview />; // TEMP design preview
+
   const [intervalSecs, setIntervalSecs] = useState(() => {
     const stored = loadSettings().interval;
     return typeof stored === "number" ? stored : 2;

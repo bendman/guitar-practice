@@ -60,7 +60,7 @@ export const CHORD_QUALITIES = [
   { id: "dim",  label: "Diminué",   speak: "Diminué" },
   { id: "maj7", label: "Maj 7",     speak: "Majeur 7" },
   { id: "min7", label: "Min 7",     speak: "Mineur 7" },
-  { id: "dim7", label: "Dim 7",     speak: "Diminué 7" },
+  { id: "m7b5", label: "Demi-diminué", speak: "Demi-diminué" },
   { id: "dom7", label: "7",         speak: "7" },
 ];
 
