@@ -181,39 +181,6 @@
   user-select: none;
 }
 
-/* ── Root keyboard ───────────────────────────────────────────────────────────── */
-.rootKeyboard {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 20px;
-}
-
-.rootKey {
-  flex: 1;
-  padding: 12px 4px;
-  font-size: 13px;
-  font-weight: 600;
-  border: 1px solid var(--line);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text-dim);
-  cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.1s var(--ease);
-  font-family: var(--mono);
-  min-height: 48px;
-}
-
-.rootKey:active { transform: scale(0.94); }
-
-.rootKeyOn {
-  background: rgba(226, 178, 136, 0.15);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.rootKeyPlaceholder {
-  flex: 1;
-}
 
 /* ── Segmented active state ──────────────────────────────────────────────────── */
 .segOn {
@@ -243,37 +210,7 @@
   line-height: 1.4;
 }
 
-/* ── Affiner par tonique matrix ──────────────────────────────────────────────── */
-.matrixWrap {
-  margin-top: 20px;
-  border-top: 1px solid var(--line);
-  padding-top: 4px;
-}
-
-.matrixToggle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: none;
-  border: 0;
-  cursor: pointer;
-  padding: 12px 2px;
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-dim);
-  transition: color 0.15s ease;
-}
-
-.matrixToggle:hover { color: var(--text); }
-
-.matrixToggleLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
+/* ── Root × quality matrix ───────────────────────────────────────────────────── */
 .matrixScroll {
   overflow-x: auto;
   padding: 6px 2px 16px;
@@ -288,23 +225,36 @@
   align-items: center;
 }
 
-.mxCol {
+.mxColBtn {
   font-family: var(--mono);
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.03em;
   color: var(--text-faint);
   text-align: center;
-  padding-bottom: 2px;
+  padding: 0 0 4px;
   white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.12s ease;
 }
+.mxColBtn:hover { color: var(--text-dim); }
 
-.mxRow {
+.mxRowBtn {
   font-family: var(--display);
   font-weight: 700;
   font-size: 13px;
-  color: var(--text);
+  color: var(--text-faint);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  transition: color 0.12s ease;
 }
+.mxRowBtn:hover { color: var(--text); }
+.mxRowBtnOn { color: var(--accent); }
 
 .mxCell {
   height: 30px;
