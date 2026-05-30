@@ -4,7 +4,9 @@ const STRINGS = 6;
 const STRING_SPACING = 18;
 const FRET_SPACING = 27.5;
 const MARGIN_LEFT = 22;
-const MARGIN_RIGHT = 14;
+// Match MARGIN_LEFT so the fret grid stays horizontally centred within the SVG
+// (the left margin reserves room for the "Nfr" position label on barre chords).
+const MARGIN_RIGHT = 22;
 const HEADER = 26; // space above the grid for open/muted markers
 const BOTTOM_PAD = 8;
 const DOT_R = 7;

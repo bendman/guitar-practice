@@ -190,6 +190,7 @@ export default function GuitarPractice() {
         interval={intervalSecs}
         onPauseToggle={session.pauseToggle}
         onForceAccept={session.forceAccept}
+        onManualNext={session.manualNext}
         onStop={stopSession}
       />
     );
