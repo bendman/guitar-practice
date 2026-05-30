@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS, NOTES, CHROMATIC_NOTES, NOTES_DISPLAY_ORDER } from "../constants";
+import React from "react";
+import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS, NOTES, CHROMATIC_NOTES } from "../constants";
+import { weightToLevel } from "../util";
 import NotesPicker from "./NotesPicker";
 import Toggle from "./Toggle";
-import Icon from "./Icon";
+import ProgressDot from "./ProgressDot";
 import shared from "./shared.module.css";
 import s from "./ConfigView.module.css";
 
@@ -14,26 +15,27 @@ function IntervalControl({ interval, setInterval }) {
         <span className={shared.eyebrow}>Intervalle</span>
         <span className={s.intervalValue}>{interval.toFixed(1)}s</span>
       </div>
-      <input
-        type="range"
-        min="0.5"
-        max="5"
-        step="0.1"
-        value={interval}
-        onChange={(e) => setInterval(parseFloat(e.target.value))}
-        className={s.slider}
-      />
+      <div className={s.sliderWrap}>
+        <input
+          type="range"
+          min="0.5"
+          max="10"
+          step="0.1"
+          value={interval}
+          onChange={(e) => setInterval(parseFloat(e.target.value))}
+          className={s.slider}
+        />
+      </div>
       <div className={s.sliderLabels}>
         <span>0.5s</span>
-        <span>5.0s</span>
+        <span>10.0s</span>
       </div>
     </div>
   );
 }
 
 // ── Chord builder ─────────────────────────────────────────────────────────────
-function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression }) {
-  const [showMatrix, setShowMatrix] = useState(false);
+function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression, weights = {} }) {
   const totalEnabled = CHORDS.filter((c) => enabled[c.id]).length;
 
   const clearAll = () => {
@@ -53,9 +55,6 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
     });
   };
 
-  const isQualityActive = (qualityId) =>
-    CHORD_ROOTS.some((r) => enabled[`${r.id}_${qualityId}`]);
-
   const toggleRoot = (rootId) => {
     setEnabled((prev) => {
       const next = { ...prev };
@@ -68,6 +67,11 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
   const isRootActive = (rootId) =>
     CHORD_QUALITIES.some((q) => enabled[`${rootId}_${q.id}`]);
 
+  const toggleCell = (rootId, qualityId) => {
+    const id = `${rootId}_${qualityId}`;
+    setEnabled((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const rootPreset = (kind) => {
     if (kind === "none") {
       setEnabled((prev) => {
@@ -76,7 +80,6 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
         return next;
       });
     } else if (kind === "naturals") {
-      // Enable Mi and La (the original natural-position roots)
       setEnabled((prev) => {
         const next = { ...prev };
         CHORDS.forEach((c) => { next[c.id] = c.rootId === "mi" || c.rootId === "la"; });
@@ -95,12 +98,15 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
     <>
       {/* Total + clear */}
       <div className={s.chordHeader}>
-        <span className={shared.eyebrow}>Accords · {totalEnabled} au total</span>
-        <button className={shared.resetLink} onClick={clearAll}>tout effacer</button>
+        <span className={shared.eyebrow}>Sélection rapide</span>
+        <div className={s.presetLinks}>
+          <button className={shared.resetLink} onClick={clearAll}>aucune</button>
+          <span className={s.presetSep}>|</span>
+          <button className={shared.resetLink} onClick={() => rootPreset("all")}>toutes</button>
+        </div>
       </div>
 
-      {/* Preset chips */}
-      <div className={s.chipRow}>
+      <div className={s.chipRow} style={{ flexWrap: "wrap" }}>
         {CHORD_PRESETS.map((p) => (
           <button
             key={p.id}
@@ -110,13 +116,6 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
             {p.label}
           </button>
         ))}
-      </div>
-
-      {/* Progression chips */}
-      <div className={s.subsectionHeader}>
-        <span className={shared.eyebrow}>Tonalités &amp; progressions</span>
-      </div>
-      <div className={s.chipRow} style={{ flexWrap: "wrap" }}>
         {CHORD_PROGRESSIONS.map((p) => (
           <button
             key={p.id}
@@ -128,102 +127,59 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
         ))}
       </div>
 
-      {/* Quality chips */}
+      {/* Root × quality matrix — always visible, headers are bulk toggles */}
       <div className={s.subsectionHeader}>
-        <span className={shared.eyebrow}>Qualités</span>
-      </div>
-      <div className={s.chipRow}>
-        {CHORD_QUALITIES.map((q) => (
-          <button
-            key={q.id}
-            onClick={() => toggleQuality(q.id)}
-            className={`${s.chip} ${isQualityActive(q.id) ? s.chipActive : ""}`}
-          >
-            {q.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Root keyboard */}
-      <div className={s.subsectionHeader}>
-        <span className={shared.eyebrow}>Toniques</span>
-        <div className={s.segmented}>
-          <button className={s.seg} onClick={() => rootPreset("none")}>Aucune</button>
-          <button className={s.seg} onClick={() => rootPreset("naturals")}>Naturelles</button>
-          <button className={s.seg} onClick={() => rootPreset("all")}>Toutes</button>
+        <span className={shared.eyebrow}>Accords · {totalEnabled} au total</span>
+        <div className={s.presetLinks}>
+          <button className={shared.resetLink} onClick={() => rootPreset("none")}>aucune</button>
+          <span className={s.presetSep}>|</span>
+          <button className={shared.resetLink} onClick={() => setEnabled((prev) => {
+            const next = { ...prev };
+            CHORDS.forEach((c) => { next[c.id] = weightToLevel(weights[c.id]) === 2; });
+            return next;
+          })}>en cours</button>
+          <span className={s.presetSep}>|</span>
+          <button className={shared.resetLink} onClick={() => rootPreset("all")}>toutes</button>
         </div>
       </div>
-      <div className={s.rootKeyboard}>
-        {NOTES_DISPLAY_ORDER.map(({ natural }) => {
-          const root = CHORD_ROOTS.find((r) => r.id === natural.id);
-          if (!root) return <div key={natural.id} className={s.rootKeyPlaceholder} />;
-          return (
-            <button
-              key={root.id}
-              onClick={() => toggleRoot(root.id)}
-              className={`${s.rootKey} ${isRootActive(root.id) ? s.rootKeyOn : ""}`}
-            >
-              {root.label}
+      <div className={s.matrixScroll}>
+        <div
+          className={s.matrix}
+          style={{ gridTemplateColumns: `48px repeat(${CHORD_QUALITIES.length}, 1fr)` }}
+        >
+          <div />
+          {CHORD_QUALITIES.map((q) => (
+            <button key={q.id} className={s.mxColBtn} onClick={() => toggleQuality(q.id)}>
+              {q.label}
             </button>
-          );
-        })}
+          ))}
+          {CHORD_ROOTS.map((r) => (
+            <React.Fragment key={r.id}>
+              <button
+                className={`${s.mxRowBtn} ${isRootActive(r.id) ? s.mxRowBtnOn : ""}`}
+                onClick={() => toggleRoot(r.id)}
+              >
+                {r.label}
+              </button>
+              {CHORD_QUALITIES.map((q) => {
+                const id = `${r.id}_${q.id}`;
+                const on = !!enabled[id];
+                const level = weightToLevel(weights[id]);
+                return (
+                  <button
+                    key={q.id}
+                    className={`${s.mxCell} ${on ? s.mxCellOn : ""}`}
+                    onClick={() => toggleCell(r.id, q.id)}
+                    aria-label={`${r.label} ${q.label}`}
+                  >
+                    <ProgressDot level={level} size={10} dim={!on} />
+                  </button>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
-
-      {/* Affiner par tonique — fine-grained root×quality matrix */}
-      {(() => {
-        const activeRoots = CHORD_ROOTS.filter((r) => isRootActive(r.id));
-        const activeQualities = CHORD_QUALITIES.filter((q) => isQualityActive(q.id));
-        if (activeRoots.length === 0 || activeQualities.length === 0) return null;
-        const exCount = activeRoots.reduce(
-          (n, r) => n + activeQualities.filter((q) => !enabled[`${r.id}_${q.id}`]).length, 0
-        );
-        const toggleCell = (rootId, qualityId) => {
-          const id = `${rootId}_${qualityId}`;
-          setEnabled((prev) => ({ ...prev, [id]: !prev[id] }));
-        };
-        return (
-          <div className={s.matrixWrap}>
-            <button className={s.matrixToggle} onClick={() => setShowMatrix((v) => !v)}>
-              <span className={s.matrixToggleLabel}>
-                <Icon name={showMatrix ? "eye-off" : "eye"} size={14} />
-                Affiner par tonique{exCount > 0 ? ` · ${exCount} exclus` : ""}
-              </span>
-              <Icon name={showMatrix ? "chevL" : "chevR"} size={15} />
-            </button>
-            {showMatrix && (
-              <div className={s.matrixScroll}>
-                <div
-                  className={s.matrix}
-                  style={{ gridTemplateColumns: `48px repeat(${activeQualities.length}, 1fr)` }}
-                >
-                  <div />
-                  {activeQualities.map((q) => (
-                    <div key={q.id} className={s.mxCol}>{q.label}</div>
-                  ))}
-                  {activeRoots.map((r) => (
-                    <>
-                      <div key={r.id} className={s.mxRow}>{r.label}</div>
-                      {activeQualities.map((q) => {
-                        const on = !!enabled[`${r.id}_${q.id}`];
-                        return (
-                          <button
-                            key={q.id}
-                            className={`${s.mxCell} ${on ? s.mxCellOn : ""}`}
-                            onClick={() => toggleCell(r.id, q.id)}
-                            aria-label={`${r.label} ${q.label}`}
-                          >
-                            <span className={s.mxDot} />
-                          </button>
-                        );
-                      })}
-                    </>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
     </>
   );
 }
@@ -240,6 +196,7 @@ export default function ConfigView({
   onPreset, onProgression,
   chordAuto, setChordAuto,
   onStart, onBack,
+  weights = {},
   showDebugLink, onShowDebug,
 }) {
   const isNotesMode = mode !== "chords";
@@ -291,6 +248,7 @@ export default function ConfigView({
                 chordProgression={chordProgression}
                 onPreset={onPreset}
                 onProgression={onProgression}
+                weights={weights}
               />
 
               {/* Progression mode */}
@@ -339,7 +297,7 @@ export default function ConfigView({
           disabled={pool.length === 0}
           className={`${shared.footerBtnPrimary} ${s.startBtn}`}
         >
-          {pool.length === 0 ? "Sélectionne au moins un élément" : `Commencer · ${pool.length}`}
+          {pool.length === 0 ? "Choisis un élément" : "Commencer"}
         </button>
       </div>
     </div>

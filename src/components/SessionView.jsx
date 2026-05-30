@@ -180,7 +180,7 @@ export default function SessionView({
         {revealed && isChord && (
           <div className={s.diagramWrap}>
             {voicings[voicingIdx] && (
-              <ChordDiagram fingering={voicings[voicingIdx]} size={160} />
+              <ChordDiagram fingering={voicings[voicingIdx]} size={320} />
             )}
             {voicings.length > 1 && (
               <div className={s.voicingSwitcher}>

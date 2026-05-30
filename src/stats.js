@@ -1,4 +1,5 @@
 const STATS_KEY = "guitar-practice-stats";
+const WEIGHTS_KEY = "guitar-practice-weights";
 
 const EMPTY = {
   bestStreak: 0,
@@ -43,6 +44,21 @@ export function mergeSessionIntoStats(stats, summary) {
     next.totalNotes += summary.totalNotes ?? 0;
   }
   return next;
+}
+
+export function loadWeights() {
+  try { return JSON.parse(localStorage.getItem(WEIGHTS_KEY)) ?? {}; }
+  catch { return {}; }
+}
+
+export function saveWeights(weights) {
+  try { localStorage.setItem(WEIGHTS_KEY, JSON.stringify(weights)); }
+  catch { /* ignore quota / disabled storage */ }
+}
+
+export function resetWeights() {
+  saveWeights({});
+  return {};
 }
 
 export function accuracyPercent(stats) {

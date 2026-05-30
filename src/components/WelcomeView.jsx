@@ -8,6 +8,7 @@ export default function WelcomeView({
   stats,
   onPickNotes,
   onPickChords,
+  onShowProgress,
   showDebugLink,
   onShowDebug,
 }) {
@@ -51,22 +52,32 @@ export default function WelcomeView({
             </div>
           </div>
 
-          <span className={`${shared.eyebrow} ${s.modeLabel}`}>Choisis un mode</span>
-          <div className={s.modeCards}>
-            <button className={s.modeCard} onClick={onPickNotes}>
-              <span className={s.modeGlyph}><Icon name="note" size={22} /></span>
-              <span className={s.modeTitle}>Notes</span>
-              <span className={s.modeDesc}>Reconnais les notes sur le manche</span>
-              <span className={s.modeArrow}><Icon name="arrow" size={18} /></span>
-            </button>
-            <button className={s.modeCard} onClick={onPickChords}>
-              <span className={s.modeGlyph}><Icon name="chord" size={22} /></span>
-              <span className={s.modeTitle}>Accords</span>
-              <span className={s.modeDesc}>Mémorise les positions d&apos;accords</span>
-              <span className={s.modeArrow}><Icon name="arrow" size={18} /></span>
-            </button>
-          </div>
+          {onShowProgress && (
+            <div className={s.progressLink}>
+              <button className={shared.resetLink} onClick={onShowProgress}>
+                Ma progression
+              </button>
+            </div>
+          )}
 
+        </div>
+      </div>
+
+      <div className={s.modeFooter}>
+        <span className={`${shared.eyebrow} ${s.modeLabel}`}>Choisis un mode</span>
+        <div className={s.modeCards}>
+          <button className={s.modeCard} onClick={onPickNotes}>
+            <span className={s.modeGlyph}><Icon name="note" size={22} /></span>
+            <span className={s.modeTitle}>Notes</span>
+            <span className={s.modeDesc}>Reconnais les notes sur le manche</span>
+            <span className={s.modeArrow}><Icon name="arrow" size={18} /></span>
+          </button>
+          <button className={s.modeCard} onClick={onPickChords}>
+            <span className={s.modeGlyph}><Icon name="chord" size={22} /></span>
+            <span className={s.modeTitle}>Accords</span>
+            <span className={s.modeDesc}>Mémorise les positions d&apos;accords</span>
+            <span className={s.modeArrow}><Icon name="arrow" size={18} /></span>
+          </button>
         </div>
       </div>
     </div>

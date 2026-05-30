@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { formatTime, formatDuration } from "../util";
+import { formatTime, formatDuration, weightToLevel } from "../util";
 import { mergeSessionIntoStats, accuracyPercent } from "../stats";
+import ProgressDot from "./ProgressDot";
 import shared from "./shared.module.css";
 import s from "./SummaryView.module.css";
 
@@ -72,10 +73,11 @@ function headline(accuracy) {
   return "On progresse !";
 }
 
-export default function SummaryView({ summary, preSessionStats, onDismiss, onReplay }) {
+export default function SummaryView({ summary, preSessionStats, weights = {}, onDismiss, onReplay }) {
   const {
     totalCount, correctCount, totalNotes, accuracy, bestStreak,
     practiceTime, wasListening, missedItems,
+    wasManualChord, chordCorrectCount, totalChords, chordAccuracy, chordMissedItems,
   } = summary;
 
   // Compute post-session stats from pre-session + summary
@@ -97,6 +99,12 @@ export default function SummaryView({ summary, preSessionStats, onDismiss, onRep
               <AccuracyRing accuracy={accuracy} />
               <h2 className={s.headline}>{headline(accuracy)}</h2>
               <p className={s.subCount}>{correctCount} / {totalNotes} corrects</p>
+            </>
+          ) : wasManualChord ? (
+            <>
+              <AccuracyRing accuracy={chordAccuracy} />
+              <h2 className={s.headline}>{headline(chordAccuracy)}</h2>
+              <p className={s.subCount}>{chordCorrectCount} / {totalChords} trouvés</p>
             </>
           ) : (
             <div className={s.noMicHeader}>
@@ -163,14 +171,9 @@ export default function SummaryView({ summary, preSessionStats, onDismiss, onRep
               <div className={s.workonList}>
                 {missedItems.map((item) => (
                   <div key={item.id} className={s.workonRow}>
+                    <ProgressDot level={weightToLevel(weights[item.id])} size={12} />
                     <span className={s.workonLabel}>{item.label}</span>
-                    <div className={s.workonBar}>
-                      <div
-                        className={s.workonBarFill}
-                        style={{ width: `${item.missRate}%` }}
-                      />
-                    </div>
-                    <span className={s.workonRate}>{item.missRate}% d&apos;erreur</span>
+                    <span className={s.workonRate}>{100 - item.missRate}%</span>
                   </div>
                 ))}
               </div>
@@ -180,6 +183,28 @@ export default function SummaryView({ summary, preSessionStats, onDismiss, onRep
           {wasListening && missedItems.length === 0 && totalNotes > 0 && (
             <div className={s.perfectNote}>
               Toutes les notes correctes — excellent !
+            </div>
+          )}
+
+          {/* Chord missed items (manual grading mode) */}
+          {wasManualChord && chordMissedItems.length > 0 && (
+            <div className={s.workonSection}>
+              <span className={`${shared.eyebrow} ${s.sectionTitle}`}>À retravailler</span>
+              <div className={s.workonList}>
+                {chordMissedItems.map((item) => (
+                  <div key={item.id} className={s.workonRow}>
+                    <ProgressDot level={weightToLevel(weights[item.id])} size={12} />
+                    <span className={s.workonLabel}>{item.label}</span>
+                    <span className={s.workonRate}>{100 - item.missRate}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {wasManualChord && chordMissedItems.length === 0 && totalChords > 0 && (
+            <div className={s.perfectNote}>
+              Tous les accords trouvés — excellent !
             </div>
           )}
 

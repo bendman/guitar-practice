@@ -39,15 +39,20 @@ export const NOTES_DISPLAY_ORDER = [
   { natural: NOTES[6] },
 ];
 
-// Chord roots in scale order. defaultEnabled:false → off by default (activated via presets).
+// Chord roots in chromatic order. defaultEnabled:false → off by default (activated via presets).
 export const CHORD_ROOTS = [
-  { id: "do",  label: "Do",  speak: "«Do»",  defaultEnabled: false },
-  { id: "re",  label: "Ré",  speak: "«Ré»",  defaultEnabled: false },
-  { id: "mi",  label: "Mi",  speak: "«Mi»" },
-  { id: "fa",  label: "Fa",  speak: "«Fa»",  defaultEnabled: false },
-  { id: "sol", label: "Sol", speak: "«Sol»", defaultEnabled: false },
-  { id: "la",  label: "La",  speak: "«La»" },
-  { id: "si",  label: "Si",  speak: "«Si»",  defaultEnabled: false },
+  { id: "do",    label: "Do",   speak: "«Do»",        defaultEnabled: false },
+  { id: "do_s",  label: "Do#",  speak: "«Do dièse»",  defaultEnabled: false },
+  { id: "re",    label: "Ré",   speak: "«Ré»",        defaultEnabled: false },
+  { id: "re_s",  label: "Ré#",  speak: "«Ré dièse»",  defaultEnabled: false },
+  { id: "mi",    label: "Mi",   speak: "«Mi»" },
+  { id: "fa",    label: "Fa",   speak: "«Fa»",        defaultEnabled: false },
+  { id: "fa_s",  label: "Fa#",  speak: "«Fa dièse»",  defaultEnabled: false },
+  { id: "sol",   label: "Sol",  speak: "«Sol»",       defaultEnabled: false },
+  { id: "sol_s", label: "Sol#", speak: "«Sol dièse»", defaultEnabled: false },
+  { id: "la",    label: "La",   speak: "«La»" },
+  { id: "la_s",  label: "La#",  speak: "«La dièse»",  defaultEnabled: false },
+  { id: "si",    label: "Si",   speak: "«Si»",        defaultEnabled: false },
 ];
 
 export const CHORD_QUALITIES = [
@@ -127,6 +132,51 @@ const CHORD_VOICINGS = {
   si_min7: [{ frets: [-1, 2, 4, 2, 3, 2], baseFret: 2, barres: [{ fret: 2, fromString: 1, toString: 5 }] }],
   si_m7b5: [{ frets: [-1, 2, 3, 2, 3, -1], baseFret: 2 }],
   si_dom7: [{ frets: [-1, 2, 4, 2, 3, -1], baseFret: 2 }],
+
+  // ── Fa# (F#) — E-shape barre fret 2 ────────────────────────────────────────
+  fa_s_maj:  [{ frets: [2, 4, 4, 3, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] }],
+  fa_s_min:  [{ frets: [2, 4, 4, 2, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] }],
+  fa_s_dim:  [{ frets: [2, 3, 4, 2, -1, -1], baseFret: 2 }],
+  fa_s_maj7: [{ frets: [2, 4, 3, 3, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] }],
+  fa_s_min7: [{ frets: [2, 4, 2, 2, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] }],
+  fa_s_m7b5: [{ frets: [2, 3, 2, 2, -1, -1], baseFret: 2 }],
+  fa_s_dom7: [{ frets: [2, 4, 2, 3, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] }],
+
+  // ── Sol# (G#) — E-shape barre fret 4 ───────────────────────────────────────
+  sol_s_maj:  [{ frets: [4, 6, 6, 5, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] }],
+  sol_s_min:  [{ frets: [4, 6, 6, 4, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] }],
+  sol_s_dim:  [{ frets: [4, 5, 6, 4, -1, -1], baseFret: 4 }],
+  sol_s_maj7: [{ frets: [4, 6, 5, 5, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] }],
+  sol_s_min7: [{ frets: [4, 6, 4, 4, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] }],
+  sol_s_m7b5: [{ frets: [4, 5, 4, 4, -1, -1], baseFret: 4 }],
+  sol_s_dom7: [{ frets: [4, 6, 4, 5, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] }],
+
+  // ── La# (A#/Bb) — A-shape barre fret 1 ─────────────────────────────────────
+  la_s_maj:  [{ frets: [-1, 1, 3, 3, 3, 1], baseFret: 1, barres: [{ fret: 1, fromString: 1, toString: 5 }] }],
+  la_s_min:  [{ frets: [-1, 1, 3, 3, 2, 1], baseFret: 1, barres: [{ fret: 1, fromString: 1, toString: 5 }] }],
+  la_s_dim:  [{ frets: [-1, 1, 2, 3, 2, -1], baseFret: 1 }],
+  la_s_maj7: [{ frets: [-1, 1, 3, 2, 3, 1], baseFret: 1, barres: [{ fret: 1, fromString: 1, toString: 5 }] }],
+  la_s_min7: [{ frets: [-1, 1, 3, 1, 2, 1], baseFret: 1, barres: [{ fret: 1, fromString: 1, toString: 5 }] }],
+  la_s_m7b5: [{ frets: [-1, 1, 2, 1, 2, -1], baseFret: 1 }],
+  la_s_dom7: [{ frets: [-1, 1, 3, 1, 3, 1], baseFret: 1, barres: [{ fret: 1, fromString: 1, toString: 5 }] }],
+
+  // ── Do# (C#) — A-shape barre fret 4 ────────────────────────────────────────
+  do_s_maj:  [{ frets: [-1, 4, 6, 6, 6, 4], baseFret: 4, barres: [{ fret: 4, fromString: 1, toString: 5 }] }],
+  do_s_min:  [{ frets: [-1, 4, 6, 6, 5, 4], baseFret: 4, barres: [{ fret: 4, fromString: 1, toString: 5 }] }],
+  do_s_dim:  [{ frets: [-1, 4, 5, 6, 5, -1], baseFret: 4 }],
+  do_s_maj7: [{ frets: [-1, 4, 6, 5, 6, 4], baseFret: 4, barres: [{ fret: 4, fromString: 1, toString: 5 }] }],
+  do_s_min7: [{ frets: [-1, 4, 6, 4, 5, 4], baseFret: 4, barres: [{ fret: 4, fromString: 1, toString: 5 }] }],
+  do_s_m7b5: [{ frets: [-1, 4, 5, 4, 5, -1], baseFret: 4 }],
+  do_s_dom7: [{ frets: [-1, 4, 6, 4, 6, 4], baseFret: 4, barres: [{ fret: 4, fromString: 1, toString: 5 }] }],
+
+  // ── Ré# (D#/Eb) — A-shape barre fret 6 ─────────────────────────────────────
+  re_s_maj:  [{ frets: [-1, 6, 8, 8, 8, 6], baseFret: 6, barres: [{ fret: 6, fromString: 1, toString: 5 }] }],
+  re_s_min:  [{ frets: [-1, 6, 8, 8, 7, 6], baseFret: 6, barres: [{ fret: 6, fromString: 1, toString: 5 }] }],
+  re_s_dim:  [{ frets: [-1, 6, 7, 8, 7, -1], baseFret: 6 }],
+  re_s_maj7: [{ frets: [-1, 6, 8, 7, 8, 6], baseFret: 6, barres: [{ fret: 6, fromString: 1, toString: 5 }] }],
+  re_s_min7: [{ frets: [-1, 6, 8, 6, 7, 6], baseFret: 6, barres: [{ fret: 6, fromString: 1, toString: 5 }] }],
+  re_s_m7b5: [{ frets: [-1, 6, 7, 6, 7, -1], baseFret: 6 }],
+  re_s_dom7: [{ frets: [-1, 6, 8, 6, 8, 6], baseFret: 6, barres: [{ fret: 6, fromString: 1, toString: 5 }] }],
 };
 
 export const CHORDS = CHORD_ROOTS.flatMap((root) =>
@@ -150,11 +200,8 @@ export const ALL = [...NOTES, ...CHROMATIC_NOTES, ...CHORDS];
 
 // Preset chips — select by quality family
 export const CHORD_PRESETS = [
-  { id: "open",   label: "Ouverts", qualityIds: ["maj", "min"] },
   { id: "triads", label: "Triades", qualityIds: ["maj", "min", "dim"] },
   { id: "7s",     label: "7èmes",   qualityIds: ["maj7", "min7", "dom7", "m7b5"] },
-  { id: "jazz",   label: "Jazz",    qualityIds: ["maj7", "min7", "dom7", "m7b5", "dim"] },
-  { id: "all",    label: "Tout",    qualityIds: null },
 ];
 
 // Progression chips — select specific chord subsets
