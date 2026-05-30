@@ -8,6 +8,20 @@ export function pickRandom(items, lastId) {
   return pick;
 }
 
+export function pickWeightedRandom(items, lastId, weights) {
+  if (items.length === 0) return null;
+  if (items.length === 1) return items[0];
+  const candidates = items.filter((i) => i.id !== lastId);
+  const pool = candidates.length > 0 ? candidates : items;
+  const total = pool.reduce((sum, item) => sum + (weights[item.id] ?? 1), 0);
+  let rand = Math.random() * total;
+  for (const item of pool) {
+    rand -= weights[item.id] ?? 1;
+    if (rand <= 0) return item;
+  }
+  return pool[pool.length - 1];
+}
+
 export function sayAloud(item) {
   speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(item.speak || item.label);

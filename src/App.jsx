@@ -3,7 +3,7 @@ import { ALL, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS } 
 import { usePitchDetection } from "./usePitchDetection";
 import { useSession } from "./useSession";
 import { summarizeSession } from "./summarizeSession";
-import { loadStats, saveStats, resetStats, mergeSessionIntoStats } from "./stats";
+import { loadStats, saveStats, resetStats, mergeSessionIntoStats, loadWeights, saveWeights, resetWeights } from "./stats";
 import WelcomeView from "./components/WelcomeView";
 import ConfigView from "./components/ConfigView";
 import SessionView from "./components/SessionView";
@@ -37,6 +37,7 @@ export default function GuitarPractice() {
   const [devScreen, setDevScreen] = useState(null); // dev only: null | "mic"
   const [sessionSummary, setSessionSummary] = useState(null);
   const [stats, setStats] = useState(loadStats);
+  const [weights, setWeights] = useState(loadWeights);
   const [screen, setScreen] = useState("welcome"); // "welcome" | "config"
   const [mode, setMode] = useState(null); // "notes" | "chords"
   const [preSessionStats, setPreSessionStats] = useState(null);
@@ -44,7 +45,17 @@ export default function GuitarPractice() {
   const targetType = mode === "chords" ? "chord" : "note";
   const pool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
 
-  const session = useSession({ interval: intervalSecs, pool, listening: mode === "notes" && listening, tts, chordAuto });
+  const handleResult = (itemId, correct) => {
+    setWeights((prev) => {
+      const current = prev[itemId] ?? 1;
+      const updated = correct ? Math.max(current * 0.85, 0.1) : Math.min(current * 1.3, 5.0);
+      const next = { ...prev, [itemId]: updated };
+      saveWeights(next);
+      return next;
+    });
+  };
+
+  const session = useSession({ interval: intervalSecs, pool, listening: mode === "notes" && listening, tts, chordAuto, weights, onResult: handleResult });
 
   const detectedNote = usePitchDetection(session.micActive, session.count);
 
@@ -128,6 +139,7 @@ export default function GuitarPractice() {
   };
 
   const resetAllStats = () => setStats(resetStats());
+  const resetAllWeights = () => setWeights(resetWeights());
 
   const goWelcome = () => {
     setSessionSummary(null);
@@ -211,6 +223,7 @@ export default function GuitarPractice() {
         setChordAuto={setChordAuto}
         onStart={startSession}
         onBack={goWelcome}
+        onResetWeights={resetAllWeights}
         showDebugLink={import.meta.env.DEV}
         onShowDebug={() => setDevScreen("mic")}
       />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { pickRandom, sayAloud } from "./util";
+import { pickWeightedRandom, sayAloud } from "./util";
 
 // Drives a practice session: timer + RAF progress bar + practice-time clock,
 // random item selection, and optional mic-hit detection coupling with streak logic.
@@ -13,7 +13,7 @@ import { pickRandom, sayAloud } from "./util";
 //   micActive (compute whether mic should be on),
 //   start()/finish()/pauseToggle()/forceAccept()/resetPracticeTime() actions,
 //   onDetectedNote(noteId) — feed from pitch hook on each detection change.
-export function useSession({ interval, pool, listening, tts, chordAuto }) {
+export function useSession({ interval, pool, listening, tts, chordAuto, weights = {}, onResult }) {
   const [inSession, setInSession] = useState(false);
   const [paused, setPaused] = useState(false);
   const [current, setCurrent] = useState(null);
@@ -40,9 +40,9 @@ export function useSession({ interval, pool, listening, tts, chordAuto }) {
 
   // Latest non-reactive inputs for the timer loop (kept in a ref so mid-session
   // changes to pool/listening/tts take effect on next tick without restart).
-  const latest = useRef({ interval, pool, listening, tts, current, chordAuto });
+  const latest = useRef({ interval, pool, listening, tts, current, chordAuto, weights });
   useEffect(() => {
-    latest.current = { interval, pool, listening, tts, current, chordAuto };
+    latest.current = { interval, pool, listening, tts, current, chordAuto, weights };
   });
 
   const resetHit = () => {
@@ -84,8 +84,9 @@ export function useSession({ interval, pool, listening, tts, chordAuto }) {
           correct: giveCredit,
           responseTime: giveCredit ? responseTimeRef.current : null,
         });
+        onResult?.(outgoing.id, giveCredit);
       }
-      const next = pickRandom(latest.current.pool, lastIdRef.current);
+      const next = pickWeightedRandom(latest.current.pool, lastIdRef.current, latest.current.weights);
       clearTimeout(timerIdRef.current);
       if (next) {
         lastIdRef.current = next.id;
@@ -165,7 +166,7 @@ export function useSession({ interval, pool, listening, tts, chordAuto }) {
     bestStreakRef.current = 0;
     streakRef.current = 0;
     sessionStartTimeRef.current = practiceTimeRef.current;
-    const first = pickRandom(pool, null);
+    const first = pickWeightedRandom(pool, null, weights);
     lastIdRef.current = first?.id;
     setCurrent(first);
     setCount(1);
@@ -206,7 +207,7 @@ export function useSession({ interval, pool, listening, tts, chordAuto }) {
   // scheduled timeout), so there's nothing to conflict with — the item just swaps
   // and progression stays off until the user resumes.
   const manualNext = () => {
-    const next = pickRandom(latest.current.pool, lastIdRef.current);
+    const next = pickWeightedRandom(latest.current.pool, lastIdRef.current, latest.current.weights);
     if (!next) return;
     lastIdRef.current = next.id;
     setCurrent(next);
@@ -225,6 +226,7 @@ export function useSession({ interval, pool, listening, tts, chordAuto }) {
         id: outgoing.id, label: outgoing.label, type: outgoing.type,
         correct, responseTime: null,
       });
+      onResult?.(outgoing.id, correct);
     }
     if (correct) {
       streakRef.current += 1;
@@ -234,7 +236,7 @@ export function useSession({ interval, pool, listening, tts, chordAuto }) {
       streakRef.current = 0;
       setStreak(0);
     }
-    const next = pickRandom(latest.current.pool, lastIdRef.current);
+    const next = pickWeightedRandom(latest.current.pool, lastIdRef.current, latest.current.weights);
     if (!next) return;
     lastIdRef.current = next.id;
     setCurrent(next);

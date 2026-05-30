@@ -312,3 +312,9 @@
   background: var(--accent);
   box-shadow: 0 0 6px var(--accent-glow);
 }
+
+/* ── Reset progress ─────────────────────────────────────────────────────────── */
+.resetRow {
+  margin-top: 24px;
+  text-align: center;
+}

@@ -240,6 +240,7 @@ export default function ConfigView({
   onPreset, onProgression,
   chordAuto, setChordAuto,
   onStart, onBack,
+  onResetWeights,
   showDebugLink, onShowDebug,
 }) {
   const isNotesMode = mode !== "chords";
@@ -326,6 +327,13 @@ export default function ConfigView({
                 onChange={setTts}
               />
             </>
+          )}
+          {onResetWeights && (
+            <div className={s.resetRow}>
+              <button className={shared.resetLink} onClick={onResetWeights}>
+                Réinitialiser la progression
+              </button>
+            </div>
           )}
         </div>
       </div>
