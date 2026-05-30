@@ -1,65 +1,70 @@
 import { NOTES, CHROMATIC_NOTES, NOTES_DISPLAY_ORDER } from "../constants";
 import shared from "./shared.module.css";
-import s from "./ChipGroup.module.css";
+import s from "./NotesPicker.module.css";
 
-export default function NotesPicker({ enabled, setEnabled }) {
+export default function NotesPicker({ enabled, setEnabled, selectedNoteCount }) {
   const toggle = (id) => setEnabled((p) => ({ ...p, [id]: !p[id] }));
 
-  const setAll = (items, value) =>
-    setEnabled((prev) => ({
-      ...prev,
-      ...Object.fromEntries(items.map((n) => [n.id, value])),
-    }));
-
   const preset = (kind) => {
-    if (kind === "none") setAll([...NOTES, ...CHROMATIC_NOTES], false);
-    else if (kind === "naturals") {
+    if (kind === "none") {
+      setEnabled((prev) => ({
+        ...prev,
+        ...Object.fromEntries([...NOTES, ...CHROMATIC_NOTES].map((n) => [n.id, false])),
+      }));
+    } else if (kind === "naturals") {
       setEnabled((prev) => ({
         ...prev,
         ...Object.fromEntries(NOTES.map((n) => [n.id, true])),
         ...Object.fromEntries(CHROMATIC_NOTES.map((n) => [n.id, false])),
       }));
-    } else if (kind === "all") setAll([...NOTES, ...CHROMATIC_NOTES], true);
+    } else if (kind === "all") {
+      setEnabled((prev) => ({
+        ...prev,
+        ...Object.fromEntries([...NOTES, ...CHROMATIC_NOTES].map((n) => [n.id, true])),
+      }));
+    }
   };
 
-  const chipClass = (id) => `${s.chip} ${enabled[id] ? s.chipOn : ""}`;
-
   return (
-    <div className={shared.section}>
-      <div className={shared.sectionHeader}>
-        <span className={shared.sectionLabel}>Notes</span>
-        <div className={s.headerActions}>
-          <button onClick={() => preset("none")} className={s.presetBtn}>Aucune</button>
-          <span className={s.presetSep}>/</span>
-          <button onClick={() => preset("naturals")} className={s.presetBtn}>Naturelles</button>
-          <span className={s.presetSep}>/</span>
-          <button onClick={() => preset("all")} className={s.presetBtn}>Toutes</button>
+    <div className={s.wrapper}>
+      <div className={s.sectionHeader}>
+        <span className={shared.eyebrow}>Notes · {selectedNoteCount} choisies</span>
+        <div className={s.segmented}>
+          <button className={s.seg} onClick={() => preset("none")}>Aucune</button>
+          <button className={s.seg} onClick={() => preset("naturals")}>Naturelles</button>
+          <button className={s.seg} onClick={() => preset("all")}>Toutes</button>
         </div>
       </div>
-      <div className={`${s.grid} ${s.gridTight}`}>
-        {NOTES_DISPLAY_ORDER.map(({ natural, chromatic }) => (
-          <div key={natural.id} className={s.notesRow}>
+
+      <div className={s.keyboard}>
+        {/* Accidentals row — one slot per natural key, empty spacer for Mi and Si */}
+        <div className={s.accidentalsRow}>
+          {NOTES_DISPLAY_ORDER.map(({ natural, chromatic }) => (
+            <div key={natural.id} className={s.accidentalSlot}>
+              {chromatic ? (
+                <button
+                  onClick={() => toggle(chromatic[0].id)}
+                  className={`${s.accKey} ${enabled[chromatic[0].id] ? s.keyOn : ""}`}
+                >
+                  {chromatic[0].label}
+                </button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+
+        {/* Naturals row */}
+        <div className={s.naturalsRow}>
+          {NOTES_DISPLAY_ORDER.map(({ natural }) => (
             <button
+              key={natural.id}
               onClick={() => toggle(natural.id)}
-              className={`${chipClass(natural.id)} ${s.chipNatural}`}
+              className={`${s.natKey} ${enabled[natural.id] ? s.keyOn : ""}`}
             >
               {natural.label}
             </button>
-            {chromatic && (
-              <div className={s.chromaticCol}>
-                {chromatic.map((note) => (
-                  <button
-                    key={note.id}
-                    onClick={() => toggle(note.id)}
-                    className={`${chipClass(note.id)} ${s.chipChromatic}`}
-                  >
-                    {note.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

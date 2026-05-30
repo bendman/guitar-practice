@@ -4,115 +4,143 @@
   right: 12px;
   z-index: 100;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-faint);
   background: none;
   border: none;
   cursor: pointer;
   padding: 4px 6px;
+  font-family: var(--mono);
 }
 
-.practiceTimeBox {
-  margin-top: 8px;
-  padding: 16px 20px;
-  background: var(--surface-faint);
-  border-radius: 8px;
-  border: 1px solid var(--border-faint);
+/* ── App header ─────────────────────────────────────────────────────────────── */
+.appHeader {
+  padding-top: 8px;
+  margin-bottom: 24px;
 }
 
-.practiceTimeValue {
-  font-size: 28px;
+.appTitle {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 30px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0;
+}
+
+.appSubtitle {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin: 6px 0 0;
+}
+
+/* ── Stat hero ──────────────────────────────────────────────────────────────── */
+.statHero {
+  background: linear-gradient(160deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin-bottom: 28px;
+}
+
+.heroValue {
+  font-family: var(--display);
   font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 1px;
-  text-align: center;
-  margin-bottom: 8px;
-}
-
-.practiceTimeSubRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.practiceTimeLabel {
-  font-size: 11px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.statsBox {
-  margin-top: 16px;
-  padding: 16px 20px;
-  background: var(--surface-faint);
-  border-radius: 8px;
-  border: 1px solid var(--border-faint);
-}
-
-.totalTimeRow {
-  text-align: center;
-  padding-bottom: 12px;
-  margin-bottom: 12px;
-  border-bottom: 1px solid var(--border-faint);
-}
-
-.totalTimeValue {
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.5px;
-  line-height: 1.1;
-}
-
-.totalTimeLabel {
-  font-size: 10px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 6px;
+  font-size: 40px;
+  color: var(--accent-soft);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  margin: 8px 0 16px;
 }
 
 .statsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px 16px;
+  gap: 14px 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.statCell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.statValue {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--text);
+  line-height: 1;
+}
+
+/* ── Mode cards ─────────────────────────────────────────────────────────────── */
+.modeLabel {
   margin-bottom: 12px;
 }
 
-.statCell { text-align: center; }
-
-.statValue {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.5px;
-  line-height: 1.1;
+.modeCards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-.statLabel {
-  font-size: 10px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 4px;
-}
-
-.statsFooter {
+.modeCard {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-faint);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 18px 16px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, transform 0.1s var(--ease);
+  min-height: 130px;
+  position: relative;
 }
 
-.emptyHint {
-  margin-top: 24px;
-  padding: 24px 20px;
-  background: var(--surface-faint);
-  border: 1px dashed var(--border-soft);
-  border-radius: 8px;
-  text-align: center;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.6;
+.modeCard:active {
+  transform: scale(0.96);
+  background: var(--surface-2);
+}
+
+.modeGlyph {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-3);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.modeTitle {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.modeDesc {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.modeArrow {
+  color: var(--text-faint);
+  align-self: flex-end;
+  margin-top: 4px;
+  display: flex;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.modeCard:hover .modeArrow {
+  color: var(--accent);
+  transform: translateX(3px);
 }

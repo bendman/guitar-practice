@@ -1,53 +1,234 @@
-import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES } from "../constants";
+import { useState } from "react";
+import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS, NOTES, CHROMATIC_NOTES, NOTES_DISPLAY_ORDER } from "../constants";
 import NotesPicker from "./NotesPicker";
 import Toggle from "./Toggle";
+import Icon from "./Icon";
 import shared from "./shared.module.css";
-import chip from "./ChipGroup.module.css";
 import s from "./ConfigView.module.css";
 
-function ChordsGroup({ enabled, setEnabled }) {
-  const allOn = CHORDS.every((item) => enabled[item.id]);
-  const toggleAll = () => {
-    setEnabled((prev) => {
-      const next = { ...prev };
-      CHORDS.forEach((item) => (next[item.id] = !allOn));
-      return next;
-    });
-  };
-  const toggle = (id) => setEnabled((p) => ({ ...p, [id]: !p[id] }));
+// ── Interval control ──────────────────────────────────────────────────────────
+function IntervalControl({ interval, setInterval }) {
   return (
-    <div className={shared.section}>
-      <div className={shared.sectionHeader}>
-        <span className={shared.sectionLabel}>Accords</span>
-        <button onClick={toggleAll} className={s.toggleAllBtn}>
-          {allOn ? "Tout désélectionner" : "Tout sélectionner"}
-        </button>
+    <div className={s.intervalSection}>
+      <div className={s.intervalHeader}>
+        <span className={shared.eyebrow}>Intervalle</span>
+        <span className={s.intervalValue}>{interval.toFixed(1)}s</span>
       </div>
-      <div className={s.chordGrid}>
-        {CHORD_ROOTS.map((root) => (
-          <div key={root.id} className={s.chordRow}>
-            <div className={s.chordRoot}>{root.label}</div>
-            <div className={s.chordQualities}>
-              {CHORD_QUALITIES.map((q) => {
-                const id = `${root.id}_${q.id}`;
-                return (
-                  <button
-                    key={id}
-                    onClick={() => toggle(id)}
-                    className={`${chip.chip} ${enabled[id] ? chip.chipOn : ""} ${s.chordChip}`}
-                  >
-                    {q.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+      <input
+        type="range"
+        min="0.5"
+        max="5"
+        step="0.1"
+        value={interval}
+        onChange={(e) => setInterval(parseFloat(e.target.value))}
+        className={s.slider}
+      />
+      <div className={s.sliderLabels}>
+        <span>0.5s</span>
+        <span>5.0s</span>
       </div>
     </div>
   );
 }
 
+// ── Chord builder ─────────────────────────────────────────────────────────────
+function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression }) {
+  const [showMatrix, setShowMatrix] = useState(false);
+  const totalEnabled = CHORDS.filter((c) => enabled[c.id]).length;
+
+  const clearAll = () => {
+    setEnabled((prev) => {
+      const next = { ...prev };
+      CHORDS.forEach((c) => (next[c.id] = false));
+      return next;
+    });
+  };
+
+  const toggleQuality = (qualityId) => {
+    setEnabled((prev) => {
+      const next = { ...prev };
+      const anyOn = CHORD_ROOTS.some((r) => prev[`${r.id}_${qualityId}`]);
+      CHORD_ROOTS.forEach((r) => { next[`${r.id}_${qualityId}`] = !anyOn; });
+      return next;
+    });
+  };
+
+  const isQualityActive = (qualityId) =>
+    CHORD_ROOTS.some((r) => enabled[`${r.id}_${qualityId}`]);
+
+  const toggleRoot = (rootId) => {
+    setEnabled((prev) => {
+      const next = { ...prev };
+      const anyOn = CHORD_QUALITIES.some((q) => prev[`${rootId}_${q.id}`]);
+      CHORD_QUALITIES.forEach((q) => { next[`${rootId}_${q.id}`] = !anyOn; });
+      return next;
+    });
+  };
+
+  const isRootActive = (rootId) =>
+    CHORD_QUALITIES.some((q) => enabled[`${rootId}_${q.id}`]);
+
+  const rootPreset = (kind) => {
+    if (kind === "none") {
+      setEnabled((prev) => {
+        const next = { ...prev };
+        CHORDS.forEach((c) => (next[c.id] = false));
+        return next;
+      });
+    } else if (kind === "naturals") {
+      // Enable Mi and La (the original natural-position roots)
+      setEnabled((prev) => {
+        const next = { ...prev };
+        CHORDS.forEach((c) => { next[c.id] = c.rootId === "mi" || c.rootId === "la"; });
+        return next;
+      });
+    } else if (kind === "all") {
+      setEnabled((prev) => {
+        const next = { ...prev };
+        CHORDS.forEach((c) => (next[c.id] = true));
+        return next;
+      });
+    }
+  };
+
+  return (
+    <>
+      {/* Total + clear */}
+      <div className={s.chordHeader}>
+        <span className={shared.eyebrow}>Accords · {totalEnabled} au total</span>
+        <button className={shared.resetLink} onClick={clearAll}>tout effacer</button>
+      </div>
+
+      {/* Preset chips */}
+      <div className={s.chipRow}>
+        {CHORD_PRESETS.map((p) => (
+          <button
+            key={p.id}
+            onClick={() => onPreset(p.id)}
+            className={`${s.chip} ${chordPreset === p.id ? s.chipActive : ""}`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Progression chips */}
+      <div className={s.subsectionHeader}>
+        <span className={shared.eyebrow}>Tonalités &amp; progressions</span>
+      </div>
+      <div className={s.chipRow} style={{ flexWrap: "wrap" }}>
+        {CHORD_PROGRESSIONS.map((p) => (
+          <button
+            key={p.id}
+            onClick={() => onProgression(p.id)}
+            className={`${s.chip} ${chordProgression === p.id ? s.chipActive : ""}`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Quality chips */}
+      <div className={s.subsectionHeader}>
+        <span className={shared.eyebrow}>Qualités</span>
+      </div>
+      <div className={s.chipRow}>
+        {CHORD_QUALITIES.map((q) => (
+          <button
+            key={q.id}
+            onClick={() => toggleQuality(q.id)}
+            className={`${s.chip} ${isQualityActive(q.id) ? s.chipActive : ""}`}
+          >
+            {q.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Root keyboard */}
+      <div className={s.subsectionHeader}>
+        <span className={shared.eyebrow}>Toniques</span>
+        <div className={s.segmented}>
+          <button className={s.seg} onClick={() => rootPreset("none")}>Aucune</button>
+          <button className={s.seg} onClick={() => rootPreset("naturals")}>Naturelles</button>
+          <button className={s.seg} onClick={() => rootPreset("all")}>Toutes</button>
+        </div>
+      </div>
+      <div className={s.rootKeyboard}>
+        {NOTES_DISPLAY_ORDER.map(({ natural }) => {
+          const root = CHORD_ROOTS.find((r) => r.id === natural.id);
+          if (!root) return <div key={natural.id} className={s.rootKeyPlaceholder} />;
+          return (
+            <button
+              key={root.id}
+              onClick={() => toggleRoot(root.id)}
+              className={`${s.rootKey} ${isRootActive(root.id) ? s.rootKeyOn : ""}`}
+            >
+              {root.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Affiner par tonique — fine-grained root×quality matrix */}
+      {(() => {
+        const activeRoots = CHORD_ROOTS.filter((r) => isRootActive(r.id));
+        const activeQualities = CHORD_QUALITIES.filter((q) => isQualityActive(q.id));
+        if (activeRoots.length === 0 || activeQualities.length === 0) return null;
+        const exCount = activeRoots.reduce(
+          (n, r) => n + activeQualities.filter((q) => !enabled[`${r.id}_${q.id}`]).length, 0
+        );
+        const toggleCell = (rootId, qualityId) => {
+          const id = `${rootId}_${qualityId}`;
+          setEnabled((prev) => ({ ...prev, [id]: !prev[id] }));
+        };
+        return (
+          <div className={s.matrixWrap}>
+            <button className={s.matrixToggle} onClick={() => setShowMatrix((v) => !v)}>
+              <span className={s.matrixToggleLabel}>
+                <Icon name={showMatrix ? "eye-off" : "eye"} size={14} />
+                Affiner par tonique{exCount > 0 ? ` · ${exCount} exclus` : ""}
+              </span>
+              <Icon name={showMatrix ? "chevL" : "chevR"} size={15} />
+            </button>
+            {showMatrix && (
+              <div className={s.matrixScroll}>
+                <div
+                  className={s.matrix}
+                  style={{ gridTemplateColumns: `48px repeat(${activeQualities.length}, 1fr)` }}
+                >
+                  <div />
+                  {activeQualities.map((q) => (
+                    <div key={q.id} className={s.mxCol}>{q.label}</div>
+                  ))}
+                  {activeRoots.map((r) => (
+                    <>
+                      <div key={r.id} className={s.mxRow}>{r.label}</div>
+                      {activeQualities.map((q) => {
+                        const on = !!enabled[`${r.id}_${q.id}`];
+                        return (
+                          <button
+                            key={q.id}
+                            className={`${s.mxCell} ${on ? s.mxCellOn : ""}`}
+                            onClick={() => toggleCell(r.id, q.id)}
+                            aria-label={`${r.label} ${q.label}`}
+                          >
+                            <span className={s.mxDot} />
+                          </button>
+                        );
+                      })}
+                    </>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+    </>
+  );
+}
+
+// ── Main ConfigView ───────────────────────────────────────────────────────────
 export default function ConfigView({
   mode,
   interval, setInterval,
@@ -55,14 +236,19 @@ export default function ConfigView({
   tts, setTts,
   listening, setListening,
   pool,
+  chordPreset, chordProgression,
+  onPreset, onProgression,
+  chordAuto, setChordAuto,
   onStart, onBack,
   showDebugLink, onShowDebug,
 }) {
   const isNotesMode = mode !== "chords";
   const title = isNotesMode ? "Notes" : "Accords";
-  const startLabel = pool.length === 0
-    ? "Sélectionne au moins un élément"
-    : "Commencer";
+  const subtitle = isNotesMode
+    ? "Configure ta session de notes"
+    : "Configure ta session d'accords";
+
+  const noteCount = [...NOTES, ...CHROMATIC_NOTES].filter((n) => enabled[n.id]).length;
 
   return (
     <div className={shared.screen}>
@@ -72,61 +258,88 @@ export default function ConfigView({
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
           <h1 className={shared.title}>{title}</h1>
-          <p className={shared.subtitle}>
-            {isNotesMode
-              ? "Configure ta session de notes"
-              : "Configure ta session d'accords"}
-          </p>
+          <p className={shared.subtitle}>{subtitle}</p>
 
-          <div className={shared.section}>
-            <label className={shared.sectionLabel}>
-              Intervalle : <span className={s.intervalValue}>{interval.toFixed(1)}s</span>
-            </label>
-            <input
-              type="range"
-              min="0.5"
-              max="5"
-              step="0.1"
-              value={interval}
-              onChange={(e) => setInterval(parseFloat(e.target.value))}
-              className={s.slider}
-            />
-            <div className={s.sliderLabels}>
-              <span>0.5s</span>
-              <span>5.0s</span>
-            </div>
-          </div>
+          <IntervalControl interval={interval} setInterval={setInterval} />
 
-          {isNotesMode
-            ? <NotesPicker enabled={enabled} setEnabled={setEnabled} />
-            : <ChordsGroup enabled={enabled} setEnabled={setEnabled} />}
+          {isNotesMode ? (
+            <>
+              <NotesPicker
+                enabled={enabled}
+                setEnabled={setEnabled}
+                selectedNoteCount={noteCount}
+              />
+              <Toggle
+                label="Annoncer à voix haute"
+                sublabel="Lit le nom au début de chaque carte"
+                value={tts}
+                onChange={setTts}
+              />
+              <Toggle
+                label="Détecter les notes (micro)"
+                sublabel="Valide automatiquement quand tu joues juste"
+                value={listening}
+                onChange={setListening}
+              />
+            </>
+          ) : (
+            <>
+              <ChordsBuilder
+                enabled={enabled}
+                setEnabled={setEnabled}
+                chordPreset={chordPreset}
+                chordProgression={chordProgression}
+                onPreset={onPreset}
+                onProgression={onProgression}
+              />
 
-          <Toggle label="Annoncer à voix haute" value={tts} onChange={setTts} />
-          {isNotesMode && (
-            <Toggle
-              label="Détecter les notes (micro)"
-              value={listening}
-              onChange={setListening}
-            />
-          )}
-          {isNotesMode && listening && (
-            <div className={s.listenHint}>
-              Le texte change de couleur quand la bonne note est jouée
-            </div>
+              {/* Progression mode */}
+              <div className={s.toggleRow}>
+                <div>
+                  <div className={s.toggleLabel}>Progression</div>
+                  <div className={s.toggleSublabel}>
+                    {chordAuto
+                      ? "Auto · pratique la vitesse de transition"
+                      : "Manuelle · mémorise, évalue Trouvé / Raté"}
+                  </div>
+                </div>
+                <div className={s.segmented}>
+                  <button
+                    className={`${s.seg} ${!chordAuto ? s.segOn : ""}`}
+                    onClick={() => setChordAuto(false)}
+                  >
+                    Manuelle
+                  </button>
+                  <button
+                    className={`${s.seg} ${chordAuto ? s.segOn : ""}`}
+                    onClick={() => setChordAuto(true)}
+                  >
+                    Auto
+                  </button>
+                </div>
+              </div>
+
+              <Toggle
+                label="Annoncer à voix haute"
+                sublabel="Lit le nom au début de chaque carte"
+                value={tts}
+                onChange={setTts}
+              />
+            </>
           )}
         </div>
       </div>
 
       <div className={shared.screenFooter}>
-        <button onClick={onBack} className={shared.footerBtnSecondary}>
+        <button onClick={onBack} className={`${shared.footerBtnSecondary} ${s.backBtn}`}>
           Retour
         </button>
         <button
           onClick={onStart}
           disabled={pool.length === 0}
-          className={shared.footerBtnPrimary}
+          className={`${shared.footerBtnPrimary} ${s.startBtn}`}
         >
-          {startLabel}
+          {pool.length === 0 ? "Sélectionne au moins un élément" : `Commencer · ${pool.length}`}
         </button>
       </div>
     </div>

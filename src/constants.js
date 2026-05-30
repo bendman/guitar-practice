@@ -1,21 +1,11 @@
-export const FONT = "'JetBrains Mono', 'Fira Code', 'SF Mono', monospace";
-export const BG = "#1a1816";
-export const ACCENT = "#d4a574";
-export const TEXT = "#e8e4df";
-export const MUTED = "#8a8580";
-export const DIM = "#5a5550";
-export const GREEN = "#6ecf72";
-export const RED = "#cf6e6e";
-export const CORRECT = "#FFE566";
-
 export const NOTES = [
-  { id: "do", label: "Do", type: "note" },
-  { id: "re", label: "Ré", type: "note" },
-  { id: "mi", label: "Mi", type: "note" },
-  { id: "fa", label: "Fa", type: "note" },
+  { id: "do",  label: "Do",  type: "note" },
+  { id: "re",  label: "Ré",  type: "note" },
+  { id: "mi",  label: "Mi",  type: "note" },
+  { id: "fa",  label: "Fa",  type: "note" },
   { id: "sol", label: "Sol", type: "note" },
-  { id: "la", label: "La", type: "note" },
-  { id: "si", label: "Si", type: "note" },
+  { id: "la",  label: "La",  type: "note" },
+  { id: "si",  label: "Si",  type: "note" },
 ];
 
 // Sharp variants — have their own NOTE_FREQS entries
@@ -49,24 +39,33 @@ export const NOTES_DISPLAY_ORDER = [
   { natural: NOTES[6] },
 ];
 
+// Chord roots in scale order. defaultEnabled:false → off by default (activated via presets).
 export const CHORD_ROOTS = [
-  { id: "mi", label: "Mi", speak: "«Mi»" },
-  { id: "la", label: "La", speak: "«La»" },
+  { id: "do",  label: "Do",  speak: "«Do»",  defaultEnabled: false },
+  { id: "re",  label: "Ré",  speak: "«Ré»",  defaultEnabled: false },
+  { id: "mi",  label: "Mi",  speak: "«Mi»" },
+  { id: "fa",  label: "Fa",  speak: "«Fa»",  defaultEnabled: false },
+  { id: "sol", label: "Sol", speak: "«Sol»", defaultEnabled: false },
+  { id: "la",  label: "La",  speak: "«La»" },
+  { id: "si",  label: "Si",  speak: "«Si»",  defaultEnabled: false },
 ];
 
 export const CHORD_QUALITIES = [
-  { id: "maj",  label: "Majeur",    speak: "Majeur" },
-  { id: "min",  label: "Mineur",    speak: "Mineur" },
-  { id: "dim",  label: "Diminué",   speak: "Diminué" },
-  { id: "maj7", label: "Maj 7",     speak: "Majeur 7" },
-  { id: "min7", label: "Min 7",     speak: "Mineur 7" },
-  { id: "m7b5", label: "Demi-diminué", speak: "Demi-diminué" },
-  { id: "dom7", label: "7",         speak: "7" },
+  { id: "maj",  label: "Maj",          labelLong: "Majeur",       speak: "Majeur" },
+  { id: "min",  label: "Min",          labelLong: "Mineur",       speak: "Mineur" },
+  { id: "dim",  label: "Dim",          labelLong: "Diminué",      speak: "Diminué" },
+  { id: "maj7", label: "Maj 7",        labelLong: "Maj 7",        speak: "Majeur 7" },
+  { id: "min7", label: "Min 7",        labelLong: "Min 7",        speak: "Mineur 7" },
+  { id: "m7b5", label: "♭7",           labelLong: "Demi-diminué", speak: "Demi-diminué" },
+  { id: "dom7", label: "7",            labelLong: "7",            speak: "7" },
 ];
 
-// Open-position fingerings, indexed by chord id. frets are low-E → high-E
-// (0 = open, -1 = muted). Multiple entries are alternate voicings (primary first).
+// Open-position fingerings indexed by chord id. frets are low-E → high-E.
+// (0 = open, -1 = muted, N = absolute fret number)
+// baseFret: where the diagram display starts (default 1 = show nut)
+// barres: [{ fret: absoluteFret, fromString: 0-indexed, toString: 0-indexed }]
 const CHORD_VOICINGS = {
+  // ── Mi (E) ──────────────────────────────────────────────────────────────────
   mi_maj:  [{ frets: [0, 2, 2, 1, 0, 0] }],
   mi_min:  [{ frets: [0, 2, 2, 0, 0, 0] }],
   mi_dim:  [{ frets: [0, 1, 2, 0, -1, -1] }],
@@ -74,6 +73,8 @@ const CHORD_VOICINGS = {
   mi_min7: [{ frets: [0, 2, 0, 0, 0, 0] }, { frets: [0, 2, 0, 0, 3, 0] }],
   mi_m7b5: [{ frets: [0, 1, 0, 0, -1, -1] }],
   mi_dom7: [{ frets: [0, 2, 0, 1, 0, 0] }, { frets: [0, 2, 0, 1, 3, 0] }],
+
+  // ── La (A) ──────────────────────────────────────────────────────────────────
   la_maj:  [{ frets: [-1, 0, 2, 2, 2, 0] }],
   la_min:  [{ frets: [-1, 0, 2, 2, 1, 0] }],
   la_dim:  [{ frets: [-1, 0, 1, 2, 1, -1] }],
@@ -81,6 +82,51 @@ const CHORD_VOICINGS = {
   la_min7: [{ frets: [-1, 0, 2, 0, 1, 0] }, { frets: [-1, 0, 2, 0, 1, 3] }],
   la_m7b5: [{ frets: [-1, 0, 1, 0, 1, -1] }],
   la_dom7: [{ frets: [-1, 0, 2, 0, 2, 0] }, { frets: [-1, 0, 2, 0, 2, 3] }],
+
+  // ── Do (C) ──────────────────────────────────────────────────────────────────
+  do_maj:  [{ frets: [-1, 3, 2, 0, 1, 0] }],
+  do_min:  [{ frets: [-1, 3, 5, 5, 4, 3], baseFret: 3, barres: [{ fret: 3, fromString: 1, toString: 5 }] }],
+  do_dim:  [{ frets: [-1, 3, 4, 2, 4, -1], baseFret: 2 }],
+  do_maj7: [{ frets: [-1, 3, 2, 0, 0, 0] }],
+  do_min7: [{ frets: [-1, 3, 1, 3, 1, -1] }],
+  do_m7b5: [{ frets: [-1, 3, 4, 2, 3, -1], baseFret: 2 }],
+  do_dom7: [{ frets: [-1, 3, 2, 3, 1, 0] }],
+
+  // ── Ré (D) ──────────────────────────────────────────────────────────────────
+  re_maj:  [{ frets: [-1, -1, 0, 2, 3, 2] }],
+  re_min:  [{ frets: [-1, -1, 0, 2, 3, 1] }],
+  re_dim:  [{ frets: [-1, -1, 0, 1, 3, 1] }],
+  re_maj7: [{ frets: [-1, -1, 0, 2, 2, 2] }],
+  re_min7: [{ frets: [-1, -1, 0, 2, 1, 1] }],
+  re_m7b5: [{ frets: [-1, -1, 0, 1, 2, 1] }],
+  re_dom7: [{ frets: [-1, -1, 0, 2, 1, 2] }],
+
+  // ── Fa (F) ──────────────────────────────────────────────────────────────────
+  fa_maj:  [{ frets: [1, 3, 3, 2, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] }],
+  fa_min:  [{ frets: [1, 3, 3, 1, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] }],
+  fa_dim:  [{ frets: [-1, -1, 3, 4, 3, 1] }],
+  fa_maj7: [{ frets: [-1, -1, 3, 2, 1, 0] }],
+  fa_min7: [{ frets: [1, 3, 1, 1, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] }],
+  fa_m7b5: [{ frets: [-1, -1, 3, 4, 2, 4], baseFret: 2 }],
+  fa_dom7: [{ frets: [1, 3, 1, 2, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] }],
+
+  // ── Sol (G) ─────────────────────────────────────────────────────────────────
+  sol_maj:  [{ frets: [3, 2, 0, 0, 0, 3] }],
+  sol_min:  [{ frets: [3, 5, 5, 3, 3, 3], baseFret: 3, barres: [{ fret: 3, fromString: 0, toString: 5 }] }],
+  sol_dim:  [{ frets: [3, 4, 5, 3, -1, -1], baseFret: 3 }],
+  sol_maj7: [{ frets: [3, 2, 0, 0, 0, 2] }],
+  sol_min7: [{ frets: [-1, -1, 5, 3, 3, 3], baseFret: 3 }],
+  sol_m7b5: [{ frets: [3, 4, 3, 3, -1, -1], baseFret: 3 }],
+  sol_dom7: [{ frets: [3, 2, 0, 0, 0, 1] }],
+
+  // ── Si (B) ──────────────────────────────────────────────────────────────────
+  si_maj:  [{ frets: [-1, 2, 4, 4, 4, 2], baseFret: 2, barres: [{ fret: 2, fromString: 1, toString: 5 }] }],
+  si_min:  [{ frets: [-1, 2, 4, 4, 3, 2], baseFret: 2, barres: [{ fret: 2, fromString: 1, toString: 5 }] }],
+  si_dim:  [{ frets: [-1, 2, 3, 4, 3, -1], baseFret: 2 }],
+  si_maj7: [{ frets: [-1, 2, 4, 3, 4, -1], baseFret: 2 }],
+  si_min7: [{ frets: [-1, 2, 4, 2, 3, 2], baseFret: 2, barres: [{ fret: 2, fromString: 1, toString: 5 }] }],
+  si_m7b5: [{ frets: [-1, 2, 3, 2, 3, -1], baseFret: 2 }],
+  si_dom7: [{ frets: [-1, 2, 4, 2, 3, -1], baseFret: 2 }],
 };
 
 export const CHORDS = CHORD_ROOTS.flatMap((root) =>
@@ -88,17 +134,37 @@ export const CHORDS = CHORD_ROOTS.flatMap((root) =>
     const id = `${root.id}_${q.id}`;
     return {
       id,
-      label: `${root.label} ${q.label}`,
+      label: `${root.label} ${q.labelLong}`,
+      labelShort: `${root.label} ${q.label}`,
       speak: `${root.speak} ${q.speak}`,
       type: "chord",
       rootId: root.id,
       qualityId: q.id,
+      defaultEnabled: root.defaultEnabled !== false,
       voicings: CHORD_VOICINGS[id] ?? [],
     };
   })
 );
 
 export const ALL = [...NOTES, ...CHROMATIC_NOTES, ...CHORDS];
+
+// Preset chips — select by quality family
+export const CHORD_PRESETS = [
+  { id: "open",   label: "Ouverts", qualityIds: ["maj", "min"] },
+  { id: "triads", label: "Triades", qualityIds: ["maj", "min", "dim"] },
+  { id: "7s",     label: "7èmes",   qualityIds: ["maj7", "min7", "dom7", "m7b5"] },
+  { id: "jazz",   label: "Jazz",    qualityIds: ["maj7", "min7", "dom7", "m7b5", "dim"] },
+  { id: "all",    label: "Tout",    qualityIds: null },
+];
+
+// Progression chips — select specific chord subsets
+export const CHORD_PROGRESSIONS = [
+  { id: "key_c",   label: "Tonalité de Do",  chordIds: ["do_maj", "re_min", "mi_min", "fa_maj", "sol_maj", "la_min", "si_dim"] },
+  { id: "key_g",   label: "Tonalité de Sol", chordIds: ["sol_maj", "la_min", "si_min", "do_maj", "re_maj", "mi_min"] },
+  { id: "irish",   label: "Irlandais",        chordIds: ["re_maj", "sol_maj", "la_maj", "mi_min"] },
+  { id: "pop",     label: "Pop I–V–vi–IV",   chordIds: ["do_maj", "sol_maj", "la_min", "fa_maj"] },
+  { id: "blues_a", label: "Blues en La",     chordIds: ["la_dom7", "re_dom7", "mi_dom7"] },
+];
 
 // Note frequencies for all guitar-relevant octaves (C2–C6)
 // Maps note id -> array of frequencies across octaves

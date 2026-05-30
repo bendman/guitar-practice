@@ -1,8 +1,10 @@
 .fullPage {
   /* svh = smallest viewport state (browser chrome + system nav fully shown).
      Using svh instead of dvh guarantees the footer stays above the Android nav
-     even mid-transition or in PWA standalone mode where dvh can over-report. */
-  min-height: 100svh;
+     even mid-transition or in PWA standalone mode where dvh can over-report.
+     height (not min-height) locks every screen to exactly the viewport so footers
+     are always flush to the bottom regardless of content height. */
+  height: 100svh;
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -16,7 +18,7 @@
 .screenBody {
   flex: 1;
   overflow-y: auto;
-  padding: 32px 20px 24px;
+  padding: 32px 22px 24px;
   display: flex;
   justify-content: center;
 }
@@ -29,9 +31,10 @@
 .screenFooter {
   display: flex;
   gap: 12px;
-  padding: 12px 20px max(16px, calc(12px + env(safe-area-inset-bottom)));
-  background: linear-gradient(to top, var(--bg) 70%, rgba(26, 24, 22, 0));
-  border-top: 1px solid var(--border-soft);
+  padding: 12px 22px calc(12px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  flex-shrink: 0;
 }
 
 /* Match the body's 480px max-width on desktop so buttons don't stretch full-bleed. */
@@ -47,10 +50,14 @@
   padding: 16px;
   font-size: 15px;
   font-weight: 700;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.1s var(--ease);
+  min-height: 54px;
+  font-family: var(--mono);
 }
+
+.footerBtn:active { transform: scale(0.96); }
 
 .footerBtn:disabled {
   opacity: 0.3;
@@ -61,27 +68,28 @@
   composes: footerBtn;
   border: none;
   background: var(--accent);
-  color: var(--bg);
+  color: var(--accent-ink);
 }
 
 .footerBtnSecondary {
   composes: footerBtn;
-  border: 2px solid var(--border-soft);
-  background: var(--surface-faint);
-  color: var(--muted);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-dim);
 }
 
 .title {
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0;
-  letter-spacing: -0.5px;
-  color: #f5f0ea;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  font-family: var(--display);
 }
 
 .subtitle {
   font-size: 13px;
-  color: var(--muted);
+  color: var(--text-dim);
   margin: 6px 0 32px;
 }
 
@@ -99,16 +107,40 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: var(--muted);
+  color: var(--text-dim);
   display: block;
   margin-bottom: 10px;
+}
+
+/* Eyebrow label — smaller, all-caps, wide tracking */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--text-faint);
+  display: block;
 }
 
 .resetBtn {
   font-size: 11px;
   background: none;
   border: none;
-  color: var(--dim);
+  color: var(--text-faint);
   cursor: pointer;
   padding: 0;
+  font-family: var(--mono);
+  letter-spacing: 0.3px;
+}
+
+.resetLink {
+  font-size: 11px;
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--mono);
+  letter-spacing: 0.3px;
+  text-decoration: none;
 }

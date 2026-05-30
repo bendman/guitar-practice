@@ -13,7 +13,7 @@ import { pickRandom, sayAloud } from "./util";
 //   micActive (compute whether mic should be on),
 //   start()/finish()/pauseToggle()/forceAccept()/resetPracticeTime() actions,
 //   onDetectedNote(noteId) — feed from pitch hook on each detection change.
-export function useSession({ interval, pool, listening, tts }) {
+export function useSession({ interval, pool, listening, tts, chordAuto }) {
   const [inSession, setInSession] = useState(false);
   const [paused, setPaused] = useState(false);
   const [current, setCurrent] = useState(null);
@@ -22,6 +22,7 @@ export function useSession({ interval, pool, listening, tts }) {
   const [streak, setStreak] = useState(0);
   const [hitStatus, setHitStatus] = useState(null);
   const [practiceTime, setPracticeTime] = useState(0);
+  const [pendingReveal, setPendingReveal] = useState(false);
 
   // Refs the timer/RAF need to read async.
   const lastIdRef = useRef(null);
@@ -39,15 +40,16 @@ export function useSession({ interval, pool, listening, tts }) {
 
   // Latest non-reactive inputs for the timer loop (kept in a ref so mid-session
   // changes to pool/listening/tts take effect on next tick without restart).
-  const latest = useRef({ interval, pool, listening, tts, current });
+  const latest = useRef({ interval, pool, listening, tts, current, chordAuto });
   useEffect(() => {
-    latest.current = { interval, pool, listening, tts, current };
+    latest.current = { interval, pool, listening, tts, current, chordAuto };
   });
 
   const resetHit = () => {
     hitForCurrentRef.current = false;
     withinTimeRef.current = true;
     setHitStatus(null);
+    setPendingReveal(false);
   };
 
   // Switching listening mode mid-session counts as a fresh target — clear the
@@ -102,6 +104,7 @@ export function useSession({ interval, pool, listening, tts }) {
 
     const onTimeout = () => {
       const listenerNote = latest.current.listening && latest.current.current?.type === "note";
+      const manualChord = !latest.current.chordAuto && latest.current.current?.type === "chord";
       if (listenerNote) {
         if (hitForCurrentRef.current) {
           doAdvance(true);
@@ -112,6 +115,10 @@ export function useSession({ interval, pool, listening, tts }) {
           streakRef.current = 0;
           setStreak(0);
         }
+      } else if (manualChord) {
+        // Pause and signal SessionView to reveal the chord diagram.
+        setPaused(true);
+        setPendingReveal(true);
       } else {
         doAdvance(false);
       }
@@ -166,6 +173,7 @@ export function useSession({ interval, pool, listening, tts }) {
     setHitStatus(null);
     setStreak(0);
     withinTimeRef.current = true;
+    setPendingReveal(false);
     setInSession(true);
     setPaused(false);
     if (tts && first) sayAloud(first);
@@ -207,6 +215,35 @@ export function useSession({ interval, pool, listening, tts }) {
     resetHit();
     if (latest.current.tts) sayAloud(next);
   };
+
+  // Grade the current chord item (correct=true for Trouvé, false for Raté), then advance.
+  // Meant to be called while paused (after reveal); caller is responsible for unpausing.
+  const manualGrade = (correct) => {
+    const outgoing = latest.current.current;
+    if (outgoing) {
+      resultsRef.current.push({
+        id: outgoing.id, label: outgoing.label, type: outgoing.type,
+        correct, responseTime: null,
+      });
+    }
+    if (correct) {
+      streakRef.current += 1;
+      if (streakRef.current > bestStreakRef.current) bestStreakRef.current = streakRef.current;
+      setStreak(streakRef.current);
+    } else {
+      streakRef.current = 0;
+      setStreak(0);
+    }
+    const next = pickRandom(latest.current.pool, lastIdRef.current);
+    if (!next) return;
+    lastIdRef.current = next.id;
+    setCurrent(next);
+    setCount((c) => c + 1);
+    setProgress(0);
+    resetHit();
+    if (latest.current.tts) sayAloud(next);
+  };
+
   const resetPracticeTime = () => {
     practiceTimeRef.current = 0;
     setPracticeTime(0);
@@ -215,8 +252,8 @@ export function useSession({ interval, pool, listening, tts }) {
   const micActive = listening && inSession && !paused;
 
   return {
-    inSession, paused, current, progress, count, streak, hitStatus, practiceTime,
+    inSession, paused, current, progress, count, streak, hitStatus, practiceTime, pendingReveal,
     micActive, onDetectedNote,
-    start, finish, pauseToggle, forceAccept, manualNext, resetPracticeTime,
+    start, finish, pauseToggle, forceAccept, manualNext, manualGrade, resetPracticeTime,
   };
 }
