@@ -200,11 +200,8 @@ export const ALL = [...NOTES, ...CHROMATIC_NOTES, ...CHORDS];
 
 // Preset chips — select by quality family
 export const CHORD_PRESETS = [
-  { id: "open",   label: "Ouverts", qualityIds: ["maj", "min"] },
   { id: "triads", label: "Triades", qualityIds: ["maj", "min", "dim"] },
   { id: "7s",     label: "7èmes",   qualityIds: ["maj7", "min7", "dom7", "m7b5"] },
-  { id: "jazz",   label: "Jazz",    qualityIds: ["maj7", "min7", "dom7", "m7b5", "dim"] },
-  { id: "all",    label: "Tout",    qualityIds: null },
 ];
 
 // Progression chips — select specific chord subsets

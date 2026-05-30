@@ -8,7 +8,7 @@ import s from "./ProgressView.module.css";
 
 const LEVEL_LABELS = ["", "Difficile", "Facile", "Maîtrisé"];
 
-export default function ProgressView({ weights = {}, onBack, onResetWeights }) {
+export default function ProgressView({ weights = {}, onBack, onResetWeights, workingSetSize, setWorkingSetSize }) {
   const [openChordIds, setOpenChordIds] = useState(new Set());
   const practiced = ALL.filter((item) => weights[item.id] != null);
   const notes = practiced.filter((i) => i.type === "note");
@@ -44,13 +44,27 @@ export default function ProgressView({ weights = {}, onBack, onResetWeights }) {
             />
           )}
 
-          {onResetWeights && practiced.length > 0 && (
-            <div className={s.resetRow}>
-              <button className={shared.resetLink} onClick={onResetWeights}>
-                Réinitialiser la progression
-              </button>
-            </div>
-          )}
+          <div className={s.settingsSection}>
+            <span className={shared.eyebrow}>Réglages</span>
+            {setWorkingSetSize && (
+              <div className={s.settingRow}>
+                <span className={s.settingLabel}>Éléments actifs à la fois</span>
+                <div className={s.stepper}>
+                  <button className={s.stepBtn} onClick={() => setWorkingSetSize(Math.max(2, workingSetSize - 1))}>−</button>
+                  <span className={s.stepValue}>{workingSetSize}</span>
+                  <button className={s.stepBtn} onClick={() => setWorkingSetSize(Math.min(15, workingSetSize + 1))}>+</button>
+                </div>
+              </div>
+            )}
+            {onResetWeights && (
+              <div className={s.settingRow}>
+                <span className={s.settingLabel}>Progression</span>
+                <button className={shared.resetLink} onClick={onResetWeights}>
+                  Réinitialiser
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

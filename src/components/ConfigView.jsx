@@ -34,27 +34,6 @@ function IntervalControl({ interval, setInterval }) {
   );
 }
 
-// ── En cours chip ─────────────────────────────────────────────────────────────
-function EnCoursChip({ weights, enabled, setEnabled }) {
-  const enCours = CHORDS.filter((c) => weightToLevel(weights[c.id]) === 2);
-  if (enCours.length === 0) return null;
-  const isActive =
-    enCours.every((c) => enabled[c.id]) &&
-    CHORDS.filter((c) => enabled[c.id]).length === enCours.length;
-  const apply = () => {
-    setEnabled((prev) => {
-      const next = { ...prev };
-      CHORDS.forEach((c) => { next[c.id] = weightToLevel(weights[c.id]) === 2; });
-      return next;
-    });
-  };
-  return (
-    <button onClick={apply} className={`${s.chip} ${isActive ? s.chipActive : ""}`}>
-      En cours
-    </button>
-  );
-}
-
 // ── Chord builder ─────────────────────────────────────────────────────────────
 function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression, weights = {} }) {
   const totalEnabled = CHORDS.filter((c) => enabled[c.id]).length;
@@ -119,11 +98,14 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
     <>
       {/* Total + clear */}
       <div className={s.chordHeader}>
-        <span className={shared.eyebrow}>Accords · {totalEnabled} au total</span>
-        <button className={shared.resetLink} onClick={clearAll}>tout effacer</button>
+        <span className={shared.eyebrow}>Sélection rapide</span>
+        <div className={s.presetLinks}>
+          <button className={shared.resetLink} onClick={clearAll}>aucune</button>
+          <span className={s.presetSep}>|</span>
+          <button className={shared.resetLink} onClick={() => rootPreset("all")}>toutes</button>
+        </div>
       </div>
 
-      {/* Preset chips */}
       <div className={s.chipRow} style={{ flexWrap: "wrap" }}>
         {CHORD_PRESETS.map((p) => (
           <button
@@ -134,14 +116,6 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
             {p.label}
           </button>
         ))}
-        <EnCoursChip weights={weights} enabled={enabled} setEnabled={setEnabled} />
-      </div>
-
-      {/* Progression chips */}
-      <div className={s.subsectionHeader}>
-        <span className={shared.eyebrow}>Tonalités &amp; progressions</span>
-      </div>
-      <div className={s.chipRow} style={{ flexWrap: "wrap" }}>
         {CHORD_PROGRESSIONS.map((p) => (
           <button
             key={p.id}
@@ -155,11 +129,15 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
 
       {/* Root × quality matrix — always visible, headers are bulk toggles */}
       <div className={s.subsectionHeader}>
-        <span className={shared.eyebrow}>Toniques &amp; qualités</span>
+        <span className={shared.eyebrow}>Accords · {totalEnabled} au total</span>
         <div className={s.presetLinks}>
           <button className={shared.resetLink} onClick={() => rootPreset("none")}>aucune</button>
           <span className={s.presetSep}>|</span>
-          <button className={shared.resetLink} onClick={() => rootPreset("naturals")}>naturelles</button>
+          <button className={shared.resetLink} onClick={() => setEnabled((prev) => {
+            const next = { ...prev };
+            CHORDS.forEach((c) => { next[c.id] = weightToLevel(weights[c.id]) === 2; });
+            return next;
+          })}>en cours</button>
           <span className={s.presetSep}>|</span>
           <button className={shared.resetLink} onClick={() => rootPreset("all")}>toutes</button>
         </div>
@@ -186,7 +164,7 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
               {CHORD_QUALITIES.map((q) => {
                 const id = `${r.id}_${q.id}`;
                 const on = !!enabled[id];
-                const level = on ? weightToLevel(weights[id]) : 0;
+                const level = weightToLevel(weights[id]);
                 return (
                   <button
                     key={q.id}
@@ -194,7 +172,7 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
                     onClick={() => toggleCell(r.id, q.id)}
                     aria-label={`${r.label} ${q.label}`}
                   >
-                    <ProgressDot level={level} size={10} />
+                    <ProgressDot level={level} size={10} dim={!on} />
                   </button>
                 );
               })}
@@ -319,7 +297,7 @@ export default function ConfigView({
           disabled={pool.length === 0}
           className={`${shared.footerBtnPrimary} ${s.startBtn}`}
         >
-          {pool.length === 0 ? "Choisis un élément" : `Commencer · ${pool.length}`}
+          {pool.length === 0 ? "Choisis un élément" : "Commencer"}
         </button>
       </div>
     </div>

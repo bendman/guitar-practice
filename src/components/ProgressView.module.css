@@ -54,7 +54,55 @@
   letter-spacing: 0.3px;
 }
 
-.resetRow {
-  margin-top: 24px;
+.settingsSection {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.settingLabel {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stepBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid var(--line);
+}
+
+.stepBtn:active {
+  opacity: 0.7;
+}
+
+.stepValue {
+  font-size: 14px;
+  font-family: var(--mono);
+  color: var(--text);
+  min-width: 20px;
   text-align: center;
 }

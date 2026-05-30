@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ALL, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS } from "./constants";
 import { usePitchDetection } from "./usePitchDetection";
 import { useSession } from "./useSession";
+import { applyResult, buildActivePool } from "./util";
 import { summarizeSession } from "./summarizeSession";
 import { loadStats, saveStats, resetStats, mergeSessionIntoStats, loadWeights, saveWeights, resetWeights } from "./stats";
 import WelcomeView from "./components/WelcomeView";
@@ -35,6 +36,10 @@ export default function GuitarPractice() {
   const [chordPreset, setChordPreset] = useState(null);
   const [chordProgression, setChordProgression] = useState(null);
   const [chordAuto, setChordAuto] = useState(() => loadSettings().chordAuto ?? false);
+  const [workingSetSize, setWorkingSetSize] = useState(() => {
+    const stored = loadSettings().workingSetSize;
+    return typeof stored === "number" ? stored : 5;
+  });
   const [devScreen, setDevScreen] = useState(null); // dev only: null | "mic"
   const [sessionSummary, setSessionSummary] = useState(null);
   const [stats, setStats] = useState(loadStats);
@@ -45,18 +50,17 @@ export default function GuitarPractice() {
 
   const targetType = mode === "chords" ? "chord" : "note";
   const pool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
+  const activePool = buildActivePool(pool, weights, workingSetSize);
 
   const handleResult = (itemId, correct) => {
     setWeights((prev) => {
-      const current = prev[itemId] ?? 1;
-      const updated = correct ? Math.max(current * 0.85, 0.1) : Math.min(current * 1.3, 5.0);
-      const next = { ...prev, [itemId]: updated };
+      const next = applyResult(prev, itemId, correct);
       saveWeights(next);
       return next;
     });
   };
 
-  const session = useSession({ interval: intervalSecs, pool, listening: mode === "notes" && listening, tts, chordAuto, weights, onResult: handleResult });
+  const session = useSession({ interval: intervalSecs, pool: activePool, listening: mode === "notes" && listening, tts, chordAuto, weights, onResult: handleResult });
 
   const detectedNote = usePitchDetection(session.micActive, session.count);
 
@@ -66,9 +70,9 @@ export default function GuitarPractice() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ interval: intervalSecs, enabled, tts, listening, chordAuto }));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ interval: intervalSecs, enabled, tts, listening, chordAuto, workingSetSize }));
     } catch { /* ignore quota / disabled storage */ }
-  }, [intervalSecs, enabled, tts, listening, chordAuto]);
+  }, [intervalSecs, enabled, tts, listening, chordAuto, workingSetSize]);
 
   useEffect(() => {
     if (!session.inSession) return;
@@ -207,7 +211,7 @@ export default function GuitarPractice() {
   }
 
   if (screen === "progress") {
-    return <ProgressView weights={weights} onBack={goWelcome} onResetWeights={resetAllWeights} />;
+    return <ProgressView weights={weights} onBack={goWelcome} onResetWeights={resetAllWeights} workingSetSize={workingSetSize} setWorkingSetSize={setWorkingSetSize} />;
   }
 
   if (screen === "config") {
@@ -222,7 +226,7 @@ export default function GuitarPractice() {
         setTts={setTts}
         listening={listening}
         setListening={setListening}
-        pool={pool}
+        pool={activePool}
         chordPreset={chordPreset}
         chordProgression={chordProgression}
         onPreset={applyPreset}

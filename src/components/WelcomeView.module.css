@@ -145,7 +145,14 @@
   transform: translateX(3px);
 }
 
+.modeFooter {
+  flex-shrink: 0;
+  padding: 16px 22px calc(16px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+
 .progressLink {
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
