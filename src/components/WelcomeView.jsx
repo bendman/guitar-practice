@@ -8,6 +8,7 @@ export default function WelcomeView({
   stats,
   onPickNotes,
   onPickChords,
+  onShowProgress,
   showDebugLink,
   onShowDebug,
 }) {
@@ -50,6 +51,14 @@ export default function WelcomeView({
               </div>
             </div>
           </div>
+
+          {onShowProgress && (
+            <div className={s.progressLink}>
+              <button className={shared.resetLink} onClick={onShowProgress}>
+                Ma progression
+              </button>
+            </div>
+          )}
 
           <span className={`${shared.eyebrow} ${s.modeLabel}`}>Choisis un mode</span>
           <div className={s.modeCards}>

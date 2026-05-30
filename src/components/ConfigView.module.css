@@ -36,11 +36,19 @@
   letter-spacing: -0.01em;
 }
 
+.sliderWrap {
+  --thumb: 22px;
+  --track: 4px;
+  display: flex;
+  align-items: center;
+  height: var(--thumb);
+}
+
 .slider {
   width: 100%;
   appearance: none;
-  height: 4px;
-  border-radius: 2px;
+  height: var(--track);
+  border-radius: calc(var(--track) / 2);
   background: var(--surface-2);
   outline: none;
   cursor: pointer;
@@ -48,17 +56,19 @@
 
 .slider::-webkit-slider-thumb {
   appearance: none;
-  width: 22px;
-  height: 22px;
+  width: var(--thumb);
+  height: var(--thumb);
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 0 4px rgba(226, 178, 136, 0.2);
   cursor: pointer;
+  /* center thumb on track — WebKit doesn't do this automatically */
+  margin-top: calc((var(--track) - var(--thumb)) / 2);
 }
 
 .slider::-moz-range-thumb {
-  width: 22px;
-  height: 22px;
+  width: var(--thumb);
+  height: var(--thumb);
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 0 4px rgba(226, 178, 136, 0.2);
@@ -67,8 +77,9 @@
 }
 
 .slider::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 2px;
+  height: var(--track);
+  border-radius: calc(var(--track) / 2);
+  background: var(--surface-2);
 }
 
 .sliderLabels {
@@ -156,10 +167,25 @@
 
 .seg:hover { color: var(--text-dim); }
 
+/* ── Preset links ────────────────────────────────────────────────────────────── */
+.presetLinks {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.presetSep {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  user-select: none;
+}
+
 /* ── Root keyboard ───────────────────────────────────────────────────────────── */
 .rootKeyboard {
   display: flex;
   gap: 4px;
+  margin-bottom: 20px;
 }
 
 .rootKey {
@@ -250,7 +276,7 @@
 
 .matrixScroll {
   overflow-x: auto;
-  padding: 6px 2px 4px;
+  padding: 6px 2px 16px;
   scrollbar-width: none;
 }
 .matrixScroll::-webkit-scrollbar { display: none; }

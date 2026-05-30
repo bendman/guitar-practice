@@ -8,6 +8,14 @@ export function pickRandom(items, lastId) {
   return pick;
 }
 
+// Returns 0 (unpracticed) → 1 (struggling) → 2 (learning) → 3 (mastered)
+export function weightToLevel(weight) {
+  if (weight == null) return 0;
+  if (weight < 0.6) return 3;
+  if (weight <= 2.0) return 2;
+  return 1;
+}
+
 export function pickWeightedRandom(items, lastId, weights) {
   if (items.length === 0) return null;
   if (items.length === 1) return items[0];

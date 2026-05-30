@@ -8,6 +8,7 @@ import WelcomeView from "./components/WelcomeView";
 import ConfigView from "./components/ConfigView";
 import SessionView from "./components/SessionView";
 import SummaryView from "./components/SummaryView";
+import ProgressView from "./components/ProgressView";
 import DebugView from "./components/DebugView";
 
 const SETTINGS_KEY = "guitar-practice-settings";
@@ -38,7 +39,7 @@ export default function GuitarPractice() {
   const [sessionSummary, setSessionSummary] = useState(null);
   const [stats, setStats] = useState(loadStats);
   const [weights, setWeights] = useState(loadWeights);
-  const [screen, setScreen] = useState("welcome"); // "welcome" | "config"
+  const [screen, setScreen] = useState("welcome"); // "welcome" | "config" | "progress"
   const [mode, setMode] = useState(null); // "notes" | "chords"
   const [preSessionStats, setPreSessionStats] = useState(null);
 
@@ -74,7 +75,7 @@ export default function GuitarPractice() {
     const handler = (e) => {
       if (e.key === "ArrowUp") {
         e.preventDefault();
-        setIntervalSecs((v) => Math.min(v + 0.1, 5));
+        setIntervalSecs((v) => Math.min(v + 0.1, 10));
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
         setIntervalSecs((v) => Math.max(v - 0.1, 0.5));
@@ -129,7 +130,7 @@ export default function GuitarPractice() {
 
   const stopSession = () => {
     const raw = session.finish();
-    const summary = summarizeSession({ ...raw, wasListening: mode === "notes" && listening });
+    const summary = summarizeSession({ ...raw, wasListening: mode === "notes" && listening, wasManualChord: mode === "chords" && !chordAuto });
     setSessionSummary(summary);
     setStats((prev) => {
       const next = mergeSessionIntoStats(prev, summary);
@@ -146,6 +147,8 @@ export default function GuitarPractice() {
     setMode(null);
     setScreen("welcome");
   };
+
+  const goProgress = () => setScreen("progress");
 
   const pickMode = (m) => {
     setMode(m);
@@ -196,10 +199,15 @@ export default function GuitarPractice() {
       <SummaryView
         summary={sessionSummary}
         preSessionStats={preSessionStats}
+        weights={weights}
         onDismiss={goWelcome}
         onReplay={handleReplay}
       />
     );
+  }
+
+  if (screen === "progress") {
+    return <ProgressView weights={weights} onBack={goWelcome} onResetWeights={resetAllWeights} />;
   }
 
   if (screen === "config") {
@@ -221,9 +229,9 @@ export default function GuitarPractice() {
         onProgression={applyProgression}
         chordAuto={chordAuto}
         setChordAuto={setChordAuto}
+        weights={weights}
         onStart={startSession}
         onBack={goWelcome}
-        onResetWeights={resetAllWeights}
         showDebugLink={import.meta.env.DEV}
         onShowDebug={() => setDevScreen("mic")}
       />
@@ -238,6 +246,7 @@ export default function GuitarPractice() {
       resetPracticeTime={session.resetPracticeTime}
       onPickNotes={() => pickMode("notes")}
       onPickChords={() => pickMode("chords")}
+      onShowProgress={goProgress}
       showDebugLink={import.meta.env.DEV}
       onShowDebug={() => setDevScreen("mic")}
     />

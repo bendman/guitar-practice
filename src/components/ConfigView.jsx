@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS, NOTES, CHROMATIC_NOTES, NOTES_DISPLAY_ORDER } from "../constants";
+import { weightToLevel } from "../util";
 import NotesPicker from "./NotesPicker";
 import Toggle from "./Toggle";
 import Icon from "./Icon";
+import ProgressDot from "./ProgressDot";
 import shared from "./shared.module.css";
 import s from "./ConfigView.module.css";
 
@@ -14,25 +16,48 @@ function IntervalControl({ interval, setInterval }) {
         <span className={shared.eyebrow}>Intervalle</span>
         <span className={s.intervalValue}>{interval.toFixed(1)}s</span>
       </div>
-      <input
-        type="range"
-        min="0.5"
-        max="5"
-        step="0.1"
-        value={interval}
-        onChange={(e) => setInterval(parseFloat(e.target.value))}
-        className={s.slider}
-      />
+      <div className={s.sliderWrap}>
+        <input
+          type="range"
+          min="0.5"
+          max="10"
+          step="0.1"
+          value={interval}
+          onChange={(e) => setInterval(parseFloat(e.target.value))}
+          className={s.slider}
+        />
+      </div>
       <div className={s.sliderLabels}>
         <span>0.5s</span>
-        <span>5.0s</span>
+        <span>10.0s</span>
       </div>
     </div>
   );
 }
 
+// ── En cours chip ─────────────────────────────────────────────────────────────
+function EnCoursChip({ weights, enabled, setEnabled }) {
+  const enCours = CHORDS.filter((c) => weightToLevel(weights[c.id]) === 2);
+  if (enCours.length === 0) return null;
+  const isActive =
+    enCours.every((c) => enabled[c.id]) &&
+    CHORDS.filter((c) => enabled[c.id]).length === enCours.length;
+  const apply = () => {
+    setEnabled((prev) => {
+      const next = { ...prev };
+      CHORDS.forEach((c) => { next[c.id] = weightToLevel(weights[c.id]) === 2; });
+      return next;
+    });
+  };
+  return (
+    <button onClick={apply} className={`${s.chip} ${isActive ? s.chipActive : ""}`}>
+      En cours
+    </button>
+  );
+}
+
 // ── Chord builder ─────────────────────────────────────────────────────────────
-function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression }) {
+function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression, weights = {} }) {
   const [showMatrix, setShowMatrix] = useState(false);
   const totalEnabled = CHORDS.filter((c) => enabled[c.id]).length;
 
@@ -100,7 +125,7 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
       </div>
 
       {/* Preset chips */}
-      <div className={s.chipRow}>
+      <div className={s.chipRow} style={{ flexWrap: "wrap" }}>
         {CHORD_PRESETS.map((p) => (
           <button
             key={p.id}
@@ -110,6 +135,7 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
             {p.label}
           </button>
         ))}
+        <EnCoursChip weights={weights} enabled={enabled} setEnabled={setEnabled} />
       </div>
 
       {/* Progression chips */}
@@ -147,10 +173,12 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
       {/* Root keyboard */}
       <div className={s.subsectionHeader}>
         <span className={shared.eyebrow}>Toniques</span>
-        <div className={s.segmented}>
-          <button className={s.seg} onClick={() => rootPreset("none")}>Aucune</button>
-          <button className={s.seg} onClick={() => rootPreset("naturals")}>Naturelles</button>
-          <button className={s.seg} onClick={() => rootPreset("all")}>Toutes</button>
+        <div className={s.presetLinks}>
+          <button className={shared.resetLink} onClick={() => rootPreset("none")}>aucune</button>
+          <span className={s.presetSep}>|</span>
+          <button className={shared.resetLink} onClick={() => rootPreset("naturals")}>naturelles</button>
+          <span className={s.presetSep}>|</span>
+          <button className={shared.resetLink} onClick={() => rootPreset("all")}>toutes</button>
         </div>
       </div>
       <div className={s.rootKeyboard}>
@@ -204,7 +232,9 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
                     <>
                       <div key={r.id} className={s.mxRow}>{r.label}</div>
                       {activeQualities.map((q) => {
-                        const on = !!enabled[`${r.id}_${q.id}`];
+                        const id = `${r.id}_${q.id}`;
+                        const on = !!enabled[id];
+                        const level = on ? weightToLevel(weights[id]) : 0;
                         return (
                           <button
                             key={q.id}
@@ -212,7 +242,7 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
                             onClick={() => toggleCell(r.id, q.id)}
                             aria-label={`${r.label} ${q.label}`}
                           >
-                            <span className={s.mxDot} />
+                            <ProgressDot level={level} size={10} />
                           </button>
                         );
                       })}
@@ -240,7 +270,7 @@ export default function ConfigView({
   onPreset, onProgression,
   chordAuto, setChordAuto,
   onStart, onBack,
-  onResetWeights,
+  weights = {},
   showDebugLink, onShowDebug,
 }) {
   const isNotesMode = mode !== "chords";
@@ -292,6 +322,7 @@ export default function ConfigView({
                 chordProgression={chordProgression}
                 onPreset={onPreset}
                 onProgression={onProgression}
+                weights={weights}
               />
 
               {/* Progression mode */}
@@ -328,13 +359,6 @@ export default function ConfigView({
               />
             </>
           )}
-          {onResetWeights && (
-            <div className={s.resetRow}>
-              <button className={shared.resetLink} onClick={onResetWeights}>
-                Réinitialiser la progression
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -347,7 +371,7 @@ export default function ConfigView({
           disabled={pool.length === 0}
           className={`${shared.footerBtnPrimary} ${s.startBtn}`}
         >
-          {pool.length === 0 ? "Sélectionne au moins un élément" : `Commencer · ${pool.length}`}
+          {pool.length === 0 ? "Choisis un élément" : `Commencer · ${pool.length}`}
         </button>
       </div>
     </div>

@@ -3,10 +3,10 @@ import s from "./ChordDiagram.module.css";
 const STRINGS = 6;
 const STRING_SPACING = 18;
 const FRET_SPACING = 27.5;
-const MARGIN_LEFT = 22;
+const MARGIN_LEFT = 30;
 // Match MARGIN_LEFT so the fret grid stays horizontally centred within the SVG
 // (the left margin reserves room for the "Nfr" position label on barre chords).
-const MARGIN_RIGHT = 22;
+const MARGIN_RIGHT = 30;
 const HEADER = 26; // space above the grid for open/muted markers
 const BOTTOM_PAD = 8;
 const DOT_R = 7;
@@ -52,7 +52,7 @@ export default function ChordDiagram({
       {!showNut && (
         <text
           className={s.fretLabel}
-          x={gridLeft - 6}
+          x={gridLeft - 10}
           y={cellY(1)}
           textAnchor="end"
           dominantBaseline="central"
@@ -69,7 +69,7 @@ export default function ChordDiagram({
           y1={fretLineY(r)}
           x2={gridRight + LINE_W / 2}
           y2={fretLineY(r)}
-          strokeWidth={r === 0 && showNut ? 5 : LINE_W}
+          strokeWidth={r === 0 && showNut ? 8 : LINE_W}
         />
       ))}
 

@@ -1,4 +1,4 @@
-export function summarizeSession({ results, bestStreak, practiceTime, wasListening }) {
+export function summarizeSession({ results, bestStreak, practiceTime, wasListening, wasManualChord }) {
   const noteResults = results.filter((r) => r.type === "note");
   const correctCount = noteResults.filter((r) => r.correct).length;
   const totalNotes = noteResults.length;
@@ -28,6 +28,26 @@ export function summarizeSession({ results, bestStreak, practiceTime, wasListeni
     ? allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length
     : null;
 
+  // Chord grading stats (manual mode only)
+  const chordResults = wasManualChord ? results.filter((r) => r.type === "chord") : [];
+  const chordCorrectCount = chordResults.filter((r) => r.correct).length;
+  const totalChords = chordResults.length;
+  const chordAccuracy = totalChords > 0 ? Math.round((chordCorrectCount / totalChords) * 100) : 0;
+
+  const chordMap = {};
+  for (const r of chordResults) {
+    if (!chordMap[r.id]) {
+      chordMap[r.id] = { id: r.id, label: r.label, attempts: 0, misses: 0 };
+    }
+    chordMap[r.id].attempts += 1;
+    if (!r.correct) chordMap[r.id].misses += 1;
+  }
+
+  const chordMissedItems = Object.values(chordMap)
+    .filter((c) => c.misses > 0)
+    .map((c) => ({ ...c, missRate: Math.round((c.misses / c.attempts) * 100) }))
+    .sort((a, b) => b.missRate - a.missRate);
+
   return {
     totalCount: results.length,
     correctCount,
@@ -38,5 +58,10 @@ export function summarizeSession({ results, bestStreak, practiceTime, wasListeni
     practiceTime,
     wasListening: wasListening && totalNotes > 0,
     missedItems,
+    wasManualChord: wasManualChord && totalChords > 0,
+    chordCorrectCount,
+    totalChords,
+    chordAccuracy,
+    chordMissedItems,
   };
 }
