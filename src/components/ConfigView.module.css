@@ -1,158 +1,314 @@
-.intervalValue {
-  color: var(--accent);
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.slider {
-  width: 100%;
-  height: 6px;
-  appearance: auto;
-  accent-color: var(--accent);
-  cursor: pointer;
-}
-
-.sliderLabels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--dim);
-  margin-top: 4px;
-}
-
-.listenHint {
-  font-size: 11px;
-  color: var(--dim);
-  padding: 4px 0 8px;
-  line-height: 1.5;
-}
-
-.practiceTimeBox {
-  margin-top: 20px;
-  padding: 16px 20px;
-  background: var(--surface-faint);
-  border-radius: 8px;
-  border: 1px solid var(--border-faint);
-}
-
-.practiceTimeValue {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 1px;
-  text-align: center;
-  margin-bottom: 8px;
-}
-
-.practiceTimeSubRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.practiceTimeLabel {
-  font-size: 11px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
 .debugBtn {
   position: fixed;
   top: 12px;
   right: 12px;
   z-index: 100;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-faint);
   background: none;
   border: none;
   cursor: pointer;
   padding: 4px 6px;
+  font-family: var(--mono);
 }
 
-.statsBox {
-  margin-top: 16px;
-  padding: 16px 20px;
-  background: var(--surface-faint);
-  border-radius: 8px;
-  border: 1px solid var(--border-faint);
+/* ── Footer button widths ────────────────────────────────────────────────────── */
+.backBtn { flex: 0 0 90px; }
+.startBtn { flex: 1; }
+
+/* ── Interval control ────────────────────────────────────────────────────────── */
+.intervalSection {
+  margin-bottom: 24px;
 }
 
-.statsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 16px;
-  margin-bottom: 12px;
-}
-
-.statCell {
-  text-align: center;
-}
-
-.statValue {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.5px;
-  line-height: 1.1;
-}
-
-.statLabel {
-  font-size: 10px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 4px;
-}
-
-.statsFooter {
+.intervalHeader {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-faint);
+  align-items: baseline;
+  margin-bottom: 10px;
 }
 
-.toggleAllBtn {
-  background: none;
-  border: none;
-  color: var(--accent);
-  font-size: 11px;
-  cursor: pointer;
-  font-family: var(--font);
-  padding: 0;
-}
-
-.chordGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.chordRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.chordRoot {
-  flex: 0 0 28px;
-  font-size: 16px;
+.intervalValue {
+  font-family: var(--display);
   font-weight: 700;
-  color: var(--accent);
-  text-align: center;
+  font-size: 26px;
+  color: var(--text);
+  letter-spacing: -0.01em;
 }
 
-.chordQualities {
+.slider {
+  width: 100%;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-2);
+  outline: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(226, 178, 136, 0.2);
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(226, 178, 136, 0.2);
+  border: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+}
+
+.sliderLabels {
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+/* ── Chord builder ───────────────────────────────────────────────────────────── */
+.chordHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.subsectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 18px 0 10px;
+}
+
+/* ── Chip rows ───────────────────────────────────────────────────────────────── */
+.chipRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.chipRow::-webkit-scrollbar { display: none; }
+
+.chip {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.1s var(--ease);
+  font-family: var(--mono);
+  letter-spacing: 0.3px;
+}
+
+.chip:active { transform: scale(0.95); }
+
+.chipActive {
+  background: rgba(226, 178, 136, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Segmented control ───────────────────────────────────────────────────────── */
+.segmented {
+  display: flex;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  padding: 3px;
+  gap: 2px;
+}
+
+.seg {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 9px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  font-family: var(--mono);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.seg:hover { color: var(--text-dim); }
+
+/* ── Root keyboard ───────────────────────────────────────────────────────────── */
+.rootKeyboard {
+  display: flex;
+  gap: 4px;
+}
+
+.rootKey {
+  flex: 1;
+  padding: 12px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.1s var(--ease);
+  font-family: var(--mono);
+  min-height: 48px;
+}
+
+.rootKey:active { transform: scale(0.94); }
+
+.rootKeyOn {
+  background: rgba(226, 178, 136, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.rootKeyPlaceholder {
   flex: 1;
 }
 
-.chordChip {
+/* ── Segmented active state ──────────────────────────────────────────────────── */
+.segOn {
+  background: var(--accent) !important;
+  color: var(--accent-ink) !important;
+}
+
+/* ── Progression / other toggle rows ────────────────────────────────────────── */
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+
+.toggleLabel {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.toggleSublabel {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+/* ── Affiner par tonique matrix ──────────────────────────────────────────────── */
+.matrixWrap {
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 4px;
+}
+
+.matrixToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 12px 2px;
+  font-family: var(--mono);
   font-size: 12px;
-  padding: 6px 10px;
-  min-width: 52px;
+  font-weight: 600;
+  color: var(--text-dim);
+  transition: color 0.15s ease;
+}
+
+.matrixToggle:hover { color: var(--text); }
+
+.matrixToggleLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.matrixScroll {
+  overflow-x: auto;
+  padding: 6px 2px 4px;
+  scrollbar-width: none;
+}
+.matrixScroll::-webkit-scrollbar { display: none; }
+
+.matrix {
+  display: grid;
+  gap: 5px;
+  min-width: 100%;
+  align-items: center;
+}
+
+.mxCol {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text-faint);
   text-align: center;
+  padding-bottom: 2px;
+  white-space: nowrap;
+}
+
+.mxRow {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.mxCell {
+  height: 30px;
+  border: 0;
+  cursor: pointer;
+  border-radius: 8px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  display: grid;
+  place-items: center;
+  transition: background 0.12s ease, box-shadow 0.12s ease, transform 0.1s var(--ease);
+}
+
+.mxCell:active { transform: scale(0.9); }
+
+.mxCellOn {
+  background: rgba(226, 178, 136, 0.12);
+  box-shadow: inset 0 0 0 1px var(--accent-deep);
+}
+
+.mxDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--text-faint);
+  transition: background 0.12s ease, box-shadow 0.12s ease;
+}
+
+.mxCellOn .mxDot {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
 }

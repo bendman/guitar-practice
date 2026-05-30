@@ -1,0 +1,102 @@
+.wrapper {
+  margin-bottom: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* Segmented preset control */
+.segmented {
+  display: flex;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  padding: 3px;
+  gap: 2px;
+}
+
+.seg {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 9px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  font-family: var(--mono);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.seg:hover {
+  color: var(--text-dim);
+}
+
+/* Keyboard layout */
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Accidentals row — each slot aligns with a natural key */
+.accidentalsRow {
+  display: flex;
+  gap: 4px;
+}
+
+.accidentalSlot {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+/* Naturals row */
+.naturalsRow {
+  display: flex;
+  gap: 4px;
+}
+
+/* Shared key styles */
+.natKey,
+.accKey {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-weight: 600;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.1s var(--ease);
+}
+
+.natKey:active, .accKey:active { transform: scale(0.94); }
+
+/* Natural keys — taller, full width of the slot */
+.natKey {
+  flex: 1;
+  padding: 12px 4px;
+  font-size: 14px;
+  min-height: 48px;
+}
+
+/* Accidental keys — shorter, narrower */
+.accKey {
+  width: 80%;
+  padding: 6px 4px;
+  font-size: 11px;
+  min-height: 36px;
+}
+
+/* On state — caramel accent */
+.keyOn {
+  background: rgba(226, 178, 136, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}

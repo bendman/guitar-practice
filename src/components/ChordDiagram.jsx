@@ -91,7 +91,7 @@ export default function ChordDiagram({
         return (
           <text
             key={`m${i}`}
-            className={s.marker}
+            className={f === 0 ? s.markerOpen : s.markerMuted}
             x={stringX(i)}
             y={HEADER / 2}
             textAnchor="middle"

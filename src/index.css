@@ -1,29 +1,49 @@
 :root {
-  --font: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
-  --bg: #1a1816;
-  --accent: #d4a574;
-  --text: #e8e4df;
-  --muted: #8a8580;
-  --dim: #5a5550;
-  --green: #6ecf72;
-  --red: #cf6e6e;
-  --correct: #FFE566;
+  --mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  --display: 'Martian Mono', monospace;
 
-  --border-faint: rgba(255, 255, 255, 0.06);
-  --border-soft: rgba(255, 255, 255, 0.08);
-  --surface-faint: rgba(255, 255, 255, 0.04);
-  --surface-soft: rgba(255, 255, 255, 0.06);
+  --bg: #191815;
+  --surface: #211d18;
+  --surface-2: #2a2520;
+  --surface-3: #332c25;
+
+  --text: #f4efe6;
+  --text-dim: #9a8e7e;
+  --text-faint: #665c4f;
+  --line: rgba(243,237,226,0.12);
+
+  --accent: #e2b288;
+  --accent-soft: #c89968;
+  --accent-deep: #8a6038;
+  --accent-ink: #2a1c10;
+
+  --success: #ead24a;
+  --error: #df7a64;
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+
+  /* legacy aliases used in a few places during transition */
+  --muted: var(--text-dim);
+  --dim: var(--text-faint);
+  --green: #6ecf72;
+  --red: var(--error);
+  --correct: var(--success);
+  --border-soft: var(--line);
+  --border-faint: var(--line);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font);
+  font-family: var(--mono);
   letter-spacing: 0.3px;
 }
 
 button {
-  font-family: var(--font);
+  font-family: var(--mono);
   letter-spacing: 0.3px;
 }

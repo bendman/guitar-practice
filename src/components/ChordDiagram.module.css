@@ -4,25 +4,40 @@
 
 .string,
 .fret {
-  stroke: var(--dim);
+  stroke: var(--line);
 }
 
 .dot {
   fill: var(--accent);
+  filter: drop-shadow(0 0 4px var(--accent-deep));
 }
 
+.markerOpen {
+  fill: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.markerMuted {
+  fill: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+/* Keep .marker as fallback in case any callers still use it */
 .marker {
-  fill: var(--muted);
-  font-family: var(--font);
+  fill: var(--text-dim);
+  font-family: var(--mono);
   font-size: 12px;
 }
 
 .barre {
   stroke: var(--accent);
+  filter: drop-shadow(0 0 4px var(--accent-deep));
 }
 
 .fretLabel {
-  fill: var(--muted);
-  font-family: var(--font);
+  fill: var(--text-faint);
+  font-family: var(--mono);
   font-size: 9px;
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ALL } from "./constants";
+import { ALL, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS } from "./constants";
 import { usePitchDetection } from "./usePitchDetection";
 import { useSession } from "./useSession";
 import { summarizeSession } from "./summarizeSession";
@@ -9,83 +9,8 @@ import ConfigView from "./components/ConfigView";
 import SessionView from "./components/SessionView";
 import SummaryView from "./components/SummaryView";
 import DebugView from "./components/DebugView";
-import ChordDiagram from "./components/ChordDiagram";
 
 const SETTINGS_KEY = "guitar-practice-settings";
-
-// TEMP design preview — remove before shipping
-const DEMO_CHORDS = [
-  { label: "Mi Majeur", voicings: [{ frets: [0, 2, 2, 1, 0, 0] }] },
-  { label: "Mi Mineur", voicings: [{ frets: [0, 2, 2, 0, 0, 0] }] },
-  { label: "Mi Diminué", voicings: [{ frets: [0, 1, 2, 0, -1, -1] }] },
-  { label: "Mi Maj 7", voicings: [{ frets: [0, 2, 1, 1, 0, 0] }] },
-  { label: "Mi Min 7", voicings: [{ frets: [0, 2, 0, 0, 0, 0] }, { frets: [0, 2, 0, 0, 3, 0] }] },
-  { label: "Mi Demi-diminué", voicings: [{ frets: [0, 1, 0, 0, -1, -1] }] },
-  { label: "Mi 7", voicings: [{ frets: [0, 2, 0, 1, 0, 0] }, { frets: [0, 2, 0, 1, 3, 0] }] },
-  { label: "La Majeur", voicings: [{ frets: [-1, 0, 2, 2, 2, 0] }] },
-  { label: "La Mineur", voicings: [{ frets: [-1, 0, 2, 2, 1, 0] }] },
-  { label: "La Diminué", voicings: [{ frets: [-1, 0, 1, 2, 1, -1] }] },
-  { label: "La Maj 7", voicings: [{ frets: [-1, 0, 2, 1, 2, 0] }] },
-  {
-    label: "La Min 7",
-    voicings: [
-      { frets: [-1, 0, 2, 0, 1, 0] },
-      { frets: [-1, 0, 2, 0, 1, 3] },
-    ],
-  },
-  { label: "La Demi-diminué", voicings: [{ frets: [-1, 0, 1, 0, 1, -1] }] },
-  { label: "La 7", voicings: [{ frets: [-1, 0, 2, 0, 2, 0] }, { frets: [-1, 0, 2, 0, 2, 3] }] },
-];
-
-const cycleBtn = {
-  background: "transparent",
-  border: "1px solid var(--border-soft)",
-  borderRadius: 4,
-  color: "var(--muted)",
-  cursor: "pointer",
-  width: 22,
-  height: 22,
-  lineHeight: 1,
-};
-
-function ChordCard({ label, voicings }) {
-  const [i, setI] = useState(0);
-  const n = voicings.length;
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-      <ChordDiagram fingering={voicings[i]} />
-      <span style={{ color: "var(--text)", fontSize: 13 }}>{label}</span>
-      {n > 1 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--muted)", fontSize: 12 }}>
-          <button style={cycleBtn} onClick={() => setI((p) => (p - 1 + n) % n)}>‹</button>
-          <span>{i + 1}/{n}</span>
-          <button style={cycleBtn} onClick={() => setI((p) => (p + 1) % n)}>›</button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ChordDiagramPreview({ onBack }) {
-  return (
-    <div style={{ minHeight: "100vh", padding: 32 }}>
-      <button
-        onClick={onBack}
-        style={{ ...cycleBtn, width: "auto", height: "auto", padding: "6px 12px", marginBottom: 16, fontSize: 13 }}
-      >
-        ← Retour
-      </button>
-      <h2 style={{ fontWeight: 500, marginBottom: 24, color: "var(--muted)", fontSize: 16 }}>
-        ChordDiagram — design preview
-      </h2>
-      <div style={{ display: "flex", gap: 32, flexWrap: "wrap", alignItems: "flex-start" }}>
-        {DEMO_CHORDS.map((c) => (
-          <ChordCard key={c.label} label={c.label} voicings={c.voicings} />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function loadSettings() {
   try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) ?? {}; }
@@ -106,16 +31,21 @@ export default function GuitarPractice() {
   const [enabled, setEnabled] = useState(initialEnabled);
   const [tts, setTts] = useState(() => loadSettings().tts ?? false);
   const [listening, setListening] = useState(() => loadSettings().listening ?? false);
-  const [devScreen, setDevScreen] = useState(null); // dev only: null | "mic" | "chords"
+  const [chordPreset, setChordPreset] = useState(null);
+  const [chordProgression, setChordProgression] = useState(null);
+  const [chordAuto, setChordAuto] = useState(() => loadSettings().chordAuto ?? false);
+  const [devScreen, setDevScreen] = useState(null); // dev only: null | "mic"
   const [sessionSummary, setSessionSummary] = useState(null);
   const [stats, setStats] = useState(loadStats);
   const [screen, setScreen] = useState("welcome"); // "welcome" | "config"
   const [mode, setMode] = useState(null); // "notes" | "chords"
+  const [preSessionStats, setPreSessionStats] = useState(null);
 
   const targetType = mode === "chords" ? "chord" : "note";
   const pool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
 
-  const session = useSession({ interval: intervalSecs, pool, listening: mode === "notes" && listening, tts });
+  const session = useSession({ interval: intervalSecs, pool, listening: mode === "notes" && listening, tts, chordAuto });
+
   const detectedNote = usePitchDetection(session.micActive, session.count);
 
   useEffect(() => {
@@ -124,9 +54,9 @@ export default function GuitarPractice() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ interval: intervalSecs, enabled, tts, listening }));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ interval: intervalSecs, enabled, tts, listening, chordAuto }));
     } catch { /* ignore quota / disabled storage */ }
-  }, [intervalSecs, enabled, tts, listening]);
+  }, [intervalSecs, enabled, tts, listening, chordAuto]);
 
   useEffect(() => {
     if (!session.inSession) return;
@@ -142,6 +72,49 @@ export default function GuitarPractice() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [session.inSession]);
+
+  // Wraps setEnabled and clears preset/progression state (used for manual toggles in ConfigView)
+  const setEnabledManual = (next) => {
+    setEnabled(next);
+    setChordPreset(null);
+    setChordProgression(null);
+  };
+
+  // Activate a preset: enable all chords matching qualityIds × all roots
+  const applyPreset = (presetId) => {
+    const preset = CHORD_PRESETS.find((p) => p.id === presetId);
+    if (!preset) return;
+    setEnabled((prev) => {
+      const next = { ...prev };
+      for (const root of CHORD_ROOTS) {
+        for (const q of CHORD_QUALITIES) {
+          const id = `${root.id}_${q.id}`;
+          next[id] = preset.qualityIds === null || preset.qualityIds.includes(q.id);
+        }
+      }
+      return next;
+    });
+    setChordPreset(presetId);
+    setChordProgression(null);
+  };
+
+  // Activate a progression: enable exactly those chord IDs, disable all others
+  const applyProgression = (progId) => {
+    const prog = CHORD_PROGRESSIONS.find((p) => p.id === progId);
+    if (!prog) return;
+    setEnabled((prev) => {
+      const next = { ...prev };
+      for (const root of CHORD_ROOTS) {
+        for (const q of CHORD_QUALITIES) {
+          const id = `${root.id}_${q.id}`;
+          next[id] = prog.chordIds.includes(id);
+        }
+      }
+      return next;
+    });
+    setChordProgression(progId);
+    setChordPreset(null);
+  };
 
   const stopSession = () => {
     const raw = session.finish();
@@ -167,12 +140,19 @@ export default function GuitarPractice() {
     setScreen("config");
   };
 
+  const startSession = () => {
+    setPreSessionStats(stats);
+    session.start();
+  };
+
+  const handleReplay = () => {
+    setPreSessionStats(stats);
+    setSessionSummary(null);
+    session.start();
+  };
+
   if (import.meta.env.DEV && devScreen === "mic") {
     return <DebugView onBack={() => setDevScreen(null)} />;
-  }
-
-  if (import.meta.env.DEV && devScreen === "chords") {
-    return <ChordDiagramPreview onBack={() => setDevScreen(null)} />;
   }
 
   if (session.inSession) {
@@ -188,16 +168,26 @@ export default function GuitarPractice() {
         hitStatus={session.hitStatus}
         practiceTime={session.practiceTime}
         interval={intervalSecs}
+        chordAuto={chordAuto}
+        pendingReveal={session.pendingReveal}
         onPauseToggle={session.pauseToggle}
         onForceAccept={session.forceAccept}
         onManualNext={session.manualNext}
+        onChordGrade={session.manualGrade}
         onStop={stopSession}
       />
     );
   }
 
   if (sessionSummary !== null) {
-    return <SummaryView summary={sessionSummary} onDismiss={goWelcome} />;
+    return (
+      <SummaryView
+        summary={sessionSummary}
+        preSessionStats={preSessionStats}
+        onDismiss={goWelcome}
+        onReplay={handleReplay}
+      />
+    );
   }
 
   if (screen === "config") {
@@ -207,13 +197,19 @@ export default function GuitarPractice() {
         interval={intervalSecs}
         setInterval={setIntervalSecs}
         enabled={enabled}
-        setEnabled={setEnabled}
+        setEnabled={setEnabledManual}
         tts={tts}
         setTts={setTts}
         listening={listening}
         setListening={setListening}
         pool={pool}
-        onStart={session.start}
+        chordPreset={chordPreset}
+        chordProgression={chordProgression}
+        onPreset={applyPreset}
+        onProgression={applyProgression}
+        chordAuto={chordAuto}
+        setChordAuto={setChordAuto}
+        onStart={startSession}
         onBack={goWelcome}
         showDebugLink={import.meta.env.DEV}
         onShowDebug={() => setDevScreen("mic")}
@@ -231,7 +227,6 @@ export default function GuitarPractice() {
       onPickChords={() => pickMode("chords")}
       showDebugLink={import.meta.env.DEV}
       onShowDebug={() => setDevScreen("mic")}
-      onShowChords={() => setDevScreen("chords")}
     />
   );
 }
