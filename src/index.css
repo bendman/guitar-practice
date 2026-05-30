@@ -2,23 +2,23 @@
   --mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
   --display: 'Martian Mono', monospace;
 
-  --bg: #191815;
-  --surface: #211d18;
-  --surface-2: #2a2520;
-  --surface-3: #332c25;
+  --bg: #222325;
+  --surface: #29292c;
+  --surface-2: #303035;
+  --surface-3: #38383e;
 
-  --text: #f4efe6;
-  --text-dim: #9a8e7e;
-  --text-faint: #665c4f;
-  --line: rgba(243,237,226,0.12);
+  --text: #e1d4bb;
+  --text-dim: #a89f8e;
+  --text-faint: #6e6758;
+  --line: rgba(225,212,187,0.12);
 
-  --accent: #e2b288;
-  --accent-soft: #c89968;
-  --accent-deep: #8a6038;
-  --accent-ink: #2a1c10;
+  --accent: #d4753f;
+  --accent-soft: #dfad74;
+  --accent-deep: #a05530;
+  --accent-ink: #1a1510;
 
-  --success: #ead24a;
-  --error: #df7a64;
+  --success: #c0ccb1;
+  --error: #d4753f;
 
   --r-sm: 10px;
   --r-md: 14px;

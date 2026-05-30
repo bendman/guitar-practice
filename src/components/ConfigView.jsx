@@ -172,7 +172,7 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
                     onClick={() => toggleCell(r.id, q.id)}
                     aria-label={`${r.label} ${q.label}`}
                   >
-                    <ProgressDot level={level} size={10} dim={!on} />
+                    <ProgressDot level={level} size={12} dim={!on} />
                   </button>
                 );
               })}
