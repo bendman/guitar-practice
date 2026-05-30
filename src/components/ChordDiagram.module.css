@@ -1,0 +1,28 @@
+.root {
+  display: block;
+}
+
+.string,
+.fret {
+  stroke: var(--dim);
+}
+
+.dot {
+  fill: var(--accent);
+}
+
+.marker {
+  fill: var(--muted);
+  font-family: var(--font);
+  font-size: 12px;
+}
+
+.barre {
+  stroke: var(--accent);
+}
+
+.fretLabel {
+  fill: var(--muted);
+  font-family: var(--font);
+  font-size: 9px;
+}

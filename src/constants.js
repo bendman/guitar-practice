@@ -60,19 +60,42 @@ export const CHORD_QUALITIES = [
   { id: "dim",  label: "Diminué",   speak: "Diminué" },
   { id: "maj7", label: "Maj 7",     speak: "Majeur 7" },
   { id: "min7", label: "Min 7",     speak: "Mineur 7" },
-  { id: "dim7", label: "Dim 7",     speak: "Diminué 7" },
+  { id: "m7b5", label: "Demi-diminué", speak: "Demi-diminué" },
   { id: "dom7", label: "7",         speak: "7" },
 ];
 
+// Open-position fingerings, indexed by chord id. frets are low-E → high-E
+// (0 = open, -1 = muted). Multiple entries are alternate voicings (primary first).
+const CHORD_VOICINGS = {
+  mi_maj:  [{ frets: [0, 2, 2, 1, 0, 0] }],
+  mi_min:  [{ frets: [0, 2, 2, 0, 0, 0] }],
+  mi_dim:  [{ frets: [0, 1, 2, 0, -1, -1] }],
+  mi_maj7: [{ frets: [0, 2, 1, 1, 0, 0] }],
+  mi_min7: [{ frets: [0, 2, 0, 0, 0, 0] }, { frets: [0, 2, 0, 0, 3, 0] }],
+  mi_m7b5: [{ frets: [0, 1, 0, 0, -1, -1] }],
+  mi_dom7: [{ frets: [0, 2, 0, 1, 0, 0] }, { frets: [0, 2, 0, 1, 3, 0] }],
+  la_maj:  [{ frets: [-1, 0, 2, 2, 2, 0] }],
+  la_min:  [{ frets: [-1, 0, 2, 2, 1, 0] }],
+  la_dim:  [{ frets: [-1, 0, 1, 2, 1, -1] }],
+  la_maj7: [{ frets: [-1, 0, 2, 1, 2, 0] }],
+  la_min7: [{ frets: [-1, 0, 2, 0, 1, 0] }, { frets: [-1, 0, 2, 0, 1, 3] }],
+  la_m7b5: [{ frets: [-1, 0, 1, 0, 1, -1] }],
+  la_dom7: [{ frets: [-1, 0, 2, 0, 2, 0] }, { frets: [-1, 0, 2, 0, 2, 3] }],
+};
+
 export const CHORDS = CHORD_ROOTS.flatMap((root) =>
-  CHORD_QUALITIES.map((q) => ({
-    id: `${root.id}_${q.id}`,
-    label: `${root.label} ${q.label}`,
-    speak: `${root.speak} ${q.speak}`,
-    type: "chord",
-    rootId: root.id,
-    qualityId: q.id,
-  }))
+  CHORD_QUALITIES.map((q) => {
+    const id = `${root.id}_${q.id}`;
+    return {
+      id,
+      label: `${root.label} ${q.label}`,
+      speak: `${root.speak} ${q.speak}`,
+      type: "chord",
+      rootId: root.id,
+      qualityId: q.id,
+      voicings: CHORD_VOICINGS[id] ?? [],
+    };
+  })
 );
 
 export const ALL = [...NOTES, ...CHROMATIC_NOTES, ...CHORDS];

@@ -192,6 +192,21 @@ export function useSession({ interval, pool, listening, tts }) {
 
   const pauseToggle = () => setPaused((p) => !p);
   const forceAccept = () => advanceFnRef.current?.(false);
+
+  // Manually step to a new item without (re)starting auto progression. Meant for
+  // paused "slow practice": while paused the timer effect is inert (no RAF, no
+  // scheduled timeout), so there's nothing to conflict with — the item just swaps
+  // and progression stays off until the user resumes.
+  const manualNext = () => {
+    const next = pickRandom(latest.current.pool, lastIdRef.current);
+    if (!next) return;
+    lastIdRef.current = next.id;
+    setCurrent(next);
+    setCount((c) => c + 1);
+    setProgress(0);
+    resetHit();
+    if (latest.current.tts) sayAloud(next);
+  };
   const resetPracticeTime = () => {
     practiceTimeRef.current = 0;
     setPracticeTime(0);
@@ -202,6 +217,6 @@ export function useSession({ interval, pool, listening, tts }) {
   return {
     inSession, paused, current, progress, count, streak, hitStatus, practiceTime,
     micActive, onDetectedNote,
-    start, finish, pauseToggle, forceAccept, resetPracticeTime,
+    start, finish, pauseToggle, forceAccept, manualNext, resetPracticeTime,
   };
 }

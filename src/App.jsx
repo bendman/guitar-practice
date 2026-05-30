@@ -9,8 +9,83 @@ import ConfigView from "./components/ConfigView";
 import SessionView from "./components/SessionView";
 import SummaryView from "./components/SummaryView";
 import DebugView from "./components/DebugView";
+import ChordDiagram from "./components/ChordDiagram";
 
 const SETTINGS_KEY = "guitar-practice-settings";
+
+// TEMP design preview — remove before shipping
+const DEMO_CHORDS = [
+  { label: "Mi Majeur", voicings: [{ frets: [0, 2, 2, 1, 0, 0] }] },
+  { label: "Mi Mineur", voicings: [{ frets: [0, 2, 2, 0, 0, 0] }] },
+  { label: "Mi Diminué", voicings: [{ frets: [0, 1, 2, 0, -1, -1] }] },
+  { label: "Mi Maj 7", voicings: [{ frets: [0, 2, 1, 1, 0, 0] }] },
+  { label: "Mi Min 7", voicings: [{ frets: [0, 2, 0, 0, 0, 0] }, { frets: [0, 2, 0, 0, 3, 0] }] },
+  { label: "Mi Demi-diminué", voicings: [{ frets: [0, 1, 0, 0, -1, -1] }] },
+  { label: "Mi 7", voicings: [{ frets: [0, 2, 0, 1, 0, 0] }, { frets: [0, 2, 0, 1, 3, 0] }] },
+  { label: "La Majeur", voicings: [{ frets: [-1, 0, 2, 2, 2, 0] }] },
+  { label: "La Mineur", voicings: [{ frets: [-1, 0, 2, 2, 1, 0] }] },
+  { label: "La Diminué", voicings: [{ frets: [-1, 0, 1, 2, 1, -1] }] },
+  { label: "La Maj 7", voicings: [{ frets: [-1, 0, 2, 1, 2, 0] }] },
+  {
+    label: "La Min 7",
+    voicings: [
+      { frets: [-1, 0, 2, 0, 1, 0] },
+      { frets: [-1, 0, 2, 0, 1, 3] },
+    ],
+  },
+  { label: "La Demi-diminué", voicings: [{ frets: [-1, 0, 1, 0, 1, -1] }] },
+  { label: "La 7", voicings: [{ frets: [-1, 0, 2, 0, 2, 0] }, { frets: [-1, 0, 2, 0, 2, 3] }] },
+];
+
+const cycleBtn = {
+  background: "transparent",
+  border: "1px solid var(--border-soft)",
+  borderRadius: 4,
+  color: "var(--muted)",
+  cursor: "pointer",
+  width: 22,
+  height: 22,
+  lineHeight: 1,
+};
+
+function ChordCard({ label, voicings }) {
+  const [i, setI] = useState(0);
+  const n = voicings.length;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+      <ChordDiagram fingering={voicings[i]} />
+      <span style={{ color: "var(--text)", fontSize: 13 }}>{label}</span>
+      {n > 1 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--muted)", fontSize: 12 }}>
+          <button style={cycleBtn} onClick={() => setI((p) => (p - 1 + n) % n)}>‹</button>
+          <span>{i + 1}/{n}</span>
+          <button style={cycleBtn} onClick={() => setI((p) => (p + 1) % n)}>›</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChordDiagramPreview({ onBack }) {
+  return (
+    <div style={{ minHeight: "100vh", padding: 32 }}>
+      <button
+        onClick={onBack}
+        style={{ ...cycleBtn, width: "auto", height: "auto", padding: "6px 12px", marginBottom: 16, fontSize: 13 }}
+      >
+        ← Retour
+      </button>
+      <h2 style={{ fontWeight: 500, marginBottom: 24, color: "var(--muted)", fontSize: 16 }}>
+        ChordDiagram — design preview
+      </h2>
+      <div style={{ display: "flex", gap: 32, flexWrap: "wrap", alignItems: "flex-start" }}>
+        {DEMO_CHORDS.map((c) => (
+          <ChordCard key={c.label} label={c.label} voicings={c.voicings} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function loadSettings() {
   try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) ?? {}; }
@@ -31,7 +106,7 @@ export default function GuitarPractice() {
   const [enabled, setEnabled] = useState(initialEnabled);
   const [tts, setTts] = useState(() => loadSettings().tts ?? false);
   const [listening, setListening] = useState(() => loadSettings().listening ?? false);
-  const [inDebug, setInDebug] = useState(false);
+  const [devScreen, setDevScreen] = useState(null); // dev only: null | "mic" | "chords"
   const [sessionSummary, setSessionSummary] = useState(null);
   const [stats, setStats] = useState(loadStats);
   const [screen, setScreen] = useState("welcome"); // "welcome" | "config"
@@ -92,8 +167,12 @@ export default function GuitarPractice() {
     setScreen("config");
   };
 
-  if (import.meta.env.DEV && inDebug) {
-    return <DebugView onBack={() => setInDebug(false)} />;
+  if (import.meta.env.DEV && devScreen === "mic") {
+    return <DebugView onBack={() => setDevScreen(null)} />;
+  }
+
+  if (import.meta.env.DEV && devScreen === "chords") {
+    return <ChordDiagramPreview onBack={() => setDevScreen(null)} />;
   }
 
   if (session.inSession) {
@@ -111,6 +190,7 @@ export default function GuitarPractice() {
         interval={intervalSecs}
         onPauseToggle={session.pauseToggle}
         onForceAccept={session.forceAccept}
+        onManualNext={session.manualNext}
         onStop={stopSession}
       />
     );
@@ -136,7 +216,7 @@ export default function GuitarPractice() {
         onStart={session.start}
         onBack={goWelcome}
         showDebugLink={import.meta.env.DEV}
-        onShowDebug={() => setInDebug(true)}
+        onShowDebug={() => setDevScreen("mic")}
       />
     );
   }
@@ -150,7 +230,8 @@ export default function GuitarPractice() {
       onPickNotes={() => pickMode("notes")}
       onPickChords={() => pickMode("chords")}
       showDebugLink={import.meta.env.DEV}
-      onShowDebug={() => setInDebug(true)}
+      onShowDebug={() => setDevScreen("mic")}
+      onShowChords={() => setDevScreen("chords")}
     />
   );
 }
