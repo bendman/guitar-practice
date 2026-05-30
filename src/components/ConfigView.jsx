@@ -297,7 +297,7 @@ export default function ConfigView({
           disabled={pool.length === 0}
           className={`${shared.footerBtnPrimary} ${s.startBtn}`}
         >
-          {pool.length === 0 ? "Choisis un élément" : "Commencer"}
+          Commencer
         </button>
       </div>
     </div>
