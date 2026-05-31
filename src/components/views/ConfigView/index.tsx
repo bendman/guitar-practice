@@ -1,13 +1,13 @@
 import React from "react";
-import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS, NOTES, CHROMATIC_NOTES } from "../constants";
-import type { PracticeItem } from "../constants";
-import { weightToLevel } from "../util";
-import type { Weights } from "../stats";
-import NotesPicker from "./NotesPicker";
-import Toggle from "./Toggle";
-import ProgressDot from "./ProgressDot";
-import shared from "./shared.module.css";
-import s from "./ConfigView.module.css";
+import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS, NOTES, CHROMATIC_NOTES } from "../../../lib/constants";
+import type { PracticeItem } from "../../../lib/constants";
+import { weightToLevel } from "../../../lib/util";
+import type { Weights } from "../../../lib/stats";
+import NotesPicker from "../../ui/NotesPicker";
+import Toggle from "../../ui/Toggle";
+import ProgressDot from "../../ui/ProgressDot";
+import shared from "../../shared.module.css";
+import s from "./index.module.css";
 
 interface IntervalControlProps {
   interval: number;

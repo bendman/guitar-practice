@@ -1,9 +1,9 @@
-import { formatDuration } from "../util";
-import { accuracyPercent } from "../stats";
-import type { Stats } from "../stats";
-import Icon from "./Icon";
-import shared from "./shared.module.css";
-import s from "./WelcomeView.module.css";
+import { formatDuration } from "../../../lib/util";
+import { accuracyPercent } from "../../../lib/stats";
+import type { Stats } from "../../../lib/stats";
+import Icon from "../../ui/Icon";
+import shared from "../../shared.module.css";
+import s from "./index.module.css";
 
 interface WelcomeViewProps {
   stats: Stats;

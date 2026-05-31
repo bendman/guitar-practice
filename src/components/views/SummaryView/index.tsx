@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { formatTime, formatDuration, weightToLevel } from "../util";
-import { mergeSessionIntoStats, accuracyPercent } from "../stats";
-import type { Stats, SessionSummary, Weights } from "../stats";
-import ProgressDot from "./ProgressDot";
-import shared from "./shared.module.css";
-import s from "./SummaryView.module.css";
+import { formatTime, formatDuration, weightToLevel } from "../../../lib/util";
+import { mergeSessionIntoStats, accuracyPercent } from "../../../lib/stats";
+import type { Stats, SessionSummary, Weights } from "../../../lib/stats";
+import ProgressDot from "../../ui/ProgressDot";
+import shared from "../../shared.module.css";
+import s from "./index.module.css";
 
 interface AccuracyRingProps {
   accuracy: number;

@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { ALL } from "../constants";
-import type { PracticeItem, ChordItem } from "../constants";
-import { weightToLevel } from "../util";
-import type { Weights } from "../stats";
-import ProgressDot from "./ProgressDot";
-import ChordDiagram from "./ChordDiagram";
-import shared from "./shared.module.css";
-import s from "./ProgressView.module.css";
+import { ALL } from "../../../lib/constants";
+import type { PracticeItem, ChordItem } from "../../../lib/constants";
+import { weightToLevel } from "../../../lib/util";
+import type { Weights } from "../../../lib/stats";
+import ProgressDot from "../../ui/ProgressDot";
+import ChordDiagram from "../../ui/ChordDiagram";
+import shared from "../../shared.module.css";
+import s from "./index.module.css";
 
 const LEVEL_LABELS = ["", "Difficile", "Facile", "Maîtrisé"];
 

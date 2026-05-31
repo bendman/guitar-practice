@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { detectPitch, freqToNoteId, freqToNoteInfo, type NoteInfo } from "./pitch";
+import { detectPitch, freqToNoteId, freqToNoteInfo, type NoteInfo } from "../lib/pitch";
 
 interface PitchGateState {
   lastSeen: string | null;

@@ -1,5 +1,5 @@
-import type { Voicing } from "../constants";
-import s from "./ChordDiagram.module.css";
+import type { Voicing } from "../../../lib/constants";
+import s from "./index.module.css";
 
 const STRINGS = 6;
 const STRING_SPACING = 18;

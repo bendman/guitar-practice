@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import type { PracticeItem } from "./constants";
-import { pickWeightedRandom, sayAloud } from "./util";
-import type { SessionResult } from "./summarizeSession";
+import type { PracticeItem } from "../lib/constants";
+import { pickWeightedRandom, sayAloud } from "../lib/util";
+import type { SessionResult } from "../lib/summarizeSession";
 
 interface SessionOptions {
   interval: number;

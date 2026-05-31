@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import { ALL, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS } from "./constants";
-import { usePitchDetection } from "./usePitchDetection";
-import { useSession } from "./useSession";
-import { applyResult, buildActivePool } from "./util";
-import { summarizeSession } from "./summarizeSession";
+import { ALL, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS } from "./lib/constants";
+import { usePitchDetection } from "./hooks/usePitchDetection";
+import { useSession } from "./hooks/useSession";
+import { applyResult, buildActivePool } from "./lib/util";
+import { summarizeSession } from "./lib/summarizeSession";
 import {
   loadStats, saveStats, resetStats, mergeSessionIntoStats,
   loadWeights, saveWeights, resetWeights,
-} from "./stats";
-import type { Stats, SessionSummary, Weights } from "./stats";
-import WelcomeView from "./components/WelcomeView";
-import ConfigView from "./components/ConfigView";
-import SessionView from "./components/SessionView";
-import SummaryView from "./components/SummaryView";
-import ProgressView from "./components/ProgressView";
-import DebugView from "./components/DebugView";
+} from "./lib/stats";
+import type { Stats, SessionSummary, Weights } from "./lib/stats";
+import WelcomeView from "./components/views/WelcomeView";
+import ConfigView from "./components/views/ConfigView";
+import SessionView from "./components/views/SessionView";
+import SummaryView from "./components/views/SummaryView";
+import ProgressView from "./components/views/ProgressView";
+import DebugView from "./components/views/DebugView";
 
 const SETTINGS_KEY = "guitar-practice-settings";
 

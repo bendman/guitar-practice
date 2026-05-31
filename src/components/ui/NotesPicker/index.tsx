@@ -1,6 +1,6 @@
-import { NOTES, CHROMATIC_NOTES, NOTES_DISPLAY_ORDER } from "../constants";
-import shared from "./shared.module.css";
-import s from "./NotesPicker.module.css";
+import { NOTES, CHROMATIC_NOTES, NOTES_DISPLAY_ORDER } from "../../../lib/constants";
+import shared from "../../shared.module.css";
+import s from "./index.module.css";
 
 interface NotesPickerProps {
   enabled: Record<string, boolean>;

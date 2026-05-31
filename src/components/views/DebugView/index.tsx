@@ -1,10 +1,10 @@
-import { NOTES, CHROMATIC_NOTES, NOTE_FREQS } from "../constants";
+import { NOTES, CHROMATIC_NOTES, NOTE_FREQS } from "../../../lib/constants";
 import {
   useDebugPitch,
   ATTACK_RMS, RELEASE_RMS, RELEASE_FRAMES, REQUIRED_FRAMES,
-} from "../usePitchDetection";
-import shared from "./shared.module.css";
-import s from "./DebugView.module.css";
+} from "../../../hooks/usePitchDetection";
+import shared from "../../shared.module.css";
+import s from "./index.module.css";
 
 const ALL_NOTES = [...NOTES, ...CHROMATIC_NOTES];
 const RMS_BAR_MAX = 0.3;

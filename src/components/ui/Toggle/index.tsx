@@ -1,4 +1,4 @@
-import s from "./Toggle.module.css";
+import s from "./index.module.css";
 
 interface ToggleProps {
   label: string;

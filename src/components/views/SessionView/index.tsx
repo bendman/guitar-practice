@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { NOTES, CHROMATIC_SHARPS } from "../constants";
-import type { PracticeItem, ChordItem } from "../constants";
-import { formatTime } from "../util";
-import ChordDiagram from "./ChordDiagram";
-import Icon from "./Icon";
-import s from "./SessionView.module.css";
+import { NOTES, CHROMATIC_SHARPS } from "../../../lib/constants";
+import type { PracticeItem, ChordItem } from "../../../lib/constants";
+import { formatTime } from "../../../lib/util";
+import ChordDiagram from "../../ui/ChordDiagram";
+import Icon from "../../ui/Icon";
+import s from "./index.module.css";
 
 const NOTE_LABELS = [...NOTES, ...CHROMATIC_SHARPS];
 
