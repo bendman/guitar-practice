@@ -37,10 +37,16 @@ src/
 
 Each component folder contains `index.tsx` and `index.module.css`.
 
-## Development
+## Setup
 
 ```bash
 npm install
+git config core.hooksPath .githooks  # enables pre-commit typecheck
+```
+
+## Development
+
+```bash
 npm run dev       # dev server at http://localhost:5173
 npm run build     # production build
 npm run deploy    # build + deploy to GitHub Pages
