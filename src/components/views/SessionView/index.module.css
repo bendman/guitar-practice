@@ -48,6 +48,25 @@
   z-index: 1;
 }
 
+.learningLink {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--dim);
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  border-radius: 4px;
+}
+
+.learningLink:hover {
+  color: var(--muted);
+  background: var(--surface-soft);
+}
+
 .timer {
   font-family: var(--display);
   font-weight: 700;

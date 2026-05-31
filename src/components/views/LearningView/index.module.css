@@ -1,0 +1,138 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.backBtn {
+  composes: resetBtn from "../../shared.module.css";
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.headerLabel {
+  font-size: 11px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.poolSummary {
+  display: flex;
+  gap: 0;
+  margin-bottom: 28px;
+  background: var(--surface-soft);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  gap: 2px;
+  border-right: 1px solid var(--line);
+}
+
+.stat:last-child {
+  border-right: none;
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--display);
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.statValueDim {
+  color: var(--dim);
+}
+
+.statLabel {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+
+.section {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eyebrowMuted {
+  opacity: 0.5;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: 4px;
+}
+
+.rowHighlight {
+  background: rgba(var(--accent-rgb, 180, 120, 255), 0.06);
+}
+
+.rowMuted {
+  opacity: 0.45;
+}
+
+.itemLabel {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.levelBadge {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--dim);
+  min-width: 52px;
+  text-align: right;
+}
+
+.weightCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 80px;
+}
+
+.weightTrack {
+  flex: 1;
+  height: 4px;
+  background: var(--surface-soft);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.weightFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.2s ease;
+}
+
+.weightNum {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--dim);
+  min-width: 30px;
+  text-align: right;
+}

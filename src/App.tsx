@@ -15,6 +15,7 @@ import SessionView from "./components/views/SessionView";
 import SummaryView from "./components/views/SummaryView";
 import ProgressView from "./components/views/ProgressView";
 import DebugView from "./components/views/DebugView";
+import LearningView from "./components/views/LearningView";
 
 const SETTINGS_KEY = "guitar-practice-settings";
 
@@ -57,6 +58,7 @@ export default function GuitarPractice() {
   const [chordAuto, setChordAuto] = useState<boolean>(initialSettings.chordAuto);
   const [workingSetSize, setWorkingSetSize] = useState<number>(initialSettings.workingSetSize);
   const [devScreen, setDevScreen] = useState<string | null>(null);
+  const [showLearning, setShowLearning] = useState(false);
   const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
   const [stats, setStats] = useState<Stats>(loadStats);
   const [weights, setWeights] = useState<Weights>(loadWeights);
@@ -196,6 +198,18 @@ export default function GuitarPractice() {
     return <DebugView onBack={() => setDevScreen(null)} />;
   }
 
+  if (showLearning) {
+    return (
+      <LearningView
+        pool={pool}
+        activePool={activePool}
+        weights={weights}
+        workingSetSize={workingSetSize}
+        onBack={() => setShowLearning(false)}
+      />
+    );
+  }
+
   if (session.inSession) {
     return (
       <SessionView
@@ -216,6 +230,7 @@ export default function GuitarPractice() {
         onManualNext={session.manualNext}
         onChordGrade={session.manualGrade}
         onStop={stopSession}
+        onShowLearning={() => setShowLearning(true)}
       />
     );
   }

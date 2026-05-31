@@ -57,6 +57,7 @@ interface SessionViewProps {
   onManualNext: () => void;
   onChordGrade: (correct: boolean) => void;
   onStop: () => void;
+  onShowLearning: () => void;
 }
 
 export default function SessionView({
@@ -77,6 +78,7 @@ export default function SessionView({
   onManualNext,
   onChordGrade,
   onStop,
+  onShowLearning,
 }: SessionViewProps) {
   const [revealed, setRevealed] = useState(false);
   const [voicingIdx, setVoicingIdx] = useState(0);
@@ -168,6 +170,7 @@ export default function SessionView({
       {isCorrect && <div className={s.correctGlow} />}
 
       <div className={s.topBar}>
+        <button className={s.learningLink} onClick={onShowLearning}>Details</button>
         <div className={s.timer}>{formatTime(practiceTime)}</div>
         <div className={s.countRow}>
           <span className={s.count}>#{count}</span>
