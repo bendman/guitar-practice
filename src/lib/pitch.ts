@@ -1,8 +1,20 @@
 import { NOTE_FREQS } from "./constants";
 
-export function freqToNoteId(freq) {
+export interface NoteInfo {
+  noteId: string;
+  cents: number;
+  signedCents: number;
+}
+
+export interface PitchResult {
+  freq: number | null;
+  rms: number;
+  corr: number;
+}
+
+export function freqToNoteId(freq: number): string | null {
   if (freq < 60 || freq > 2000) return null;
-  let closest = null;
+  let closest: string | null = null;
   let minDist = Infinity;
   for (const [id, freqs] of Object.entries(NOTE_FREQS)) {
     for (const f of freqs) {
@@ -13,14 +25,13 @@ export function freqToNoteId(freq) {
       }
     }
   }
-  return minDist < 50 ? closest : null; // within 50 cents
+  return minDist < 50 ? closest : null;
 }
 
-// Returns { noteId, cents, signedCents } for the nearest note regardless of threshold
-export function freqToNoteInfo(freq) {
+export function freqToNoteInfo(freq: number): NoteInfo | null {
   if (freq < 60 || freq > 2000) return null;
-  let closest = null;
-  let closestFreq = null;
+  let closest: string | null = null;
+  let closestFreq: number | null = null;
   let minDist = Infinity;
   for (const [id, freqs] of Object.entries(NOTE_FREQS)) {
     for (const f of freqs) {
@@ -32,25 +43,22 @@ export function freqToNoteInfo(freq) {
       }
     }
   }
-  if (!closest) return null;
+  if (!closest || closestFreq === null) return null;
   const signedCents = Math.round(1200 * Math.log2(freq / closestFreq));
   return { noteId: closest, cents: Math.round(minDist), signedCents };
 }
 
-// Autocorrelation pitch detection — returns { freq, rms, corr }; freq is null if too quiet or no clear pitch
-export function detectPitch(buffer, sampleRate) {
+export function detectPitch(buffer: Float32Array, sampleRate: number): PitchResult {
   const n = buffer.length;
   let rms = 0;
   for (let i = 0; i < n; i++) rms += buffer[i] * buffer[i];
   rms = Math.sqrt(rms / n);
-  // Just skip true silence; the hook's attack/release gate handles note-level gating.
   if (rms < 0.001) return { freq: null, rms, corr: 0 };
 
   const minPeriod = Math.floor(sampleRate / 2000);
   const maxPeriod = Math.floor(sampleRate / 60);
   let bestCorr = 0;
   let bestPeriod = 0;
-  // Normalize by RMS² so the threshold is relative to signal power (range [-1, 1])
   const normFactor = rms * rms;
 
   for (let period = minPeriod; period <= maxPeriod; period++) {
@@ -65,7 +73,6 @@ export function detectPitch(buffer, sampleRate) {
     }
   }
 
-  // Parabolic interpolation for sub-sample accuracy (scale-invariant, normalization doesn't matter)
   const prev = bestPeriod > minPeriod ? autocorrAt(buffer, bestPeriod - 1) : 0;
   const curr = autocorrAt(buffer, bestPeriod);
   const next = bestPeriod < maxPeriod ? autocorrAt(buffer, bestPeriod + 1) : 0;
@@ -76,7 +83,7 @@ export function detectPitch(buffer, sampleRate) {
   return { freq, rms, corr: bestCorr };
 }
 
-function autocorrAt(buffer, period) {
+function autocorrAt(buffer: Float32Array, period: number): number {
   let corr = 0;
   const n = buffer.length;
   for (let i = 0; i < n - period; i++) corr += buffer[i] * buffer[i + period];

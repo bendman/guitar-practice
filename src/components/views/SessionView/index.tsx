@@ -1,33 +1,62 @@
 import { useEffect, useState } from "react";
-import { NOTES, CHROMATIC_SHARPS } from "../constants";
-import { formatTime } from "../util";
-import ChordDiagram from "./ChordDiagram";
-import Icon from "./Icon";
-import s from "./SessionView.module.css";
+import { NOTES, CHROMATIC_SHARPS } from "../../../lib/constants";
+import type { PracticeItem, ChordItem } from "../../../lib/constants";
+import { formatTime } from "../../../lib/util";
+import ChordDiagram from "../../ui/ChordDiagram";
+import Icon from "../../ui/Icon";
+import s from "./index.module.css";
 
 const NOTE_LABELS = [...NOTES, ...CHROMATIC_SHARPS];
 
-function detectedLabel(detectedNote) {
+function detectedLabel(detectedNote: string | null): string | null {
   if (!detectedNote) return null;
-  return NOTE_LABELS.find((n) => n.id === detectedNote)?.label || "?";
+  return NOTE_LABELS.find((n) => n.id === detectedNote)?.label ?? "?";
 }
 
-// Single control-bar button
-function CtrlBtn({ icon, label, onClick, variant = "secondary" }) {
-  const variantClass = {
+type CtrlVariant = "primary" | "secondary" | "accent-line" | "danger-line" | "danger";
+
+interface CtrlBtnProps {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  variant?: CtrlVariant;
+}
+
+function CtrlBtn({ icon, label, onClick, variant = "secondary" }: CtrlBtnProps) {
+  const variantClass: Record<CtrlVariant, string> = {
     primary: s.ctrlBtnPrimary,
     secondary: s.ctrlBtnSecondary,
     "accent-line": s.ctrlBtnAccentLine,
     "danger-line": s.ctrlBtnDangerLine,
     danger: s.ctrlBtnDanger,
-  }[variant] ?? s.ctrlBtnSecondary;
+  };
 
   return (
-    <button onClick={onClick} className={`${s.ctrlBtn} ${variantClass}`}>
+    <button onClick={onClick} className={`${s.ctrlBtn} ${variantClass[variant]}`}>
       <span className={s.ctrlIcon}><Icon name={icon} size={20} /></span>
       <span className={s.ctrlLabel}>{label}</span>
     </button>
   );
+}
+
+interface SessionViewProps {
+  current: PracticeItem | null;
+  count: number;
+  streak: number;
+  progress: number;
+  paused: boolean;
+  listening: boolean;
+  detectedNote: string | null;
+  hitStatus: "correct" | "wrong" | null;
+  practiceTime: number;
+  interval: number;
+  chordAuto: boolean;
+  pendingReveal: boolean;
+  onPauseToggle: () => void;
+  onForceAccept: () => void;
+  onManualNext: () => void;
+  onChordGrade: (correct: boolean) => void;
+  onStop: () => void;
 }
 
 export default function SessionView({
@@ -48,18 +77,16 @@ export default function SessionView({
   onManualNext,
   onChordGrade,
   onStop,
-}) {
+}: SessionViewProps) {
   const [revealed, setRevealed] = useState(false);
   const [voicingIdx, setVoicingIdx] = useState(0);
   const isCorrect = listening && hitStatus === "correct" && !paused;
   const isChord = current?.type === "chord";
-  const voicings = current?.voicings ?? [];
+  const voicings = current?.type === "chord" ? (current as ChordItem).voicings : [];
 
-  // Reset reveal and voicing on new card
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setRevealed(false); setVoicingIdx(0); }, [current?.id]);
 
-  // Auto-reveal when the timer expires in manual chord mode
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (pendingReveal) setRevealed(true); }, [pendingReveal]);
 
@@ -74,7 +101,7 @@ export default function SessionView({
     if (paused) onPauseToggle();
   };
 
-  const handleChordGrade = (correct) => {
+  const handleChordGrade = (correct: boolean) => {
     setVoicingIdx(0);
     setRevealed(false);
     if (paused) onPauseToggle();
@@ -83,8 +110,7 @@ export default function SessionView({
 
   const detected = detectedLabel(detectedNote);
 
-  // Build control bar buttons based on session state
-  let controls;
+  let controls: React.ReactNode;
   if (revealed) {
     if (chordAuto) {
       controls = (
@@ -120,7 +146,6 @@ export default function SessionView({
       </>
     );
   } else {
-    // Notes mode
     controls = (
       <>
         <CtrlBtn icon="pause" label="Pause" onClick={onPauseToggle} variant="accent-line" />
@@ -134,17 +159,14 @@ export default function SessionView({
 
   return (
     <div className={s.root}>
-      {/* Progress sweep — top bar */}
       <div
         className={s.progressBar}
         style={{ width: `${progress * 100}%`, opacity: paused ? 0.2 : 1 }}
       />
 
-      {/* Recognition flash/glow */}
       {isCorrect && <div className={s.correctFlash} />}
       {isCorrect && <div className={s.correctGlow} />}
 
-      {/* Timer + count */}
       <div className={s.topBar}>
         <div className={s.timer}>{formatTime(practiceTime)}</div>
         <div className={s.countRow}>
@@ -155,28 +177,23 @@ export default function SessionView({
         </div>
       </div>
 
-      {/* Main content area */}
       <div className={s.center}>
         {paused && !revealed && (
           <div className={s.pauseBadge}>En pause</div>
         )}
 
-        {/* Large note/chord name */}
         <div className={`${s.noteName} ${isCorrect ? s.noteNameCorrect : ""}`}>
           {current?.label || "—"}
         </div>
 
-        {/* Recognized checkmark */}
         {isCorrect && <div className={s.correctMark}>✓</div>}
 
-        {/* Mic listening hint */}
         {listening && !isCorrect && !revealed && current?.type === "note" && !paused && (
           <div className={s.listenHint}>
             Note · {detected ? detected : "Écoute…"}
           </div>
         )}
 
-        {/* Chord diagram when revealed */}
         {revealed && isChord && (
           <div className={s.diagramWrap}>
             {voicings[voicingIdx] && (
@@ -199,7 +216,6 @@ export default function SessionView({
         )}
       </div>
 
-      {/* Control bar */}
       <div className={s.controlBar}>
         {controls}
       </div>

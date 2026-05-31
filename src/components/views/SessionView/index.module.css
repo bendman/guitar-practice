@@ -1,5 +1,5 @@
 .root {
-  composes: fullPage from "./shared.module.css";
+  composes: fullPage from "../../shared.module.css";
   position: relative;
   overflow: hidden;
   display: flex;

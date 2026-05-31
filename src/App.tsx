@@ -1,58 +1,71 @@
 import { useEffect, useState } from "react";
-import { ALL, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS } from "./constants";
-import { usePitchDetection } from "./usePitchDetection";
-import { useSession } from "./useSession";
-import { applyResult, buildActivePool } from "./util";
-import { summarizeSession } from "./summarizeSession";
-import { loadStats, saveStats, resetStats, mergeSessionIntoStats, loadWeights, saveWeights, resetWeights } from "./stats";
-import WelcomeView from "./components/WelcomeView";
-import ConfigView from "./components/ConfigView";
-import SessionView from "./components/SessionView";
-import SummaryView from "./components/SummaryView";
-import ProgressView from "./components/ProgressView";
-import DebugView from "./components/DebugView";
+import { ALL, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS } from "./lib/constants";
+import { usePitchDetection } from "./hooks/usePitchDetection";
+import { useSession } from "./hooks/useSession";
+import { applyResult, buildActivePool } from "./lib/util";
+import { summarizeSession } from "./lib/summarizeSession";
+import {
+  loadStats, saveStats, resetStats, mergeSessionIntoStats,
+  loadWeights, saveWeights, resetWeights,
+} from "./lib/stats";
+import type { Stats, SessionSummary, Weights } from "./lib/stats";
+import WelcomeView from "./components/views/WelcomeView";
+import ConfigView from "./components/views/ConfigView";
+import SessionView from "./components/views/SessionView";
+import SummaryView from "./components/views/SummaryView";
+import ProgressView from "./components/views/ProgressView";
+import DebugView from "./components/views/DebugView";
 
 const SETTINGS_KEY = "guitar-practice-settings";
 
-function loadSettings() {
-  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) ?? {}; }
+interface StoredSettings {
+  interval?: number;
+  enabled?: Record<string, boolean>;
+  tts?: boolean;
+  listening?: boolean;
+  chordAuto?: boolean;
+  workingSetSize?: number;
+}
+
+function loadSettings(): StoredSettings {
+  try { return (JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "null") as StoredSettings | null) ?? {}; }
   catch { return {}; }
 }
 
-function initialEnabled() {
+function initialEnabled(): Record<string, boolean> {
   const defaults = Object.fromEntries(ALL.map((item) => [item.id, item.defaultEnabled !== false]));
   const stored = loadSettings().enabled;
   return stored ? { ...defaults, ...stored } : defaults;
 }
 
 export default function GuitarPractice() {
-  const [intervalSecs, setIntervalSecs] = useState(() => {
+  const [intervalSecs, setIntervalSecs] = useState<number>(() => {
     const stored = loadSettings().interval;
     return typeof stored === "number" ? stored : 2;
   });
-  const [enabled, setEnabled] = useState(initialEnabled);
-  const [tts, setTts] = useState(() => loadSettings().tts ?? false);
-  const [listening, setListening] = useState(() => loadSettings().listening ?? false);
-  const [chordPreset, setChordPreset] = useState(null);
-  const [chordProgression, setChordProgression] = useState(null);
-  const [chordAuto, setChordAuto] = useState(() => loadSettings().chordAuto ?? false);
-  const [workingSetSize, setWorkingSetSize] = useState(() => {
+  const [enabled, setEnabled] = useState<Record<string, boolean>>(initialEnabled);
+  const [tts, setTts] = useState<boolean>(() => loadSettings().tts ?? false);
+  const [listening, setListening] = useState<boolean>(() => loadSettings().listening ?? false);
+  const [chordPreset, setChordPreset] = useState<string | null>(null);
+  const [chordProgression, setChordProgression] = useState<string | null>(null);
+  const [chordAuto, setChordAuto] = useState<boolean>(() => loadSettings().chordAuto ?? false);
+  const [workingSetSize, setWorkingSetSize] = useState<number>(() => {
     const stored = loadSettings().workingSetSize;
     return typeof stored === "number" ? stored : 5;
   });
-  const [devScreen, setDevScreen] = useState(null); // dev only: null | "mic"
-  const [sessionSummary, setSessionSummary] = useState(null);
-  const [stats, setStats] = useState(loadStats);
-  const [weights, setWeights] = useState(loadWeights);
-  const [screen, setScreen] = useState("welcome"); // "welcome" | "config" | "progress"
-  const [mode, setMode] = useState(null); // "notes" | "chords"
-  const [preSessionStats, setPreSessionStats] = useState(null);
+  const [devScreen, setDevScreen] = useState<string | null>(null);
+  const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
+  const [stats, setStats] = useState<Stats>(loadStats);
+  const [weights, setWeights] = useState<Weights>(loadWeights);
+  const [screen, setScreen] = useState<"welcome" | "config" | "progress">("welcome");
+  const [mode, setMode] = useState<"notes" | "chords" | null>(null);
+  const [preSessionStats, setPreSessionStats] = useState<Stats | null>(null);
 
   const targetType = mode === "chords" ? "chord" : "note";
   const pool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
   const activePool = buildActivePool(pool, weights, workingSetSize);
 
-  const handleResult = (itemId, correct) => {
+  const handleResult = (itemId: string, correct: boolean) => {
     setWeights((prev) => {
       const next = applyResult(prev, itemId, correct);
       saveWeights(next);
@@ -60,7 +73,15 @@ export default function GuitarPractice() {
     });
   };
 
-  const session = useSession({ interval: intervalSecs, pool: activePool, listening: mode === "notes" && listening, tts, chordAuto, weights, onResult: handleResult });
+  const session = useSession({
+    interval: intervalSecs,
+    pool: activePool,
+    listening: mode === "notes" && listening,
+    tts,
+    chordAuto,
+    weights,
+    onResult: handleResult,
+  });
 
   const detectedNote = usePitchDetection(session.micActive, session.count);
 
@@ -70,13 +91,15 @@ export default function GuitarPractice() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ interval: intervalSecs, enabled, tts, listening, chordAuto, workingSetSize }));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+        interval: intervalSecs, enabled, tts, listening, chordAuto, workingSetSize,
+      }));
     } catch { /* ignore quota / disabled storage */ }
   }, [intervalSecs, enabled, tts, listening, chordAuto, workingSetSize]);
 
   useEffect(() => {
     if (!session.inSession) return;
-    const handler = (e) => {
+    const handler = (e: KeyboardEvent) => {
       if (e.key === "ArrowUp") {
         e.preventDefault();
         setIntervalSecs((v) => Math.min(v + 0.1, 10));
@@ -89,15 +112,13 @@ export default function GuitarPractice() {
     return () => window.removeEventListener("keydown", handler);
   }, [session.inSession]);
 
-  // Wraps setEnabled and clears preset/progression state (used for manual toggles in ConfigView)
-  const setEnabledManual = (next) => {
+  const setEnabledManual = (next: (prev: Record<string, boolean>) => Record<string, boolean>) => {
     setEnabled(next);
     setChordPreset(null);
     setChordProgression(null);
   };
 
-  // Activate a preset: enable all chords matching qualityIds × all roots
-  const applyPreset = (presetId) => {
+  const applyPreset = (presetId: string) => {
     const preset = CHORD_PRESETS.find((p) => p.id === presetId);
     if (!preset) return;
     setEnabled((prev) => {
@@ -114,8 +135,7 @@ export default function GuitarPractice() {
     setChordProgression(null);
   };
 
-  // Activate a progression: enable exactly those chord IDs, disable all others
-  const applyProgression = (progId) => {
+  const applyProgression = (progId: string) => {
     const prog = CHORD_PROGRESSIONS.find((p) => p.id === progId);
     if (!prog) return;
     setEnabled((prev) => {
@@ -134,7 +154,11 @@ export default function GuitarPractice() {
 
   const stopSession = () => {
     const raw = session.finish();
-    const summary = summarizeSession({ ...raw, wasListening: mode === "notes" && listening, wasManualChord: mode === "chords" && !chordAuto });
+    const summary = summarizeSession({
+      ...raw,
+      wasListening: mode === "notes" && listening,
+      wasManualChord: mode === "chords" && !chordAuto,
+    });
     setSessionSummary(summary);
     setStats((prev) => {
       const next = mergeSessionIntoStats(prev, summary);
@@ -154,7 +178,7 @@ export default function GuitarPractice() {
 
   const goProgress = () => setScreen("progress");
 
-  const pickMode = (m) => {
+  const pickMode = (m: "notes" | "chords") => {
     setMode(m);
     setScreen("config");
   };
@@ -211,7 +235,15 @@ export default function GuitarPractice() {
   }
 
   if (screen === "progress") {
-    return <ProgressView weights={weights} onBack={goWelcome} onResetWeights={resetAllWeights} workingSetSize={workingSetSize} setWorkingSetSize={setWorkingSetSize} />;
+    return (
+      <ProgressView
+        weights={weights}
+        onBack={goWelcome}
+        onResetWeights={resetAllWeights}
+        workingSetSize={workingSetSize}
+        setWorkingSetSize={setWorkingSetSize}
+      />
+    );
   }
 
   if (screen === "config") {
@@ -242,12 +274,11 @@ export default function GuitarPractice() {
     );
   }
 
+  void resetAllStats;
+
   return (
     <WelcomeView
       stats={stats}
-      resetStats={resetAllStats}
-      practiceTime={session.practiceTime}
-      resetPracticeTime={session.resetPracticeTime}
       onPickNotes={() => pickMode("notes")}
       onPickChords={() => pickMode("chords")}
       onShowProgress={goProgress}

@@ -1,14 +1,20 @@
 import React from "react";
-import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS, NOTES, CHROMATIC_NOTES } from "../constants";
-import { weightToLevel } from "../util";
-import NotesPicker from "./NotesPicker";
-import Toggle from "./Toggle";
-import ProgressDot from "./ProgressDot";
-import shared from "./shared.module.css";
-import s from "./ConfigView.module.css";
+import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS, NOTES, CHROMATIC_NOTES } from "../../../lib/constants";
+import type { PracticeItem } from "../../../lib/constants";
+import { weightToLevel } from "../../../lib/util";
+import type { Weights } from "../../../lib/stats";
+import NotesPicker from "../../ui/NotesPicker";
+import Toggle from "../../ui/Toggle";
+import ProgressDot from "../../ui/ProgressDot";
+import shared from "../../shared.module.css";
+import s from "./index.module.css";
 
-// ── Interval control ──────────────────────────────────────────────────────────
-function IntervalControl({ interval, setInterval }) {
+interface IntervalControlProps {
+  interval: number;
+  setInterval: (v: number) => void;
+}
+
+function IntervalControl({ interval, setInterval }: IntervalControlProps) {
   return (
     <div className={s.intervalSection}>
       <div className={s.intervalHeader}>
@@ -34,8 +40,19 @@ function IntervalControl({ interval, setInterval }) {
   );
 }
 
-// ── Chord builder ─────────────────────────────────────────────────────────────
-function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression, weights = {} }) {
+interface ChordsBuilderProps {
+  enabled: Record<string, boolean>;
+  setEnabled: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void;
+  chordPreset: string | null;
+  chordProgression: string | null;
+  onPreset: (id: string) => void;
+  onProgression: (id: string) => void;
+  weights?: Weights;
+}
+
+function ChordsBuilder({
+  enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression, weights = {},
+}: ChordsBuilderProps) {
   const totalEnabled = CHORDS.filter((c) => enabled[c.id]).length;
 
   const clearAll = () => {
@@ -46,7 +63,7 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
     });
   };
 
-  const toggleQuality = (qualityId) => {
+  const toggleQuality = (qualityId: string) => {
     setEnabled((prev) => {
       const next = { ...prev };
       const anyOn = CHORD_ROOTS.some((r) => prev[`${r.id}_${qualityId}`]);
@@ -55,7 +72,7 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
     });
   };
 
-  const toggleRoot = (rootId) => {
+  const toggleRoot = (rootId: string) => {
     setEnabled((prev) => {
       const next = { ...prev };
       const anyOn = CHORD_QUALITIES.some((q) => prev[`${rootId}_${q.id}`]);
@@ -64,15 +81,15 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
     });
   };
 
-  const isRootActive = (rootId) =>
+  const isRootActive = (rootId: string) =>
     CHORD_QUALITIES.some((q) => enabled[`${rootId}_${q.id}`]);
 
-  const toggleCell = (rootId, qualityId) => {
+  const toggleCell = (rootId: string, qualityId: string) => {
     const id = `${rootId}_${qualityId}`;
     setEnabled((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const rootPreset = (kind) => {
+  const rootPreset = (kind: "none" | "naturals" | "all") => {
     if (kind === "none") {
       setEnabled((prev) => {
         const next = { ...prev };
@@ -96,7 +113,6 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
 
   return (
     <>
-      {/* Total + clear */}
       <div className={s.chordHeader}>
         <span className={shared.eyebrow}>Sélection rapide</span>
         <div className={s.presetLinks}>
@@ -127,7 +143,6 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
         ))}
       </div>
 
-      {/* Root × quality matrix — always visible, headers are bulk toggles */}
       <div className={s.subsectionHeader}>
         <span className={shared.eyebrow}>Accords · {totalEnabled} au total</span>
         <div className={s.presetLinks}>
@@ -184,7 +199,30 @@ function ChordsBuilder({ enabled, setEnabled, chordPreset, chordProgression, onP
   );
 }
 
-// ── Main ConfigView ───────────────────────────────────────────────────────────
+interface ConfigViewProps {
+  mode: string | null;
+  interval: number;
+  setInterval: (v: number) => void;
+  enabled: Record<string, boolean>;
+  setEnabled: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void;
+  tts: boolean;
+  setTts: (v: boolean) => void;
+  listening: boolean;
+  setListening: (v: boolean) => void;
+  pool: PracticeItem[];
+  chordPreset: string | null;
+  chordProgression: string | null;
+  onPreset: (id: string) => void;
+  onProgression: (id: string) => void;
+  chordAuto: boolean;
+  setChordAuto: (v: boolean) => void;
+  weights?: Weights;
+  onStart: () => void;
+  onBack: () => void;
+  showDebugLink: boolean;
+  onShowDebug: () => void;
+}
+
 export default function ConfigView({
   mode,
   interval, setInterval,
@@ -198,7 +236,7 @@ export default function ConfigView({
   onStart, onBack,
   weights = {},
   showDebugLink, onShowDebug,
-}) {
+}: ConfigViewProps) {
   const isNotesMode = mode !== "chords";
   const title = isNotesMode ? "Notes" : "Accords";
   const subtitle = isNotesMode
@@ -251,7 +289,6 @@ export default function ConfigView({
                 weights={weights}
               />
 
-              {/* Progression mode */}
               <div className={s.toggleRow}>
                 <div>
                   <div className={s.toggleLabel}>Progression</div>

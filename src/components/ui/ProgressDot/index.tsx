@@ -12,7 +12,13 @@ const FILLS_DIM = [
   'var(--text-faint)',
 ];
 
-export default function ProgressDot({ level = 0, size = 12, dim = false }) {
+interface ProgressDotProps {
+  level?: 0 | 1 | 2 | 3;
+  size?: number;
+  dim?: boolean;
+}
+
+export default function ProgressDot({ level = 0, size = 12, dim = false }: ProgressDotProps) {
   const fills = dim ? FILLS_DIM : FILLS;
   const ring = dim
     ? 'inset 0 0 0 1.5px var(--text-faint)'

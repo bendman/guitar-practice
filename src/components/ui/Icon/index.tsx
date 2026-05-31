@@ -1,8 +1,13 @@
-export default function Icon({ name, size = 18 }) {
+interface IconProps {
+  name: string;
+  size?: number;
+}
+
+export default function Icon({ name, size = 18 }: IconProps) {
   const p = {
     width: size, height: size, viewBox: "0 0 24 24",
     fill: "none", stroke: "currentColor", strokeWidth: 2,
-    strokeLinecap: "round", strokeLinejoin: "round",
+    strokeLinecap: "round" as const, strokeLinejoin: "round" as const,
     style: { display: "block", flexShrink: 0 },
   };
   switch (name) {

@@ -1,6 +1,14 @@
-import s from "./Toggle.module.css";
+import s from "./index.module.css";
 
-export default function Toggle({ label, sublabel, value, onChange, disabled = false }) {
+interface ToggleProps {
+  label: string;
+  sublabel?: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+  disabled?: boolean;
+}
+
+export default function Toggle({ label, sublabel, value, onChange, disabled = false }: ToggleProps) {
   const on = value && !disabled;
   return (
     <div className={`${s.row} ${disabled ? s.rowDisabled : ""}`}>

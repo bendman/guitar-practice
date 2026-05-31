@@ -1,20 +1,32 @@
 import { useState } from "react";
-import { ALL } from "../constants";
-import { weightToLevel } from "../util";
-import ProgressDot from "./ProgressDot";
-import ChordDiagram from "./ChordDiagram";
-import shared from "./shared.module.css";
-import s from "./ProgressView.module.css";
+import { ALL } from "../../../lib/constants";
+import type { PracticeItem, ChordItem } from "../../../lib/constants";
+import { weightToLevel } from "../../../lib/util";
+import type { Weights } from "../../../lib/stats";
+import ProgressDot from "../../ui/ProgressDot";
+import ChordDiagram from "../../ui/ChordDiagram";
+import shared from "../../shared.module.css";
+import s from "./index.module.css";
 
 const LEVEL_LABELS = ["", "Difficile", "Facile", "Maîtrisé"];
 
-export default function ProgressView({ weights = {}, onBack, onResetWeights, workingSetSize, setWorkingSetSize }) {
-  const [openChordIds, setOpenChordIds] = useState(new Set());
+interface ProgressViewProps {
+  weights?: Weights;
+  onBack: () => void;
+  onResetWeights?: () => void;
+  workingSetSize: number;
+  setWorkingSetSize?: (size: number) => void;
+}
+
+export default function ProgressView({
+  weights = {}, onBack, onResetWeights, workingSetSize, setWorkingSetSize,
+}: ProgressViewProps) {
+  const [openChordIds, setOpenChordIds] = useState<Set<string>>(new Set());
   const practiced = ALL.filter((item) => weights[item.id] != null);
   const notes = practiced.filter((i) => i.type === "note");
   const chords = practiced.filter((i) => i.type === "chord");
 
-  const toggleChord = (id) => setOpenChordIds((prev) => {
+  const toggleChord = (id: string) => setOpenChordIds((prev) => {
     const next = new Set(prev);
     next.has(id) ? next.delete(id) : next.add(id);
     return next;
@@ -77,7 +89,15 @@ export default function ProgressView({ weights = {}, onBack, onResetWeights, wor
   );
 }
 
-function Section({ title, items, weights, openIds, onToggle }) {
+interface SectionProps {
+  title: string;
+  items: PracticeItem[];
+  weights: Weights;
+  openIds?: Set<string>;
+  onToggle?: (id: string) => void;
+}
+
+function Section({ title, items, weights, openIds, onToggle }: SectionProps) {
   return (
     <div className={s.section}>
       <span className={shared.eyebrow}>{title}</span>
@@ -90,15 +110,15 @@ function Section({ title, items, weights, openIds, onToggle }) {
             <div key={item.id}>
               <div
                 className={`${s.row} ${isChord ? s.rowClickable : ""}`}
-                onClick={isChord ? () => onToggle(item.id) : undefined}
+                onClick={isChord ? () => onToggle?.(item.id) : undefined}
               >
                 <ProgressDot level={level} size={12} />
                 <span className={s.label}>{item.label}</span>
                 <span className={s.levelLabel}>{LEVEL_LABELS[level]}</span>
               </div>
-              {isOpen && item.voicings?.length > 0 && (
+              {isOpen && item.type === "chord" && (item as ChordItem).voicings.length > 0 && (
                 <div className={s.diagramWrap}>
-                  <ChordDiagram fingering={item.voicings[0]} size={240} />
+                  <ChordDiagram fingering={(item as ChordItem).voicings[0]} size={240} />
                 </div>
               )}
             </div>

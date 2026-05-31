@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
-import { formatTime, formatDuration, weightToLevel } from "../util";
-import { mergeSessionIntoStats, accuracyPercent } from "../stats";
-import ProgressDot from "./ProgressDot";
-import shared from "./shared.module.css";
-import s from "./SummaryView.module.css";
+import { formatTime, formatDuration, weightToLevel } from "../../../lib/util";
+import { mergeSessionIntoStats, accuracyPercent } from "../../../lib/stats";
+import type { Stats, SessionSummary, Weights } from "../../../lib/stats";
+import ProgressDot from "../../ui/ProgressDot";
+import shared from "../../shared.module.css";
+import s from "./index.module.css";
 
-// Animated SVG accuracy ring
-function AccuracyRing({ accuracy }) {
+interface AccuracyRingProps {
+  accuracy: number;
+}
+
+function AccuracyRing({ accuracy }: AccuracyRingProps) {
   const [animated, setAnimated] = useState(false);
   const radius = 48;
   const stroke = 6;
@@ -23,14 +27,12 @@ function AccuracyRing({ accuracy }) {
   return (
     <div className={s.ringWrap}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {/* Track */}
         <circle
           cx={size / 2} cy={size / 2} r={radius}
           fill="none"
           stroke="var(--surface-2)"
           strokeWidth={stroke}
         />
-        {/* Progress arc */}
         <circle
           cx={size / 2} cy={size / 2} r={radius}
           fill="none"
@@ -51,8 +53,14 @@ function AccuracyRing({ accuracy }) {
   );
 }
 
-// Impact row: shows old → new, new value highlighted if improved
-function ImpactRow({ label, oldVal, newVal, improved }) {
+interface ImpactRowProps {
+  label: string;
+  oldVal: string | number;
+  newVal: string | number;
+  improved: boolean;
+}
+
+function ImpactRow({ label, oldVal, newVal, improved }: ImpactRowProps) {
   return (
     <div className={s.impactRow}>
       <span className={s.impactLabel}>{label}</span>
@@ -65,7 +73,7 @@ function ImpactRow({ label, oldVal, newVal, improved }) {
   );
 }
 
-function headline(accuracy) {
+function headline(accuracy: number): string {
   if (accuracy >= 93) return "Sans-faute ou presque !";
   if (accuracy >= 80) return "Très bonne session !";
   if (accuracy >= 65) return "Bonne session !";
@@ -73,14 +81,23 @@ function headline(accuracy) {
   return "On progresse !";
 }
 
-export default function SummaryView({ summary, preSessionStats, weights = {}, onDismiss, onReplay }) {
+interface SummaryViewProps {
+  summary: SessionSummary;
+  preSessionStats: Stats | null;
+  weights?: Weights;
+  onDismiss: () => void;
+  onReplay: () => void;
+}
+
+export default function SummaryView({
+  summary, preSessionStats, weights = {}, onDismiss, onReplay,
+}: SummaryViewProps) {
   const {
     totalCount, correctCount, totalNotes, accuracy, bestStreak,
     practiceTime, wasListening, missedItems,
     wasManualChord, chordCorrectCount, totalChords, chordAccuracy, chordMissedItems,
   } = summary;
 
-  // Compute post-session stats from pre-session + summary
   const postStats = preSessionStats
     ? mergeSessionIntoStats(preSessionStats, summary)
     : null;
@@ -93,7 +110,6 @@ export default function SummaryView({ summary, preSessionStats, weights = {}, on
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
 
-          {/* Accuracy ring */}
           {wasListening ? (
             <>
               <AccuracyRing accuracy={accuracy} />
@@ -113,7 +129,6 @@ export default function SummaryView({ summary, preSessionStats, weights = {}, on
             </div>
           )}
 
-          {/* 3-cell strip */}
           <div className={s.strip}>
             <div className={s.stripCell}>
               <div className={s.stripValue}>{formatTime(practiceTime)}</div>
@@ -129,7 +144,6 @@ export default function SummaryView({ summary, preSessionStats, weights = {}, on
             </div>
           </div>
 
-          {/* Progression block */}
           {postStats && preSessionStats && (
             <div className={s.progressionSection}>
               <span className={`${shared.eyebrow} ${s.sectionTitle}`}>Ta progression globale</span>
@@ -164,7 +178,6 @@ export default function SummaryView({ summary, preSessionStats, weights = {}, on
             </div>
           )}
 
-          {/* À retravailler */}
           {wasListening && missedItems.length > 0 && (
             <div className={s.workonSection}>
               <span className={`${shared.eyebrow} ${s.sectionTitle}`}>À retravailler</span>
@@ -182,11 +195,10 @@ export default function SummaryView({ summary, preSessionStats, weights = {}, on
 
           {wasListening && missedItems.length === 0 && totalNotes > 0 && (
             <div className={s.perfectNote}>
-              Toutes les notes correctes — excellent !
+              Toutes les notes correctes — excellent !
             </div>
           )}
 
-          {/* Chord missed items (manual grading mode) */}
           {wasManualChord && chordMissedItems.length > 0 && (
             <div className={s.workonSection}>
               <span className={`${shared.eyebrow} ${s.sectionTitle}`}>À retravailler</span>
@@ -204,7 +216,7 @@ export default function SummaryView({ summary, preSessionStats, weights = {}, on
 
           {wasManualChord && chordMissedItems.length === 0 && totalChords > 0 && (
             <div className={s.perfectNote}>
-              Tous les accords trouvés — excellent !
+              Tous les accords trouvés — excellent !
             </div>
           )}
 

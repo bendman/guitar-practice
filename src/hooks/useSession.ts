@@ -1,46 +1,82 @@
 import { useEffect, useRef, useState } from "react";
-import { pickWeightedRandom, sayAloud } from "./util";
+import type { PracticeItem } from "../lib/constants";
+import { pickWeightedRandom, sayAloud } from "../lib/util";
+import type { SessionResult } from "../lib/summarizeSession";
 
-// Drives a practice session: timer + RAF progress bar + practice-time clock,
-// random item selection, and optional mic-hit detection coupling with streak logic.
-//
-// Inputs:
-//   interval (s), pool (items), listening, tts — read live each tick via a ref
-//     so the timer doesn't restart when only pool/listening/tts change.
-//
-// Returns:
-//   state (inSession, paused, current, …),
-//   micActive (compute whether mic should be on),
-//   start()/finish()/pauseToggle()/forceAccept()/resetPracticeTime() actions,
-//   onDetectedNote(noteId) — feed from pitch hook on each detection change.
-export function useSession({ interval, pool, listening, tts, chordAuto, weights = {}, onResult }) {
+interface SessionOptions {
+  interval: number;
+  pool: PracticeItem[];
+  listening: boolean;
+  tts: boolean;
+  chordAuto: boolean;
+  weights?: Record<string, number>;
+  onResult?: (itemId: string, correct: boolean) => void;
+}
+
+export interface SessionRawResult {
+  results: SessionResult[];
+  bestStreak: number;
+  practiceTime: number;
+}
+
+export interface UseSessionReturn {
+  inSession: boolean;
+  paused: boolean;
+  current: PracticeItem | null;
+  progress: number;
+  count: number;
+  streak: number;
+  hitStatus: "correct" | "wrong" | null;
+  practiceTime: number;
+  pendingReveal: boolean;
+  micActive: boolean;
+  onDetectedNote: (noteId: string | null) => void;
+  start: () => void;
+  finish: () => SessionRawResult;
+  pauseToggle: () => void;
+  forceAccept: () => void;
+  manualNext: () => void;
+  manualGrade: (correct: boolean) => void;
+  resetPracticeTime: () => void;
+}
+
+interface SessionLatest {
+  interval: number;
+  pool: PracticeItem[];
+  listening: boolean;
+  tts: boolean;
+  current: PracticeItem | null;
+  chordAuto: boolean;
+  weights: Record<string, number>;
+}
+
+export function useSession({
+  interval, pool, listening, tts, chordAuto, weights = {}, onResult,
+}: SessionOptions): UseSessionReturn {
   const [inSession, setInSession] = useState(false);
   const [paused, setPaused] = useState(false);
-  const [current, setCurrent] = useState(null);
+  const [current, setCurrent] = useState<PracticeItem | null>(null);
   const [progress, setProgress] = useState(0);
   const [count, setCount] = useState(0);
   const [streak, setStreak] = useState(0);
-  const [hitStatus, setHitStatus] = useState(null);
+  const [hitStatus, setHitStatus] = useState<"correct" | "wrong" | null>(null);
   const [practiceTime, setPracticeTime] = useState(0);
   const [pendingReveal, setPendingReveal] = useState(false);
 
-  // Refs the timer/RAF need to read async.
-  const lastIdRef = useRef(null);
+  const lastIdRef = useRef<string | null>(null);
   const withinTimeRef = useRef(true);
-  const advanceFnRef = useRef(null);
-  const timerIdRef = useRef(null);
+  const advanceFnRef = useRef<((giveCredit: boolean) => void) | null>(null);
+  const timerIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startRef = useRef(0);
-  const responseTimeRef = useRef(null);
-  const resultsRef = useRef([]);
+  const responseTimeRef = useRef<number | null>(null);
+  const resultsRef = useRef<SessionResult[]>([]);
   const bestStreakRef = useRef(0);
   const streakRef = useRef(0);
   const hitForCurrentRef = useRef(false);
   const practiceTimeRef = useRef(0);
   const sessionStartTimeRef = useRef(0);
 
-  // Latest non-reactive inputs for the timer loop (kept in a ref so mid-session
-  // changes to pool/listening/tts take effect on next tick without restart).
-  const latest = useRef({ interval, pool, listening, tts, current, chordAuto, weights });
+  const latest = useRef<SessionLatest>({ interval, pool, listening, tts, current, chordAuto, weights });
   useEffect(() => {
     latest.current = { interval, pool, listening, tts, current, chordAuto, weights };
   });
@@ -52,21 +88,17 @@ export function useSession({ interval, pool, listening, tts, chordAuto, weights 
     setPendingReveal(false);
   };
 
-  // Switching listening mode mid-session counts as a fresh target — clear the
-  // pending hit on the *outgoing* listening value (runs as cleanup before the
-  // next effect setup).
   useEffect(() => () => resetHit(), [listening]);
 
-  // Session timer + RAF progress + practice clock.
   useEffect(() => {
     if (!inSession || paused) return;
 
-    let rafId;
+    let rafId: number;
     let lastFrame = performance.now();
     startRef.current = performance.now();
     withinTimeRef.current = true;
 
-    const doAdvance = (giveCredit) => {
+    const doAdvance = (giveCredit: boolean) => {
       if (giveCredit) {
         streakRef.current += 1;
         if (streakRef.current > bestStreakRef.current) bestStreakRef.current = streakRef.current;
@@ -87,7 +119,7 @@ export function useSession({ interval, pool, listening, tts, chordAuto, weights 
         onResult?.(outgoing.id, giveCredit);
       }
       const next = pickWeightedRandom(latest.current.pool, lastIdRef.current, latest.current.weights);
-      clearTimeout(timerIdRef.current);
+      clearTimeout(timerIdRef.current ?? undefined);
       if (next) {
         lastIdRef.current = next.id;
         if (latest.current.tts) sayAloud(next);
@@ -95,8 +127,6 @@ export function useSession({ interval, pool, listening, tts, chordAuto, weights 
           setCurrent(next);
           setCount((c) => c + 1);
           resetHit();
-          // Start progress origin + reschedule together so the bar always
-          // reaches 100% exactly when the next timeout fires.
           startRef.current = performance.now();
           timerIdRef.current = setTimeout(onTimeout, latest.current.interval * 1000);
         }, 200);
@@ -110,14 +140,11 @@ export function useSession({ interval, pool, listening, tts, chordAuto, weights 
         if (hitForCurrentRef.current) {
           doAdvance(true);
         } else if (withinTimeRef.current) {
-          // Time expired without a correct note — freeze bar at 100% and wait.
-          // The hit observer will call advanceFnRef on next correct note.
           withinTimeRef.current = false;
           streakRef.current = 0;
           setStreak(0);
         }
       } else if (manualChord) {
-        // Pause and signal SessionView to reveal the chord diagram.
         setPaused(true);
         setPendingReveal(true);
       } else {
@@ -140,12 +167,12 @@ export function useSession({ interval, pool, listening, tts, chordAuto, weights 
     rafId = requestAnimationFrame(animate);
 
     return () => {
-      clearTimeout(timerIdRef.current);
+      clearTimeout(timerIdRef.current ?? undefined);
       cancelAnimationFrame(rafId);
     };
   }, [inSession, paused, interval]);
 
-  const onDetectedNote = (noteId) => {
+  const onDetectedNote = (noteId: string | null) => {
     if (!listening || !inSession || paused) return;
     const cur = latest.current.current;
     if (!cur || cur.type !== "note" || hitForCurrentRef.current) return;
@@ -167,7 +194,7 @@ export function useSession({ interval, pool, listening, tts, chordAuto, weights 
     streakRef.current = 0;
     sessionStartTimeRef.current = practiceTimeRef.current;
     const first = pickWeightedRandom(pool, null, weights);
-    lastIdRef.current = first?.id;
+    lastIdRef.current = first?.id ?? null;
     setCurrent(first);
     setCount(1);
     setProgress(0);
@@ -180,10 +207,8 @@ export function useSession({ interval, pool, listening, tts, chordAuto, weights 
     if (tts && first) sayAloud(first);
   };
 
-  // Stop the session and return its aggregated raw data for summarization.
-  // practiceTime is the *per-session* duration so persistent stats can sum it.
-  const finish = () => {
-    const out = {
+  const finish = (): SessionRawResult => {
+    const out: SessionRawResult = {
       results: resultsRef.current,
       bestStreak: bestStreakRef.current,
       practiceTime: practiceTimeRef.current - sessionStartTimeRef.current,
@@ -202,10 +227,6 @@ export function useSession({ interval, pool, listening, tts, chordAuto, weights 
   const pauseToggle = () => setPaused((p) => !p);
   const forceAccept = () => advanceFnRef.current?.(false);
 
-  // Manually step to a new item without (re)starting auto progression. Meant for
-  // paused "slow practice": while paused the timer effect is inert (no RAF, no
-  // scheduled timeout), so there's nothing to conflict with — the item just swaps
-  // and progression stays off until the user resumes.
   const manualNext = () => {
     const next = pickWeightedRandom(latest.current.pool, lastIdRef.current, latest.current.weights);
     if (!next) return;
@@ -217,9 +238,7 @@ export function useSession({ interval, pool, listening, tts, chordAuto, weights 
     if (latest.current.tts) sayAloud(next);
   };
 
-  // Grade the current chord item (correct=true for Trouvé, false for Raté), then advance.
-  // Meant to be called while paused (after reveal); caller is responsible for unpausing.
-  const manualGrade = (correct) => {
+  const manualGrade = (correct: boolean) => {
     const outgoing = latest.current.current;
     if (outgoing) {
       resultsRef.current.push({

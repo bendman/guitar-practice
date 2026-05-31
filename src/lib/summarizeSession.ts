@@ -1,10 +1,30 @@
-export function summarizeSession({ results, bestStreak, practiceTime, wasListening, wasManualChord }) {
+import type { SessionSummary, MissedNoteItem, MissedChordItem } from "./stats";
+
+export interface SessionResult {
+  id: string;
+  label: string;
+  type: "note" | "chord";
+  correct: boolean;
+  responseTime: number | null;
+}
+
+export interface SessionInput {
+  results: SessionResult[];
+  bestStreak: number;
+  practiceTime: number;
+  wasListening: boolean;
+  wasManualChord: boolean;
+}
+
+export function summarizeSession({
+  results, bestStreak, practiceTime, wasListening, wasManualChord,
+}: SessionInput): SessionSummary {
   const noteResults = results.filter((r) => r.type === "note");
   const correctCount = noteResults.filter((r) => r.correct).length;
   const totalNotes = noteResults.length;
   const accuracy = totalNotes > 0 ? Math.round((correctCount / totalNotes) * 100) : 0;
 
-  const noteMap = {};
+  const noteMap: Record<string, { id: string; label: string; attempts: number; misses: number; responseTimes: number[] }> = {};
   for (const r of noteResults) {
     if (!noteMap[r.id]) {
       noteMap[r.id] = { id: r.id, label: r.label, attempts: 0, misses: 0, responseTimes: [] };
@@ -14,7 +34,7 @@ export function summarizeSession({ results, bestStreak, practiceTime, wasListeni
     if (r.responseTime != null) noteMap[r.id].responseTimes.push(r.responseTime);
   }
 
-  const missedItems = Object.values(noteMap)
+  const missedItems: MissedNoteItem[] = Object.values(noteMap)
     .filter((n) => n.misses > 0)
     .map((n) => {
       const rt = n.responseTimes;
@@ -23,18 +43,17 @@ export function summarizeSession({ results, bestStreak, practiceTime, wasListeni
     })
     .sort((a, b) => b.missRate - a.missRate);
 
-  const allResponseTimes = noteResults.map((r) => r.responseTime).filter((t) => t != null);
+  const allResponseTimes = noteResults.map((r) => r.responseTime).filter((t): t is number => t != null);
   const avgResponseTime = allResponseTimes.length > 0
     ? allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length
     : null;
 
-  // Chord grading stats (manual mode only)
   const chordResults = wasManualChord ? results.filter((r) => r.type === "chord") : [];
   const chordCorrectCount = chordResults.filter((r) => r.correct).length;
   const totalChords = chordResults.length;
   const chordAccuracy = totalChords > 0 ? Math.round((chordCorrectCount / totalChords) * 100) : 0;
 
-  const chordMap = {};
+  const chordMap: Record<string, { id: string; label: string; attempts: number; misses: number }> = {};
   for (const r of chordResults) {
     if (!chordMap[r.id]) {
       chordMap[r.id] = { id: r.id, label: r.label, attempts: 0, misses: 0 };
@@ -43,7 +62,7 @@ export function summarizeSession({ results, bestStreak, practiceTime, wasListeni
     if (!r.correct) chordMap[r.id].misses += 1;
   }
 
-  const chordMissedItems = Object.values(chordMap)
+  const chordMissedItems: MissedChordItem[] = Object.values(chordMap)
     .filter((c) => c.misses > 0)
     .map((c) => ({ ...c, missRate: Math.round((c.misses / c.attempts) * 100) }))
     .sort((a, b) => b.missRate - a.missRate);

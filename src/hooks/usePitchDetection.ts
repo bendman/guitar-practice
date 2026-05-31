@@ -1,10 +1,25 @@
 import { useEffect, useRef, useState } from "react";
-import { detectPitch, freqToNoteId, freqToNoteInfo } from "./pitch";
+import { detectPitch, freqToNoteId, freqToNoteInfo, type NoteInfo } from "../lib/pitch";
 
-// Set up mic + AnalyserNode + RAF loop while `active`. Calls onFrame(buffer, sampleRate)
-// every animation frame. Cleans up stream/context on deactivation or unmount.
-function useMicLoop(active, onFrame) {
-  // Keep latest onFrame in a ref so we don't rebuild the audio graph each render.
+interface PitchGateState {
+  lastSeen: string | null;
+  runCount: number;
+  armed: boolean;
+  releaseCount: number;
+}
+
+export interface DebugPitchData {
+  freq: number | null;
+  rms: number;
+  corr: number;
+  noteInfo: NoteInfo | null;
+  armed: boolean;
+  releaseCount: number;
+  runCount: number;
+  matchedNoteId: string | null;
+}
+
+function useMicLoop(active: boolean, onFrame: (buffer: Float32Array, sampleRate: number) => void): void {
   const onFrameRef = useRef(onFrame);
   useEffect(() => { onFrameRef.current = onFrame; });
 
@@ -12,9 +27,9 @@ function useMicLoop(active, onFrame) {
     if (!active) return;
 
     let cancelled = false;
-    let rafId = null;
-    let ctx = null;
-    let stream = null;
+    let rafId: number | null = null;
+    let ctx: AudioContext | null = null;
+    let stream: MediaStream | null = null;
 
     (async () => {
       try {
@@ -30,7 +45,7 @@ function useMicLoop(active, onFrame) {
         const loop = () => {
           if (cancelled) return;
           analyser.getFloatTimeDomainData(buffer);
-          onFrameRef.current(buffer, ctx.sampleRate);
+          onFrameRef.current(buffer, ctx!.sampleRate);
           rafId = requestAnimationFrame(loop);
         };
         rafId = requestAnimationFrame(loop);
@@ -41,34 +56,32 @@ function useMicLoop(active, onFrame) {
 
     return () => {
       cancelled = true;
-      if (rafId) cancelAnimationFrame(rafId);
+      if (rafId !== null) cancelAnimationFrame(rafId);
       if (ctx) ctx.close().catch(() => {});
       if (stream) stream.getTracks().forEach((t) => t.stop());
     };
   }, [active]);
 }
 
-export const REQUIRED_FRAMES = 3;  // ~50ms at 60fps — gate handles most noise filtering now
-export const ATTACK_RMS = 0.025;   // Gate arms when RMS exceeds this — a real pluck
-export const RELEASE_RMS = 0.0015; // Gate disarms when RMS falls below this for N frames
+export const REQUIRED_FRAMES = 3;
+export const ATTACK_RMS = 0.025;
+export const RELEASE_RMS = 0.0015;
 export const RELEASE_FRAMES = 4;
 
-const EMPTY_DEBUG = {
+const EMPTY_DEBUG: DebugPitchData = {
   freq: null, rms: 0, corr: 0, noteInfo: null,
   armed: false, releaseCount: 0, runCount: 0, matchedNoteId: null,
 };
 
-const initialState = () => ({ lastSeen: null, runCount: 0, armed: false, releaseCount: 0 });
+const initialState = (): PitchGateState => ({ lastSeen: null, runCount: 0, armed: false, releaseCount: 0 });
 
-// Apply the attack/release gate and stability counter to one frame.
-// Mutates `st` in place. Returns the matched noteId, or null.
-function processFrame(st, freq, rms) {
+function processFrame(st: PitchGateState, freq: number | null, rms: number): string | null {
   if (!st.armed) {
     if (rms > ATTACK_RMS) {
       st.armed = true;
       st.releaseCount = 0;
     } else {
-      return null; // Disarmed — ignore detections
+      return null;
     }
   } else if (rms < RELEASE_RMS) {
     st.releaseCount++;
@@ -83,7 +96,6 @@ function processFrame(st, freq, rms) {
   }
 
   const noteId = freq ? freqToNoteId(freq) : null;
-  // Brief correlation gaps mid-note (noteId === null) don't reset the streak.
   if (noteId !== null) {
     if (noteId === st.lastSeen) {
       st.runCount++;
@@ -95,11 +107,10 @@ function processFrame(st, freq, rms) {
   return st.runCount >= REQUIRED_FRAMES ? st.lastSeen : null;
 }
 
-export function usePitchDetection(active, resetKey) {
-  const [detectedNote, setDetectedNote] = useState(null);
-  const stateRef = useRef(initialState());
+export function usePitchDetection(active: boolean, resetKey: number): string | null {
+  const [detectedNote, setDetectedNote] = useState<string | null>(null);
+  const stateRef = useRef<PitchGateState>(initialState());
 
-  // Reset on deactivation via cleanup.
   useEffect(() => {
     if (!active) return;
     return () => {
@@ -108,9 +119,6 @@ export function usePitchDetection(active, resetKey) {
     };
   }, [active]);
 
-  // Force disarm + clear detection whenever the target changes so the previous
-  // note's decay can't register as a hit on the new target — the player must
-  // produce a fresh attack.
   useEffect(() => {
     stateRef.current = initialState();
     setDetectedNote(null);
@@ -124,9 +132,9 @@ export function usePitchDetection(active, resetKey) {
   return detectedNote;
 }
 
-export function useDebugPitch(active) {
-  const [data, setData] = useState(EMPTY_DEBUG);
-  const stateRef = useRef(initialState());
+export function useDebugPitch(active: boolean): DebugPitchData {
+  const [data, setData] = useState<DebugPitchData>(EMPTY_DEBUG);
+  const stateRef = useRef<PitchGateState>(initialState());
 
   useEffect(() => {
     if (!active) return;

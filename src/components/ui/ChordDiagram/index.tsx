@@ -1,23 +1,29 @@
-import s from "./ChordDiagram.module.css";
+import type { Voicing } from "../../../lib/constants";
+import s from "./index.module.css";
 
 const STRINGS = 6;
 const STRING_SPACING = 18;
 const FRET_SPACING = 27.5;
 const MARGIN_LEFT = 30;
-// Match MARGIN_LEFT so the fret grid stays horizontally centred within the SVG
-// (the left margin reserves room for the "Nfr" position label on barre chords).
 const MARGIN_RIGHT = 30;
-const HEADER = 26; // space above the grid for open/muted markers
+const HEADER = 26;
 const BOTTOM_PAD = 8;
 const DOT_R = 7;
 const LINE_W = 1.5;
+
+interface ChordDiagramProps {
+  fingering: Voicing | null | undefined;
+  size?: number;
+  fretCount?: number;
+  className?: string;
+}
 
 export default function ChordDiagram({
   fingering,
   size = 120,
   fretCount = 4,
   className = "",
-}) {
+}: ChordDiagramProps) {
   if (!fingering) return null;
   const { frets = [], baseFret = 1, barres = [] } = fingering;
 
@@ -28,12 +34,12 @@ export default function ChordDiagram({
   const vbW = gridRight + MARGIN_RIGHT;
   const vbH = gridBottom + BOTTOM_PAD;
 
-  const stringX = (i) => gridLeft + i * STRING_SPACING;
-  const fretLineY = (r) => gridTop + r * FRET_SPACING;
-  const cellY = (row) => gridTop + (row - 0.5) * FRET_SPACING; // row is 1-indexed
+  const stringX = (i: number) => gridLeft + i * STRING_SPACING;
+  const fretLineY = (r: number) => gridTop + r * FRET_SPACING;
+  const cellY = (row: number) => gridTop + (row - 0.5) * FRET_SPACING;
   const showNut = baseFret === 1;
 
-  const coveredByBarre = (i, fret) =>
+  const coveredByBarre = (i: number, fret: number) =>
     barres.some(
       (b) =>
         b.fret === fret &&

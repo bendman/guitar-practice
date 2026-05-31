@@ -1,30 +1,38 @@
-export function pickRandom(items, lastId) {
+type HasId = { id: string };
+type HasSpeakLabel = { speak?: string; label: string };
+
+export function pickRandom<T extends HasId>(items: T[], lastId: string | null): T | null {
   if (items.length === 0) return null;
   if (items.length === 1) return items[0];
-  let pick;
+  let pick: T;
   do {
     pick = items[Math.floor(Math.random() * items.length)];
   } while (pick.id === lastId);
   return pick;
 }
 
-// Returns 0 (unpracticed) → 1 (struggling) → 2 (learning) → 3 (mastered)
-export function weightToLevel(weight) {
+export function weightToLevel(weight: number | null | undefined): 0 | 1 | 2 | 3 {
   if (weight == null) return 0;
   if (weight < 0.6) return 3;
   if (weight <= 2.0) return 2;
   return 1;
 }
 
-// Returns all mastered items + the first `limit` unmastered items, in pool order.
-// Mastered items are always included for low-frequency review.
-export function buildActivePool(pool, weights, limit) {
+export function buildActivePool<T extends HasId>(
+  pool: T[],
+  weights: Record<string, number>,
+  limit: number,
+): T[] {
   const mastered = pool.filter((i) => weightToLevel(weights[i.id]) === 3);
   const unmastered = pool.filter((i) => weightToLevel(weights[i.id]) !== 3);
   return [...mastered, ...unmastered.slice(0, limit)];
 }
 
-export function applyResult(weights, itemId, correct) {
+export function applyResult(
+  weights: Record<string, number>,
+  itemId: string,
+  correct: boolean,
+): Record<string, number> {
   const current = weights[itemId] ?? 1;
   return {
     ...weights,
@@ -32,7 +40,11 @@ export function applyResult(weights, itemId, correct) {
   };
 }
 
-export function pickWeightedRandom(items, lastId, weights) {
+export function pickWeightedRandom<T extends HasId>(
+  items: T[],
+  lastId: string | null,
+  weights: Record<string, number>,
+): T | null {
   if (items.length === 0) return null;
   if (items.length === 1) return items[0];
   const candidates = items.filter((i) => i.id !== lastId);
@@ -46,21 +58,20 @@ export function pickWeightedRandom(items, lastId, weights) {
   return pool[pool.length - 1];
 }
 
-export function sayAloud(item) {
+export function sayAloud(item: HasSpeakLabel): void {
   speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(item.speak || item.label);
   utt.lang = "fr-FR";
   speechSynthesis.speak(utt);
 }
 
-export function formatTime(secs) {
+export function formatTime(secs: number): string {
   const m = Math.floor(secs / 60);
   const s = Math.floor(secs % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-// Long-form duration for accumulated time: "2h 07m 42s", "12m 30s", "45s".
-export function formatDuration(secs) {
+export function formatDuration(secs: number): string {
   const total = Math.floor(secs);
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);

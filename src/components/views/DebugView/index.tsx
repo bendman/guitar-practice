@@ -1,26 +1,33 @@
-import { NOTES, CHROMATIC_NOTES, NOTE_FREQS } from "../constants";
+import { NOTES, CHROMATIC_NOTES, NOTE_FREQS } from "../../../lib/constants";
 import {
   useDebugPitch,
   ATTACK_RMS, RELEASE_RMS, RELEASE_FRAMES, REQUIRED_FRAMES,
-} from "../usePitchDetection";
-import shared from "./shared.module.css";
-import s from "./DebugView.module.css";
+} from "../../../hooks/usePitchDetection";
+import shared from "../../shared.module.css";
+import s from "./index.module.css";
 
 const ALL_NOTES = [...NOTES, ...CHROMATIC_NOTES];
 const RMS_BAR_MAX = 0.3;
 
-// Frequency spectrum spans guitar's practical low/mid range (A1 to C5).
 const SPECTRUM_MIN_HZ = 55;
 const SPECTRUM_MAX_HZ = 525;
 const LOG_MIN = Math.log2(SPECTRUM_MIN_HZ);
 const LOG_MAX = Math.log2(SPECTRUM_MAX_HZ);
 
-function hzToPercent(hz) {
+function hzToPercent(hz: number): number {
   return ((Math.log2(hz) - LOG_MIN) / (LOG_MAX - LOG_MIN)) * 100;
 }
 
-const SPECTRUM_NOTES = (() => {
-  const out = [];
+interface SpectrumNote {
+  key: string;
+  freq: number;
+  label: string;
+  isSharp: boolean;
+  percent: number;
+}
+
+const SPECTRUM_NOTES: SpectrumNote[] = (() => {
+  const out: SpectrumNote[] = [];
   for (const [id, freqs] of Object.entries(NOTE_FREQS)) {
     const def = ALL_NOTES.find((n) => n.id === id);
     if (!def) continue;
@@ -40,19 +47,23 @@ const SPECTRUM_NOTES = (() => {
   return out.sort((a, b) => a.freq - b.freq);
 })();
 
-function rmsColor(rms) {
+function rmsColor(rms: number): string {
   if (rms < RELEASE_RMS) return "var(--dim)";
   if (rms < ATTACK_RMS) return "var(--accent)";
   return "var(--green)";
 }
 
-function corrColor(corr) {
+function corrColor(corr: number): string {
   if (corr < 0.1) return "var(--dim)";
   if (corr < 0.3) return "var(--accent)";
   return "var(--green)";
 }
 
-export default function DebugView({ onBack }) {
+interface DebugViewProps {
+  onBack: () => void;
+}
+
+export default function DebugView({ onBack }: DebugViewProps) {
   const {
     freq, rms, corr, noteInfo,
     armed, releaseCount, runCount, matchedNoteId,
@@ -106,7 +117,7 @@ export default function DebugView({ onBack }) {
           </div>
           <div className={s.barCaption}>
             stabilité {runCount}/{REQUIRED_FRAMES}
-            {matchedLabel ? ` · MATCH : ${matchedLabel}` : ""}
+            {matchedLabel ? ` · MATCH : ${matchedLabel}` : ""}
           </div>
         </div>
 
@@ -155,7 +166,7 @@ export default function DebugView({ onBack }) {
           </div>
           {noteInfo && (
             <div className={s.noteCaption}>
-              {noteInfo.cents}¢ d'écart · seuil : 50¢ · {withinThreshold ? "✓ dans le seuil" : "✗ hors seuil"}
+              {noteInfo.cents}¢ d'écart · seuil : 50¢ · {withinThreshold ? "✓ dans le seuil" : "✗ hors seuil"}
             </div>
           )}
         </div>

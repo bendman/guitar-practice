@@ -1,11 +1,17 @@
-import { NOTES, CHROMATIC_NOTES, NOTES_DISPLAY_ORDER } from "../constants";
-import shared from "./shared.module.css";
-import s from "./NotesPicker.module.css";
+import { NOTES, CHROMATIC_NOTES, NOTES_DISPLAY_ORDER } from "../../../lib/constants";
+import shared from "../../shared.module.css";
+import s from "./index.module.css";
 
-export default function NotesPicker({ enabled, setEnabled, selectedNoteCount }) {
-  const toggle = (id) => setEnabled((p) => ({ ...p, [id]: !p[id] }));
+interface NotesPickerProps {
+  enabled: Record<string, boolean>;
+  setEnabled: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void;
+  selectedNoteCount: number;
+}
 
-  const preset = (kind) => {
+export default function NotesPicker({ enabled, setEnabled, selectedNoteCount }: NotesPickerProps) {
+  const toggle = (id: string) => setEnabled((p) => ({ ...p, [id]: !p[id] }));
+
+  const preset = (kind: "none" | "naturals" | "all") => {
     if (kind === "none") {
       setEnabled((prev) => ({
         ...prev,
@@ -37,7 +43,6 @@ export default function NotesPicker({ enabled, setEnabled, selectedNoteCount }) 
       </div>
 
       <div className={s.keyboard}>
-        {/* Accidentals row — one slot per natural key, empty spacer for Mi and Si */}
         <div className={s.accidentalsRow}>
           {NOTES_DISPLAY_ORDER.map(({ natural, chromatic }) => (
             <div key={natural.id} className={s.accidentalSlot}>
@@ -53,7 +58,6 @@ export default function NotesPicker({ enabled, setEnabled, selectedNoteCount }) 
           ))}
         </div>
 
-        {/* Naturals row */}
         <div className={s.naturalsRow}>
           {NOTES_DISPLAY_ORDER.map(({ natural }) => (
             <button
