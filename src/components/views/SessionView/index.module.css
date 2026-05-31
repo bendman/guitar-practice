@@ -105,12 +105,14 @@
 .noteName {
   font-family: var(--display);
   font-weight: 800;
-  font-size: clamp(36px, 14vw, 80px);
+  font-size: clamp(28px, 10vw, 64px);
   letter-spacing: -0.02em;
   line-height: 1;
   color: var(--text);
   text-align: center;
-  white-space: nowrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 90%;
   transition: transform 0.15s ease;
 }
 
