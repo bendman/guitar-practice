@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ALL, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS } from "./lib/constants";
+import { ALL, CHORDS, CHORD_PRESETS, CHORD_PROGRESSIONS } from "./lib/constants";
 import { usePitchDetection } from "./hooks/usePitchDetection";
 import { useSession } from "./hooks/useSession";
 import { applyResult, buildActivePool } from "./lib/util";
@@ -32,27 +32,30 @@ function loadSettings(): StoredSettings {
   catch { return {}; }
 }
 
-function initialEnabled(): Record<string, boolean> {
-  const defaults = Object.fromEntries(ALL.map((item) => [item.id, item.defaultEnabled !== false]));
-  const stored = loadSettings().enabled;
-  return stored ? { ...defaults, ...stored } : defaults;
+const DEFAULT_ENABLED: Record<string, boolean> = Object.fromEntries(ALL.map((item) => [item.id, item.defaultEnabled !== false]));
+
+function parseInitialSettings() {
+  const s = loadSettings();
+  return {
+    intervalSecs: typeof s.interval === "number" ? s.interval : 2,
+    enabled: s.enabled ? { ...DEFAULT_ENABLED, ...s.enabled } : { ...DEFAULT_ENABLED },
+    tts: s.tts ?? false,
+    listening: s.listening ?? false,
+    chordAuto: s.chordAuto ?? false,
+    workingSetSize: typeof s.workingSetSize === "number" ? s.workingSetSize : 5,
+  };
 }
+const initialSettings = parseInitialSettings();
 
 export default function GuitarPractice() {
-  const [intervalSecs, setIntervalSecs] = useState<number>(() => {
-    const stored = loadSettings().interval;
-    return typeof stored === "number" ? stored : 2;
-  });
-  const [enabled, setEnabled] = useState<Record<string, boolean>>(initialEnabled);
-  const [tts, setTts] = useState<boolean>(() => loadSettings().tts ?? false);
-  const [listening, setListening] = useState<boolean>(() => loadSettings().listening ?? false);
+  const [intervalSecs, setIntervalSecs] = useState<number>(initialSettings.intervalSecs);
+  const [enabled, setEnabled] = useState<Record<string, boolean>>(initialSettings.enabled);
+  const [tts, setTts] = useState<boolean>(initialSettings.tts);
+  const [listening, setListening] = useState<boolean>(initialSettings.listening);
   const [chordPreset, setChordPreset] = useState<string | null>(null);
   const [chordProgression, setChordProgression] = useState<string | null>(null);
-  const [chordAuto, setChordAuto] = useState<boolean>(() => loadSettings().chordAuto ?? false);
-  const [workingSetSize, setWorkingSetSize] = useState<number>(() => {
-    const stored = loadSettings().workingSetSize;
-    return typeof stored === "number" ? stored : 5;
-  });
+  const [chordAuto, setChordAuto] = useState<boolean>(initialSettings.chordAuto);
+  const [workingSetSize, setWorkingSetSize] = useState<number>(initialSettings.workingSetSize);
   const [devScreen, setDevScreen] = useState<string | null>(null);
   const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
   const [stats, setStats] = useState<Stats>(loadStats);
@@ -123,11 +126,8 @@ export default function GuitarPractice() {
     if (!preset) return;
     setEnabled((prev) => {
       const next = { ...prev };
-      for (const root of CHORD_ROOTS) {
-        for (const q of CHORD_QUALITIES) {
-          const id = `${root.id}_${q.id}`;
-          next[id] = preset.qualityIds === null || preset.qualityIds.includes(q.id);
-        }
+      for (const chord of CHORDS) {
+        next[chord.id] = preset.qualityIds === null || preset.qualityIds.includes(chord.qualityId);
       }
       return next;
     });
@@ -138,13 +138,11 @@ export default function GuitarPractice() {
   const applyProgression = (progId: string) => {
     const prog = CHORD_PROGRESSIONS.find((p) => p.id === progId);
     if (!prog) return;
+    const progSet = new Set(prog.chordIds);
     setEnabled((prev) => {
       const next = { ...prev };
-      for (const root of CHORD_ROOTS) {
-        for (const q of CHORD_QUALITIES) {
-          const id = `${root.id}_${q.id}`;
-          next[id] = prog.chordIds.includes(id);
-        }
+      for (const chord of CHORDS) {
+        next[chord.id] = progSet.has(chord.id);
       }
       return next;
     });
