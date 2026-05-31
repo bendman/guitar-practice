@@ -29,6 +29,7 @@ interface StoredSettings {
   chordAuto?: boolean;
   workingSetSize?: number;
   noteNaming?: NoteNaming;
+  spokenNaming?: NoteNaming;
 }
 
 function loadSettings(): StoredSettings {
@@ -48,6 +49,7 @@ function parseInitialSettings() {
     chordAuto: s.chordAuto ?? false,
     workingSetSize: typeof s.workingSetSize === "number" ? s.workingSetSize : 5,
     noteNaming: (s.noteNaming === "letters" ? "letters" : "solfege") as NoteNaming,
+    spokenNaming: (s.spokenNaming === "letters" ? "letters" : "solfege") as NoteNaming,
   };
 }
 const initialSettings = parseInitialSettings();
@@ -62,6 +64,7 @@ export default function GuitarPractice() {
   const [chordAuto, setChordAuto] = useState<boolean>(initialSettings.chordAuto);
   const [workingSetSize, setWorkingSetSize] = useState<number>(initialSettings.workingSetSize);
   const [noteNaming, setNoteNaming] = useState<NoteNaming>(initialSettings.noteNaming);
+  const [spokenNaming, setSpokenNaming] = useState<NoteNaming>(initialSettings.spokenNaming);
   const [devScreen, setDevScreen] = useState<string | null>(null);
   const [showLearning, setShowLearning] = useState(false);
   const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
@@ -88,6 +91,7 @@ export default function GuitarPractice() {
     pool: activePool,
     listening: mode === "notes" && listening,
     tts,
+    spokenNaming,
     chordAuto,
     weights,
     onResult: handleResult,
@@ -102,10 +106,10 @@ export default function GuitarPractice() {
   useEffect(() => {
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-        interval: intervalSecs, enabled, tts, listening, chordAuto, workingSetSize, noteNaming,
+        interval: intervalSecs, enabled, tts, listening, chordAuto, workingSetSize, noteNaming, spokenNaming,
       }));
     } catch { /* ignore quota / disabled storage */ }
-  }, [intervalSecs, enabled, tts, listening, chordAuto, workingSetSize, noteNaming]);
+  }, [intervalSecs, enabled, tts, listening, chordAuto, workingSetSize, noteNaming, spokenNaming]);
 
   useEffect(() => {
     if (!session.inSession) return;
@@ -263,6 +267,8 @@ export default function GuitarPractice() {
         setWorkingSetSize={setWorkingSetSize}
         noteNaming={noteNaming}
         setNoteNaming={setNoteNaming}
+        spokenNaming={spokenNaming}
+        setSpokenNaming={setSpokenNaming}
       />
     );
   }

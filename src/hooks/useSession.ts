@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { PracticeItem } from "../lib/constants";
 import { pickWeightedRandom, sayAloud } from "../lib/util";
+import type { NoteNaming } from "../lib/util";
 import type { SessionResult } from "../lib/summarizeSession";
 
 interface SessionOptions {
@@ -8,6 +9,7 @@ interface SessionOptions {
   pool: PracticeItem[];
   listening: boolean;
   tts: boolean;
+  spokenNaming?: NoteNaming;
   chordAuto: boolean;
   weights?: Record<string, number>;
   onResult?: (itemId: string, correct: boolean) => void;
@@ -45,13 +47,14 @@ interface SessionLatest {
   pool: PracticeItem[];
   listening: boolean;
   tts: boolean;
+  spokenNaming: NoteNaming;
   current: PracticeItem | null;
   chordAuto: boolean;
   weights: Record<string, number>;
 }
 
 export function useSession({
-  interval, pool, listening, tts, chordAuto, weights = {}, onResult,
+  interval, pool, listening, tts, spokenNaming = "solfege", chordAuto, weights = {}, onResult,
 }: SessionOptions): UseSessionReturn {
   const [inSession, setInSession] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -76,9 +79,9 @@ export function useSession({
   const practiceTimeRef = useRef(0);
   const sessionStartTimeRef = useRef(0);
 
-  const latest = useRef<SessionLatest>({ interval, pool, listening, tts, current, chordAuto, weights });
+  const latest = useRef<SessionLatest>({ interval, pool, listening, tts, spokenNaming, current, chordAuto, weights });
   useEffect(() => {
-    latest.current = { interval, pool, listening, tts, current, chordAuto, weights };
+    latest.current = { interval, pool, listening, tts, spokenNaming, current, chordAuto, weights };
   });
 
   const resetHit = () => {
@@ -122,7 +125,7 @@ export function useSession({
       clearTimeout(timerIdRef.current ?? undefined);
       if (next) {
         lastIdRef.current = next.id;
-        if (latest.current.tts) sayAloud(next);
+        if (latest.current.tts) sayAloud(next, latest.current.spokenNaming);
         setTimeout(() => {
           setCurrent(next);
           setCount((c) => c + 1);
@@ -204,7 +207,7 @@ export function useSession({
     setPendingReveal(false);
     setInSession(true);
     setPaused(false);
-    if (tts && first) sayAloud(first);
+    if (tts && first) sayAloud(first, spokenNaming);
   };
 
   const finish = (): SessionRawResult => {
@@ -235,7 +238,7 @@ export function useSession({
     setCount((c) => c + 1);
     setProgress(0);
     resetHit();
-    if (latest.current.tts) sayAloud(next);
+    if (latest.current.tts) sayAloud(next, latest.current.spokenNaming);
   };
 
   const manualGrade = (correct: boolean) => {
@@ -262,7 +265,7 @@ export function useSession({
     setCount((c) => c + 1);
     setProgress(0);
     resetHit();
-    if (latest.current.tts) sayAloud(next);
+    if (latest.current.tts) sayAloud(next, latest.current.spokenNaming);
   };
 
   const resetPracticeTime = () => {

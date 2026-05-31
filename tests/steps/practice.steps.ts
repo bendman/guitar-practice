@@ -70,6 +70,21 @@ Then(
   },
 );
 
+When(
+  "I set the spoken note naming to {string}",
+  async function (this: GuitarWorld, naming: string) {
+    await this.page.getByTestId(`spoken-naming-${naming}`).click();
+  },
+);
+
+Then(
+  "the stored setting {string} should be {string}",
+  async function (this: GuitarWorld, key: string, value: string) {
+    const settings = await this.readStorage<Record<string, unknown>>("guitar-practice-settings");
+    expect(settings?.[key]).toBe(value);
+  },
+);
+
 // ---- Config -------------------------------------------------------------
 
 When("I select the {string} preset", async function (this: GuitarWorld, label: string) {

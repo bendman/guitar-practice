@@ -25,3 +25,17 @@ Feature: Note naming preference
     And I reload the app
     And I choose the "Notes" mode
     Then I should see the note "C" on the keyboard
+
+  Scenario: Written and spoken note naming are independent settings
+    When I open my progress
+    And I set the spoken note naming to "letters"
+    Then the stored setting "spokenNaming" should be "letters"
+    And the stored setting "noteNaming" should be "solfege"
+
+  Scenario: The spoken note naming choice persists across reloads
+    When I open my progress
+    And I set the spoken note naming to "letters"
+    And I leave my progress
+    And I reload the app
+    And I open my progress
+    Then the stored setting "spokenNaming" should be "letters"

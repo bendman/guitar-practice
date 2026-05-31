@@ -20,11 +20,14 @@ interface ProgressViewProps {
   setWorkingSetSize?: (size: number) => void;
   noteNaming?: NoteNaming;
   setNoteNaming?: (naming: NoteNaming) => void;
+  spokenNaming?: NoteNaming;
+  setSpokenNaming?: (naming: NoteNaming) => void;
 }
 
 export default function ProgressView({
   weights = {}, onBack, onResetWeights, workingSetSize, setWorkingSetSize,
   noteNaming = "solfege", setNoteNaming,
+  spokenNaming = "solfege", setSpokenNaming,
 }: ProgressViewProps) {
   const [openChordIds, setOpenChordIds] = useState<Set<string>>(new Set());
   const practiced = ALL.filter((item) => weights[item.id] != null);
@@ -64,29 +67,20 @@ export default function ProgressView({
           <div className={s.settingsSection}>
             <span className={shared.eyebrow}>Réglages</span>
             {setNoteNaming && (
-              <div className={s.settingRow}>
-                <span className={s.settingLabel}>Noms des notes</span>
-                <div className={s.segmented} role="radiogroup" aria-label="Noms des notes">
-                  <button
-                    className={`${s.segBtn} ${noteNaming === "solfege" ? s.segBtnActive : ""}`}
-                    role="radio"
-                    aria-checked={noteNaming === "solfege"}
-                    data-testid="note-naming-solfege"
-                    onClick={() => setNoteNaming("solfege")}
-                  >
-                    Do Ré Mi
-                  </button>
-                  <button
-                    className={`${s.segBtn} ${noteNaming === "letters" ? s.segBtnActive : ""}`}
-                    role="radio"
-                    aria-checked={noteNaming === "letters"}
-                    data-testid="note-naming-letters"
-                    onClick={() => setNoteNaming("letters")}
-                  >
-                    C D E
-                  </button>
-                </div>
-              </div>
+              <NamingControl
+                label="Notes écrites"
+                testidPrefix="note-naming"
+                value={noteNaming}
+                onChange={setNoteNaming}
+              />
+            )}
+            {setSpokenNaming && (
+              <NamingControl
+                label="Notes parlées"
+                testidPrefix="spoken-naming"
+                value={spokenNaming}
+                onChange={setSpokenNaming}
+              />
             )}
             {setWorkingSetSize && (
               <div className={s.settingRow}>
@@ -113,6 +107,41 @@ export default function ProgressView({
       <div className={shared.screenFooter}>
         <button onClick={onBack} className={shared.footerBtnSecondary}>
           Retour
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface NamingControlProps {
+  label: string;
+  testidPrefix: string;
+  value: NoteNaming;
+  onChange: (naming: NoteNaming) => void;
+}
+
+function NamingControl({ label, testidPrefix, value, onChange }: NamingControlProps) {
+  return (
+    <div className={s.settingRow}>
+      <span className={s.settingLabel}>{label}</span>
+      <div className={s.segmented} role="radiogroup" aria-label={label}>
+        <button
+          className={`${s.segBtn} ${value === "solfege" ? s.segBtnActive : ""}`}
+          role="radio"
+          aria-checked={value === "solfege"}
+          data-testid={`${testidPrefix}-solfege`}
+          onClick={() => onChange("solfege")}
+        >
+          Do Re Mi
+        </button>
+        <button
+          className={`${s.segBtn} ${value === "letters" ? s.segBtnActive : ""}`}
+          role="radio"
+          aria-checked={value === "letters"}
+          data-testid={`${testidPrefix}-letters`}
+          onClick={() => onChange("letters")}
+        >
+          C D E
         </button>
       </div>
     </div>
