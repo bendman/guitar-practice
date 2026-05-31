@@ -52,7 +52,7 @@ export default function LearningView({
   const outsidePool = ALL.filter((i) => !poolIds.has(i.id));
 
   return (
-    <div className={shared.screen}>
+    <div className={shared.screen} data-testid="learning">
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
           <div className={s.header}>

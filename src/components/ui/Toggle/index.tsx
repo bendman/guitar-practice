@@ -19,6 +19,9 @@ export default function Toggle({ label, sublabel, value, onChange, disabled = fa
       <button
         onClick={() => !disabled && onChange(!value)}
         disabled={disabled}
+        aria-label={label}
+        role="switch"
+        aria-checked={value}
         className={`${s.track} ${on ? s.trackOn : ""}`}
       >
         <div className={`${s.knob} ${on ? s.knobOn : ""}`} />

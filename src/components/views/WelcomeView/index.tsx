@@ -25,7 +25,7 @@ export default function WelcomeView({
   const acc = accuracyPercent(stats);
 
   return (
-    <div className={shared.screen}>
+    <div className={shared.screen} data-testid="welcome">
       {showDebugLink && (
         <button onClick={onShowDebug} className={s.debugBtn}>debug</button>
       )}
@@ -48,7 +48,7 @@ export default function WelcomeView({
                 <span className={shared.eyebrow}>Meilleure série</span>
               </div>
               <div className={s.statCell}>
-                <div className={s.statValue}>{stats.totalSessions ?? "—"}</div>
+                <div className={s.statValue} data-testid="stat-sessions">{stats.totalSessions ?? "—"}</div>
                 <span className={shared.eyebrow}>Sessions</span>
               </div>
               <div className={s.statCell}>
@@ -76,13 +76,13 @@ export default function WelcomeView({
       <div className={s.modeFooter}>
         <span className={`${shared.eyebrow} ${s.modeLabel}`}>Choisis un mode</span>
         <div className={s.modeCards}>
-          <button className={s.modeCard} onClick={onPickNotes}>
+          <button className={s.modeCard} onClick={onPickNotes} data-testid="mode-notes">
             <span className={s.modeGlyph}><Icon name="note" size={22} /></span>
             <span className={s.modeTitle}>Notes</span>
             <span className={s.modeDesc}>Reconnais les notes sur le manche</span>
             <span className={s.modeArrow}><Icon name="arrow" size={18} /></span>
           </button>
-          <button className={s.modeCard} onClick={onPickChords}>
+          <button className={s.modeCard} onClick={onPickChords} data-testid="mode-chords">
             <span className={s.modeGlyph}><Icon name="chord" size={22} /></span>
             <span className={s.modeTitle}>Accords</span>
             <span className={s.modeDesc}>Mémorise les positions d&apos;accords</span>

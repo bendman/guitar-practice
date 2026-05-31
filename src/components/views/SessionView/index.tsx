@@ -32,7 +32,7 @@ function CtrlBtn({ icon, label, onClick, variant = "secondary" }: CtrlBtnProps) 
   };
 
   return (
-    <button onClick={onClick} className={`${s.ctrlBtn} ${variantClass[variant]}`}>
+    <button onClick={onClick} data-testid={`ctrl-${icon}`} className={`${s.ctrlBtn} ${variantClass[variant]}`}>
       <span className={s.ctrlIcon}><Icon name={icon} size={20} /></span>
       <span className={s.ctrlLabel}>{label}</span>
     </button>
@@ -160,7 +160,7 @@ export default function SessionView({
   }
 
   return (
-    <div className={s.root}>
+    <div className={s.root} data-testid="session">
       <div
         className={s.progressBar}
         style={{ width: `${progress * 100}%`, opacity: paused ? 0.2 : 1 }}
@@ -185,7 +185,7 @@ export default function SessionView({
           <div className={s.pauseBadge}>En pause</div>
         )}
 
-        <div className={`${s.noteName} ${isCorrect ? s.noteNameCorrect : ""}`}>
+        <div className={`${s.noteName} ${isCorrect ? s.noteNameCorrect : ""}`} data-testid="prompt">
           {current?.label || "—"}
         </div>
 

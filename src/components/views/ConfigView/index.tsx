@@ -24,6 +24,7 @@ function IntervalControl({ interval, setInterval }: IntervalControlProps) {
       <div className={s.sliderWrap}>
         <input
           type="range"
+          aria-label="Intervalle"
           min="0.5"
           max="10"
           step="0.1"
@@ -127,6 +128,7 @@ function ChordsBuilder({
           <button
             key={p.id}
             onClick={() => onPreset(p.id)}
+            data-testid={`preset-${p.id}`}
             className={`${s.chip} ${chordPreset === p.id ? s.chipActive : ""}`}
           >
             {p.label}
@@ -136,6 +138,7 @@ function ChordsBuilder({
           <button
             key={p.id}
             onClick={() => onProgression(p.id)}
+            data-testid={`prog-${p.id}`}
             className={`${s.chip} ${chordProgression === p.id ? s.chipActive : ""}`}
           >
             {p.label}
@@ -144,7 +147,7 @@ function ChordsBuilder({
       </div>
 
       <div className={s.subsectionHeader}>
-        <span className={shared.eyebrow}>Accords · {totalEnabled} au total</span>
+        <span className={shared.eyebrow} data-testid="chord-total">Accords · {totalEnabled} au total</span>
         <div className={s.presetLinks}>
           <button className={shared.resetLink} onClick={() => rootPreset("none")}>aucune</button>
           <span className={s.presetSep}>|</span>
@@ -246,7 +249,7 @@ export default function ConfigView({
   const noteCount = [...NOTES, ...CHROMATIC_NOTES].filter((n) => enabled[n.id]).length;
 
   return (
-    <div className={shared.screen}>
+    <div className={shared.screen} data-testid="config">
       {showDebugLink && (
         <button onClick={onShowDebug} className={s.debugBtn}>debug</button>
       )}
@@ -332,6 +335,7 @@ export default function ConfigView({
         <button
           onClick={onStart}
           disabled={pool.length === 0}
+          data-testid="start"
           className={`${shared.footerBtnPrimary} ${s.startBtn}`}
         >
           Commencer

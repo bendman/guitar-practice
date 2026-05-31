@@ -1,0 +1,5 @@
+# Fast feedback loop: typecheck + the no-mic BDD suite against the dev server.
+# The @audio scenario is excluded here (run it in CI / `npm run test:audio`).
+# `npm run lint` is intentionally omitted: the repo has pre-existing lint errors
+# in scripts/wait-for-deploy.js; add it back once those are resolved.
+npm run typecheck && npm run test:dev
