@@ -150,7 +150,7 @@ function ChordsBuilder({
           <span className={s.presetSep}>|</span>
           <button className={shared.resetLink} onClick={() => setEnabled((prev) => {
             const next = { ...prev };
-            CHORDS.forEach((c) => { next[c.id] = weightToLevel(weights[c.id]) === 2; });
+            CHORDS.forEach((c) => { next[c.id] = weightToLevel(weights[c.id]) >= 1; });
             return next;
           })}>en cours</button>
           <span className={s.presetSep}>|</span>
