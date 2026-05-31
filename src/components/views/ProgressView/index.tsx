@@ -2,6 +2,8 @@ import { useState } from "react";
 import { ALL } from "../../../lib/constants";
 import type { PracticeItem, ChordItem } from "../../../lib/constants";
 import { weightToLevel } from "../../../lib/util";
+import type { NoteNaming } from "../../../lib/util";
+import { useFormatLabel } from "../../../lib/noteNaming";
 import type { Weights } from "../../../lib/stats";
 import ProgressDot from "../../ui/ProgressDot";
 import ChordDiagram from "../../ui/ChordDiagram";
@@ -16,10 +18,13 @@ interface ProgressViewProps {
   onResetWeights?: () => void;
   workingSetSize: number;
   setWorkingSetSize?: (size: number) => void;
+  noteNaming?: NoteNaming;
+  setNoteNaming?: (naming: NoteNaming) => void;
 }
 
 export default function ProgressView({
   weights = {}, onBack, onResetWeights, workingSetSize, setWorkingSetSize,
+  noteNaming = "solfege", setNoteNaming,
 }: ProgressViewProps) {
   const [openChordIds, setOpenChordIds] = useState<Set<string>>(new Set());
   const practiced = ALL.filter((item) => weights[item.id] != null);
@@ -58,6 +63,31 @@ export default function ProgressView({
 
           <div className={s.settingsSection}>
             <span className={shared.eyebrow}>Réglages</span>
+            {setNoteNaming && (
+              <div className={s.settingRow}>
+                <span className={s.settingLabel}>Noms des notes</span>
+                <div className={s.segmented} role="radiogroup" aria-label="Noms des notes">
+                  <button
+                    className={`${s.segBtn} ${noteNaming === "solfege" ? s.segBtnActive : ""}`}
+                    role="radio"
+                    aria-checked={noteNaming === "solfege"}
+                    data-testid="note-naming-solfege"
+                    onClick={() => setNoteNaming("solfege")}
+                  >
+                    Do Ré Mi
+                  </button>
+                  <button
+                    className={`${s.segBtn} ${noteNaming === "letters" ? s.segBtnActive : ""}`}
+                    role="radio"
+                    aria-checked={noteNaming === "letters"}
+                    data-testid="note-naming-letters"
+                    onClick={() => setNoteNaming("letters")}
+                  >
+                    C D E
+                  </button>
+                </div>
+              </div>
+            )}
             {setWorkingSetSize && (
               <div className={s.settingRow}>
                 <span className={s.settingLabel}>Éléments actifs à la fois</span>
@@ -98,6 +128,7 @@ interface SectionProps {
 }
 
 function Section({ title, items, weights, openIds, onToggle }: SectionProps) {
+  const formatLabel = useFormatLabel();
   return (
     <div className={s.section}>
       <span className={shared.eyebrow}>{title}</span>
@@ -113,7 +144,7 @@ function Section({ title, items, weights, openIds, onToggle }: SectionProps) {
                 onClick={isChord ? () => onToggle?.(item.id) : undefined}
               >
                 <ProgressDot level={level} size={12} />
-                <span className={s.label}>{item.label}</span>
+                <span className={s.label}>{formatLabel(item.label)}</span>
                 <span className={s.levelLabel}>{LEVEL_LABELS[level]}</span>
               </div>
               {isOpen && item.type === "chord" && (item as ChordItem).voicings.length > 0 && (

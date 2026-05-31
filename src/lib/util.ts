@@ -65,6 +65,25 @@ export function sayAloud(item: HasSpeakLabel): void {
   speechSynthesis.speak(utt);
 }
 
+export type NoteNaming = "solfege" | "letters";
+
+const SOLFEGE_TO_LETTER: Record<string, string> = {
+  Do: "C", Ré: "D", Re: "D", Mi: "E", Fa: "F", Sol: "G", La: "A", Si: "B",
+};
+// Longest syllables first so "Sol" is matched before shorter alternatives.
+const SOLFEGE_ROOT_RE = /^(Sol|Do|Ré|Re|Mi|Fa|La|Si)/;
+
+/**
+ * Translate the leading solfège syllable of a note or chord label into its
+ * letter-name equivalent (e.g. "Ré# Majeur" -> "D# Majeur"). Accidentals and
+ * any trailing words (chord qualities) are preserved. Returns the label
+ * unchanged when solfège naming is selected.
+ */
+export function formatNoteLabel(label: string, naming: NoteNaming): string {
+  if (naming === "solfege") return label;
+  return label.replace(SOLFEGE_ROOT_RE, (m) => SOLFEGE_TO_LETTER[m] ?? m);
+}
+
 export function formatTime(secs: number): string {
   const m = Math.floor(secs / 60);
   const s = Math.floor(secs % 60);

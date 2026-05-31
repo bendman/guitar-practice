@@ -37,6 +37,39 @@ When("I return to the home screen", async function (this: GuitarWorld) {
   await this.page.getByRole("button", { name: "Accueil" }).click();
 });
 
+When("I open my progress", async function (this: GuitarWorld) {
+  await this.page.getByRole("button", { name: "Ma progression" }).click();
+});
+
+When("I leave my progress", async function (this: GuitarWorld) {
+  await this.page.getByRole("button", { name: "Retour" }).click();
+});
+
+When("I reload the app", async function (this: GuitarWorld) {
+  await this.page.reload({ waitUntil: "domcontentloaded" });
+});
+
+When(
+  "I set the note naming to {string}",
+  async function (this: GuitarWorld, naming: string) {
+    await this.page.getByTestId(`note-naming-${naming}`).click();
+  },
+);
+
+Then(
+  "I should see the note {string} on the keyboard",
+  async function (this: GuitarWorld, label: string) {
+    await expect(this.page.getByRole("button", { name: label, exact: true })).toBeVisible();
+  },
+);
+
+Then(
+  "I should not see the note {string} on the keyboard",
+  async function (this: GuitarWorld, label: string) {
+    await expect(this.page.getByRole("button", { name: label, exact: true })).toHaveCount(0);
+  },
+);
+
 // ---- Config -------------------------------------------------------------
 
 When("I select the {string} preset", async function (this: GuitarWorld, label: string) {

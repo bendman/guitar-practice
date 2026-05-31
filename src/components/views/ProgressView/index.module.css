@@ -74,6 +74,36 @@
   color: var(--text-faint);
 }
 
+.segmented {
+  display: flex;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.segBtn {
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text-faint);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+}
+
+.segBtn:active {
+  opacity: 0.7;
+}
+
+.segBtnActive {
+  background: var(--text);
+  color: var(--bg);
+}
+
 .stepper {
   display: flex;
   align-items: center;
