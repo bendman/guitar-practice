@@ -209,7 +209,7 @@ export default function SessionView({
         <button className={s.learningLink} onClick={onShowLearning}>Details</button>
         <div className={s.timer}>{formatTime(practiceTime)}</div>
         <div className={s.countRow}>
-          <span className={s.count}>#{count}</span>
+          <span className={s.count} data-testid="card-count">#{count}</span>
           {listening && streak > 0 && (
             <span className={s.streak}>{streak} 🔥</span>
           )}

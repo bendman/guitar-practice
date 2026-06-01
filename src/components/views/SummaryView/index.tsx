@@ -11,17 +11,29 @@ interface AccuracyRingProps {
   accuracy: number;
 }
 
+const RING_DURATION = 1200;
+
 function AccuracyRing({ accuracy }: AccuracyRingProps) {
   const [animated, setAnimated] = useState(false);
-  const radius = 48;
-  const stroke = 6;
+  const [display, setDisplay] = useState(0);
+  const radius = 64;
+  const stroke = 7;
   const circ = 2 * Math.PI * radius;
   const offset = animated ? circ * (1 - accuracy / 100) : circ;
 
   useEffect(() => {
-    const id = requestAnimationFrame(() => setAnimated(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
+    const raf = requestAnimationFrame(() => setAnimated(true));
+    let frame: number;
+    let startTime: number | null = null;
+    const tick = (now: number) => {
+      if (startTime == null) startTime = now;
+      const t = Math.min((now - startTime) / RING_DURATION, 1);
+      setDisplay(Math.round(t * accuracy));
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(raf); cancelAnimationFrame(frame); };
+  }, [accuracy]);
 
   const size = (radius + stroke) * 2;
 
@@ -43,12 +55,12 @@ function AccuracyRing({ accuracy }: AccuracyRingProps) {
           strokeDasharray={circ}
           strokeDashoffset={offset}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          style={{ transition: "stroke-dashoffset 0.8s var(--ease)" }}
+          style={{ transition: "stroke-dashoffset 1.2s var(--ease)" }}
         />
       </svg>
       <div className={s.ringCenter}>
-        <div className={s.ringValue}>{accuracy}</div>
-        <span className={shared.eyebrow}>Précision</span>
+        <div className={s.ringValue}>{display}<span className={s.ringPct}>%</span></div>
+        <span className={`${shared.eyebrow} ${s.ringLabel}`}>Précision</span>
       </div>
     </div>
   );
@@ -62,19 +74,25 @@ interface ImpactRowProps {
 }
 
 function ImpactRow({ label, oldVal, newVal, improved }: ImpactRowProps) {
+  const changed = oldVal !== newVal;
   return (
     <div className={s.impactRow}>
       <span className={s.impactLabel}>{label}</span>
       <div className={s.impactValues}>
-        <span className={s.impactOld}>{oldVal}</span>
-        <span className={s.impactArrow}>→</span>
-        <span className={`${s.impactNew} ${improved ? s.impactImproved : ""}`}>{newVal}</span>
+        {changed && (
+          <>
+            <span className={s.impactOld}>{oldVal}</span>
+            <span className={s.impactArrow}>→</span>
+          </>
+        )}
+        <span className={`${s.impactNew} ${improved && changed ? s.impactImproved : ""}`}>{newVal}</span>
       </div>
     </div>
   );
 }
 
 function headline(accuracy: number): string {
+  if (accuracy >= 100) return "Sans-faute, parfait !";
   if (accuracy >= 93) return "Sans-faute ou presque !";
   if (accuracy >= 80) return "Très bonne session !";
   if (accuracy >= 65) return "Bonne session !";
@@ -86,19 +104,77 @@ interface SummaryViewProps {
   summary: SessionSummary;
   preSessionStats: Stats | null;
   weights?: Weights;
+  preWeights?: Weights;
   onDismiss: () => void;
   onReplay: () => void;
 }
 
+interface ChordProgressRowProps {
+  label: string;
+  before: 0 | 1 | 2 | 3;
+  after: 0 | 1 | 2 | 3;
+  attempts: number;
+  misses: number;
+  index: number;
+}
+
+function ChordProgressRow({ label, before, after, attempts, misses, index }: ChordProgressRowProps) {
+  // Start the "after" dot at the old level, then animate up to the new level so
+  // the user sees the gain fill in.
+  const [shown, setShown] = useState<0 | 1 | 2 | 3>(before);
+  const improved = after > before;
+  const regressed = after < before;
+  const changed = after !== before;
+  const successRate = attempts > 0 ? Math.round(((attempts - misses) / attempts) * 100) : 0;
+
+  useEffect(() => {
+    if (!changed) return;
+    const id = setTimeout(() => setShown(after), 250 + index * 120);
+    return () => clearTimeout(id);
+  }, [after, changed, index]);
+
+  return (
+    <div className={`${s.chordProgRow} ${improved ? s.chordProgUp : ""}`}>
+      <span className={s.workonLabel}>{label}</span>
+      <span className={s.chordProgStat}>
+        {successRate}% · {attempts - misses}/{attempts}
+      </span>
+      <div className={s.chordProgDots}>
+        {changed ? (
+          <>
+            <ProgressDot level={before} size={12} dim />
+            <span className={`${s.chordProgArrow} ${improved ? s.chordProgArrowUp : regressed ? s.chordProgArrowDown : ""}`}>→</span>
+            <ProgressDot level={shown} size={14} />
+          </>
+        ) : (
+          <ProgressDot level={after} size={14} />
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function SummaryView({
-  summary, preSessionStats, weights = {}, onDismiss, onReplay,
+  summary, preSessionStats, weights = {}, preWeights = {}, onDismiss, onReplay,
 }: SummaryViewProps) {
   const {
     totalCount, correctCount, totalNotes, accuracy, bestStreak,
     practiceTime, wasListening, missedItems,
-    wasManualChord, chordCorrectCount, totalChords, chordAccuracy, chordMissedItems,
+    wasManualChord, chordCorrectCount, totalChords, chordAccuracy, chordPracticedItems,
   } = summary;
   const formatLabel = useFormatLabel();
+
+  // All chords practiced this session, sorted to surface gains first.
+  const chordProgress = chordPracticedItems
+    .map((c) => ({
+      id: c.id,
+      label: c.label,
+      attempts: c.attempts,
+      misses: c.misses,
+      before: weightToLevel(preWeights[c.id]),
+      after: weightToLevel(weights[c.id]),
+    }))
+    .sort((a, b) => (b.after - b.before) - (a.after - a.before) || b.after - a.after);
 
   const postStats = preSessionStats
     ? mergeSessionIntoStats(preSessionStats, summary)
@@ -201,24 +277,22 @@ export default function SummaryView({
             </div>
           )}
 
-          {wasManualChord && chordMissedItems.length > 0 && (
+          {wasManualChord && chordProgress.length > 0 && (
             <div className={s.workonSection}>
-              <span className={`${shared.eyebrow} ${s.sectionTitle}`}>À retravailler</span>
-              <div className={s.workonList}>
-                {chordMissedItems.map((item) => (
-                  <div key={item.id} className={s.workonRow}>
-                    <ProgressDot level={weightToLevel(weights[item.id])} size={12} />
-                    <span className={s.workonLabel}>{formatLabel(item.label)}</span>
-                    <span className={s.workonRate}>{100 - item.missRate}%</span>
-                  </div>
+              <span className={`${shared.eyebrow} ${s.sectionTitle}`}>Accords travaillés</span>
+              <div className={s.chordProgList}>
+                {chordProgress.map((c, i) => (
+                  <ChordProgressRow
+                    key={c.id}
+                    label={formatLabel(c.label)}
+                    before={c.before}
+                    after={c.after}
+                    attempts={c.attempts}
+                    misses={c.misses}
+                    index={i}
+                  />
                 ))}
               </div>
-            </div>
-          )}
-
-          {wasManualChord && chordMissedItems.length === 0 && totalChords > 0 && (
-            <div className={s.perfectNote}>
-              Tous les accords trouvés — excellent !
             </div>
           )}
 

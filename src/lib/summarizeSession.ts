@@ -67,6 +67,9 @@ export function summarizeSession({
     .map((c) => ({ ...c, missRate: Math.round((c.misses / c.attempts) * 100) }))
     .sort((a, b) => b.missRate - a.missRate);
 
+  const chordPracticedItems = Object.values(chordMap)
+    .map((c) => ({ id: c.id, label: c.label, attempts: c.attempts, misses: c.misses }));
+
   return {
     totalCount: results.length,
     correctCount,
@@ -82,5 +85,6 @@ export function summarizeSession({
     totalChords,
     chordAccuracy,
     chordMissedItems,
+    chordPracticedItems,
   };
 }

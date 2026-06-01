@@ -80,6 +80,7 @@ export default function GuitarPractice() {
   const [screen, setScreen] = useState<"welcome" | "config" | "progress">("welcome");
   const [mode, setMode] = useState<"notes" | "chords" | null>(null);
   const [preSessionStats, setPreSessionStats] = useState<Stats | null>(null);
+  const [preSessionWeights, setPreSessionWeights] = useState<Weights>({});
 
   const targetType = mode === "chords" ? "chord" : "note";
   const pool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
@@ -111,7 +112,7 @@ export default function GuitarPractice() {
     tts,
     spokenNaming,
     voiceURI,
-    chordMode,
+    chordMode: mode === "chords" ? chordMode : "manual",
     weights,
     confusions,
     onResult: handleResult,
@@ -218,13 +219,13 @@ export default function GuitarPractice() {
 
   const startSession = () => {
     setPreSessionStats(stats);
+    setPreSessionWeights(weights);
     session.start();
   };
 
   const handleReplay = () => {
-    setPreSessionStats(stats);
     setSessionSummary(null);
-    session.start();
+    setScreen("config");
   };
 
   const renderContent = () => {
@@ -280,6 +281,7 @@ export default function GuitarPractice() {
         summary={sessionSummary}
         preSessionStats={preSessionStats}
         weights={weights}
+        preWeights={preSessionWeights}
         onDismiss={goWelcome}
         onReplay={handleReplay}
       />

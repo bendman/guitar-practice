@@ -25,6 +25,14 @@ export interface SessionSummary {
   totalChords: number;
   chordAccuracy: number;
   chordMissedItems: MissedChordItem[];
+  chordPracticedItems: PracticedChordItem[];
+}
+
+export interface PracticedChordItem {
+  id: string;
+  label: string;
+  attempts: number;
+  misses: number;
 }
 
 export interface MissedNoteItem {

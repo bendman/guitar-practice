@@ -29,6 +29,9 @@ export default function WelcomeView({
       {showDebugLink && (
         <button onClick={onShowDebug} className={s.debugBtn}>debug</button>
       )}
+      {onShowProgress && (
+        <button onClick={onShowProgress} className={s.settingsBtn}>Paramètres</button>
+      )}
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
 
@@ -61,14 +64,6 @@ export default function WelcomeView({
               </div>
             </div>
           </div>
-
-          {onShowProgress && (
-            <div className={s.progressLink}>
-              <button className={shared.resetLink} onClick={onShowProgress}>
-                Paramètres
-              </button>
-            </div>
-          )}
 
         </div>
       </div>

@@ -115,6 +115,14 @@ When("I select the QCM progression mode", async function (this: GuitarWorld) {
   await this.page.getByTestId("mode-quiz").click();
 });
 
+When("I select the {string} progression mode", async function (this: GuitarWorld, label: string) {
+  await this.page.getByRole("button", { name: label, exact: true }).click();
+});
+
+Then("the practice should advance past the first card", async function (this: GuitarWorld) {
+  await expect(this.page.getByTestId("card-count")).not.toHaveText("#1", { timeout: 8_000 });
+});
+
 Then("the QCM mode should be disabled", async function (this: GuitarWorld) {
   await expect(this.page.getByTestId("mode-quiz")).toBeDisabled();
 });
