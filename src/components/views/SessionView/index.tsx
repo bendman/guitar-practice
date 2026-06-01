@@ -34,7 +34,7 @@ function CtrlBtn({ icon, label, onClick, variant = "secondary" }: CtrlBtnProps) 
   };
 
   return (
-    <button onClick={onClick} data-testid={`ctrl-${icon}`} className={`${s.ctrlBtn} ${variantClass[variant]}`}>
+    <button onClick={onClick} className={`${s.ctrlBtn} ${variantClass[variant]}`}>
       <span className={s.ctrlIcon}><Icon name={icon} size={20} /></span>
       <span className={s.ctrlLabel}>{label}</span>
     </button>
@@ -43,7 +43,7 @@ function CtrlBtn({ icon, label, onClick, variant = "secondary" }: CtrlBtnProps) 
 
 function DisabledCtrlBtn({ icon, label }: { icon: string; label: string }) {
   return (
-    <button disabled data-testid={`ctrl-${icon}`} className={`${s.ctrlBtn} ${s.ctrlBtnSecondary}`}>
+    <button disabled className={`${s.ctrlBtn} ${s.ctrlBtnSecondary}`}>
       <span className={s.ctrlIcon}><Icon name={icon} size={20} /></span>
       <span className={s.ctrlLabel}>{label}</span>
     </button>
@@ -194,7 +194,7 @@ export default function SessionView({
   }
 
   return (
-    <div className={s.root} data-testid="session">
+    <div className={s.root}>
       {!quiz && (
         <div
           className={s.progressBar}
@@ -209,7 +209,7 @@ export default function SessionView({
         <button className={s.learningLink} onClick={onShowLearning}>Details</button>
         <div className={s.timer}>{formatTime(practiceTime)}</div>
         <div className={s.countRow}>
-          <span className={s.count} data-testid="card-count">#{count}</span>
+          <span className={s.count} role="status" aria-label={`Carte ${count}`}>#{count}</span>
           {listening && streak > 0 && (
             <span className={s.streak}>{streak} 🔥</span>
           )}
@@ -221,12 +221,12 @@ export default function SessionView({
           <div className={s.pauseBadge}>En pause</div>
         )}
 
-        <div className={`${s.noteName} ${isCorrect ? s.noteNameCorrect : ""}`} data-testid="prompt">
+        <div className={`${s.noteName} ${isCorrect ? s.noteNameCorrect : ""}`}>
           {current ? formatLabel(current.label) : "—"}
         </div>
 
         {quiz && (
-          <div className={s.quizGrid}>
+          <div className={s.quizGrid} role="group" aria-label="Choix d'accord">
             {choices.map((c) => {
               const isCorrectChoice = c.id === correctId;
               const isPicked = c.id === selectedId;
@@ -237,7 +237,6 @@ export default function SessionView({
                 <button
                   key={c.id}
                   className={cardClass}
-                  data-testid={`quiz-choice-${c.id}`}
                   onClick={() => onQuizSelect(c.id)}
                   disabled={selectedId != null}
                 >

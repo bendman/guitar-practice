@@ -184,7 +184,7 @@ export default function SummaryView({
   const postAcc = postStats ? accuracyPercent(postStats) : null;
 
   return (
-    <div className={shared.screen} data-testid="summary">
+    <div className={shared.screen}>
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
 

@@ -100,7 +100,6 @@ export default function ProgressView({
             {setNoteNaming && (
               <NamingControl
                 label="Notes écrites"
-                testidPrefix="note-naming"
                 value={noteNaming}
                 onChange={setNoteNaming}
               />
@@ -108,7 +107,6 @@ export default function ProgressView({
             {setSpokenNaming && (
               <NamingControl
                 label="Notes parlées"
-                testidPrefix="spoken-naming"
                 value={spokenNaming}
                 onChange={setSpokenNaming}
               />
@@ -120,7 +118,6 @@ export default function ProgressView({
                   <select
                     className={s.voiceSelect}
                     aria-label="Voix"
-                    data-testid="voice-select"
                     value={voiceURI ?? ""}
                     onChange={(e) => setVoiceURI(e.target.value || null)}
                   >
@@ -137,7 +134,6 @@ export default function ProgressView({
                   </select>
                   <button
                     className={s.previewBtn}
-                    data-testid="voice-preview"
                     onClick={previewVoice}
                     aria-label="Écouter un aperçu"
                     title="Écouter un aperçu"
@@ -180,12 +176,11 @@ export default function ProgressView({
 
 interface NamingControlProps {
   label: string;
-  testidPrefix: string;
   value: NoteNaming;
   onChange: (naming: NoteNaming) => void;
 }
 
-function NamingControl({ label, testidPrefix, value, onChange }: NamingControlProps) {
+function NamingControl({ label, value, onChange }: NamingControlProps) {
   return (
     <div className={s.settingRow}>
       <span className={s.settingLabel}>{label}</span>
@@ -194,7 +189,6 @@ function NamingControl({ label, testidPrefix, value, onChange }: NamingControlPr
           className={`${s.segBtn} ${value === "solfege" ? s.segBtnActive : ""}`}
           role="radio"
           aria-checked={value === "solfege"}
-          data-testid={`${testidPrefix}-solfege`}
           onClick={() => onChange("solfege")}
         >
           Do Re Mi
@@ -203,7 +197,6 @@ function NamingControl({ label, testidPrefix, value, onChange }: NamingControlPr
           className={`${s.segBtn} ${value === "letters" ? s.segBtnActive : ""}`}
           role="radio"
           aria-checked={value === "letters"}
-          data-testid={`${testidPrefix}-letters`}
           onClick={() => onChange("letters")}
         >
           C D E

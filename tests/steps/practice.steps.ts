@@ -50,10 +50,19 @@ When("I reload the app", async function (this: GuitarWorld) {
   await this.page.reload({ waitUntil: "domcontentloaded" });
 });
 
+// Maps the stored naming value to the radio button's visible label.
+const NAMING_LABEL: Record<string, string> = {
+  solfege: "Do Re Mi",
+  letters: "C D E",
+};
+
 When(
   "I set the note naming to {string}",
   async function (this: GuitarWorld, naming: string) {
-    await this.page.getByTestId(`note-naming-${naming}`).click();
+    await this.page
+      .getByRole("radiogroup", { name: "Notes écrites" })
+      .getByRole("radio", { name: NAMING_LABEL[naming] })
+      .click();
   },
 );
 
@@ -72,20 +81,24 @@ Then(
 );
 
 Then("I should see the voice picker", async function (this: GuitarWorld) {
-  await expect(this.page.getByTestId("voice-select")).toBeVisible();
-  await expect(this.page.getByTestId("voice-preview")).toBeVisible();
+  await expect(this.page.getByRole("combobox", { name: "Voix" })).toBeVisible();
+  await expect(this.page.getByRole("button", { name: "Écouter un aperçu" })).toBeVisible();
 });
 
 Then("previewing the voice does not error", async function (this: GuitarWorld) {
-  await this.page.getByTestId("voice-preview").click();
+  const preview = this.page.getByRole("button", { name: "Écouter un aperçu" });
+  await preview.click();
   // The button stays interactive (no crash / navigation away from settings).
-  await expect(this.page.getByTestId("voice-preview")).toBeEnabled();
+  await expect(preview).toBeEnabled();
 });
 
 When(
   "I set the spoken note naming to {string}",
   async function (this: GuitarWorld, naming: string) {
-    await this.page.getByTestId(`spoken-naming-${naming}`).click();
+    await this.page
+      .getByRole("radiogroup", { name: "Notes parlées" })
+      .getByRole("radio", { name: NAMING_LABEL[naming] })
+      .click();
   },
 );
 
@@ -112,7 +125,7 @@ Then("the chord total should be {string}", async function (this: GuitarWorld, to
 });
 
 When("I select the QCM progression mode", async function (this: GuitarWorld) {
-  await this.page.getByTestId("mode-quiz").click();
+  await this.page.getByRole("button", { name: "QCM", exact: true }).click();
 });
 
 When("I select the {string} progression mode", async function (this: GuitarWorld, label: string) {
@@ -120,41 +133,43 @@ When("I select the {string} progression mode", async function (this: GuitarWorld
 });
 
 Then("the practice should advance past the first card", async function (this: GuitarWorld) {
-  await expect(this.page.getByTestId("card-count")).not.toHaveText("#1", { timeout: 8_000 });
+  await expect(this.page.getByRole("status")).not.toHaveText("#1", { timeout: 8_000 });
 });
 
 Then("the QCM mode should be disabled", async function (this: GuitarWorld) {
-  await expect(this.page.getByTestId("mode-quiz")).toBeDisabled();
+  await expect(this.page.getByRole("button", { name: "QCM", exact: true })).toBeDisabled();
 });
 
+function quizChoices(page: Page) {
+  return page.getByRole("group", { name: "Choix d'accord" }).getByRole("button");
+}
+
 Then("the quiz should show 4 choices", async function (this: GuitarWorld) {
-  await expect(this.page.locator('[data-testid^="quiz-choice-"]')).toHaveCount(4);
+  await expect(quizChoices(this.page)).toHaveCount(4);
 });
 
 Then("the quiz choice names should be hidden", async function (this: GuitarWorld) {
-  const names = this.page.locator('[data-testid^="quiz-choice-"] >> text="?"');
-  await expect(names).toHaveCount(4);
+  await expect(quizChoices(this.page).filter({ hasText: "?" })).toHaveCount(4);
 });
 
 When("I pick a quiz choice", async function (this: GuitarWorld) {
-  await this.page.locator('[data-testid^="quiz-choice-"]').first().click();
+  await quizChoices(this.page).first().click();
 });
 
 Then("the quiz choice names should be revealed", async function (this: GuitarWorld) {
-  const hidden = this.page.locator('[data-testid^="quiz-choice-"] >> text="?"');
-  await expect(hidden).toHaveCount(0);
+  await expect(quizChoices(this.page).filter({ hasText: "?" })).toHaveCount(0);
 });
 
 Then("the Next button should be disabled", async function (this: GuitarWorld) {
-  await expect(this.page.getByTestId("ctrl-next")).toBeDisabled();
+  await expect(this.page.getByRole("button", { name: "Suivant" })).toBeDisabled();
 });
 
 Then("the Next button should be enabled", async function (this: GuitarWorld) {
-  await expect(this.page.getByTestId("ctrl-next")).toBeEnabled();
+  await expect(this.page.getByRole("button", { name: "Suivant" })).toBeEnabled();
 });
 
 When("I advance to the next quiz round", async function (this: GuitarWorld) {
-  await this.page.getByTestId("ctrl-next").click();
+  await this.page.getByRole("button", { name: "Suivant" }).click();
 });
 
 When("I enable microphone detection", async function (this: GuitarWorld) {
