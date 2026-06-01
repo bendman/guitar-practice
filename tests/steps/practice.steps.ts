@@ -9,6 +9,7 @@ function screenAnchor(page: Page, screen: string) {
     case "config":   return page.getByRole("button", { name: "Commencer" });
     case "session":  return page.getByRole("button", { name: "Arrêter" });
     case "summary":  return page.getByRole("heading");
+    case "settings": return page.getByRole("heading", { name: "Paramètres" });
     case "learning": return page.getByText("Learning details");
     default: throw new Error(`Unknown screen: ${screen}`);
   }
@@ -36,6 +37,65 @@ Then("I should see the {word} screen", async function (this: GuitarWorld, screen
 When("I return to the home screen", async function (this: GuitarWorld) {
   await this.page.getByRole("button", { name: "Accueil" }).click();
 });
+
+When("I open my progress", async function (this: GuitarWorld) {
+  await this.page.getByRole("button", { name: "Paramètres" }).click();
+});
+
+When("I leave my progress", async function (this: GuitarWorld) {
+  await this.page.getByRole("button", { name: "Retour" }).click();
+});
+
+When("I reload the app", async function (this: GuitarWorld) {
+  await this.page.reload({ waitUntil: "domcontentloaded" });
+});
+
+When(
+  "I set the note naming to {string}",
+  async function (this: GuitarWorld, naming: string) {
+    await this.page.getByTestId(`note-naming-${naming}`).click();
+  },
+);
+
+Then(
+  "I should see the note {string} on the keyboard",
+  async function (this: GuitarWorld, label: string) {
+    await expect(this.page.getByRole("button", { name: label, exact: true })).toBeVisible();
+  },
+);
+
+Then(
+  "I should not see the note {string} on the keyboard",
+  async function (this: GuitarWorld, label: string) {
+    await expect(this.page.getByRole("button", { name: label, exact: true })).toHaveCount(0);
+  },
+);
+
+Then("I should see the voice picker", async function (this: GuitarWorld) {
+  await expect(this.page.getByTestId("voice-select")).toBeVisible();
+  await expect(this.page.getByTestId("voice-preview")).toBeVisible();
+});
+
+Then("previewing the voice does not error", async function (this: GuitarWorld) {
+  await this.page.getByTestId("voice-preview").click();
+  // The button stays interactive (no crash / navigation away from settings).
+  await expect(this.page.getByTestId("voice-preview")).toBeEnabled();
+});
+
+When(
+  "I set the spoken note naming to {string}",
+  async function (this: GuitarWorld, naming: string) {
+    await this.page.getByTestId(`spoken-naming-${naming}`).click();
+  },
+);
+
+Then(
+  "the stored setting {string} should be {string}",
+  async function (this: GuitarWorld, key: string, value: string) {
+    const settings = await this.readStorage<Record<string, unknown>>("guitar-practice-settings");
+    expect(settings?.[key]).toBe(value);
+  },
+);
 
 // ---- Config -------------------------------------------------------------
 

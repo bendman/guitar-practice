@@ -3,6 +3,8 @@ import { ALL, CHORDS, CHORD_PRESETS, CHORD_PROGRESSIONS } from "./lib/constants"
 import { usePitchDetection } from "./hooks/usePitchDetection";
 import { useSession } from "./hooks/useSession";
 import { applyResult, buildActivePool } from "./lib/util";
+import type { NoteNaming } from "./lib/util";
+import { NoteNamingProvider } from "./lib/noteNaming";
 import { summarizeSession } from "./lib/summarizeSession";
 import {
   loadStats, saveStats, resetStats, mergeSessionIntoStats,
@@ -26,6 +28,9 @@ interface StoredSettings {
   listening?: boolean;
   chordAuto?: boolean;
   workingSetSize?: number;
+  noteNaming?: NoteNaming;
+  spokenNaming?: NoteNaming;
+  voiceURI?: string | null;
 }
 
 function loadSettings(): StoredSettings {
@@ -44,6 +49,9 @@ function parseInitialSettings() {
     listening: s.listening ?? false,
     chordAuto: s.chordAuto ?? false,
     workingSetSize: typeof s.workingSetSize === "number" ? s.workingSetSize : 5,
+    noteNaming: (s.noteNaming === "letters" ? "letters" : "solfege") as NoteNaming,
+    spokenNaming: (s.spokenNaming === "letters" ? "letters" : "solfege") as NoteNaming,
+    voiceURI: typeof s.voiceURI === "string" ? s.voiceURI : null,
   };
 }
 const initialSettings = parseInitialSettings();
@@ -57,6 +65,9 @@ export default function GuitarPractice() {
   const [chordProgression, setChordProgression] = useState<string | null>(null);
   const [chordAuto, setChordAuto] = useState<boolean>(initialSettings.chordAuto);
   const [workingSetSize, setWorkingSetSize] = useState<number>(initialSettings.workingSetSize);
+  const [noteNaming, setNoteNaming] = useState<NoteNaming>(initialSettings.noteNaming);
+  const [spokenNaming, setSpokenNaming] = useState<NoteNaming>(initialSettings.spokenNaming);
+  const [voiceURI, setVoiceURI] = useState<string | null>(initialSettings.voiceURI);
   const [devScreen, setDevScreen] = useState<string | null>(null);
   const [showLearning, setShowLearning] = useState(false);
   const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
@@ -83,6 +94,8 @@ export default function GuitarPractice() {
     pool: activePool,
     listening: mode === "notes" && listening,
     tts,
+    spokenNaming,
+    voiceURI,
     chordAuto,
     weights,
     onResult: handleResult,
@@ -97,10 +110,10 @@ export default function GuitarPractice() {
   useEffect(() => {
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-        interval: intervalSecs, enabled, tts, listening, chordAuto, workingSetSize,
+        interval: intervalSecs, enabled, tts, listening, chordAuto, workingSetSize, noteNaming, spokenNaming, voiceURI,
       }));
     } catch { /* ignore quota / disabled storage */ }
-  }, [intervalSecs, enabled, tts, listening, chordAuto, workingSetSize]);
+  }, [intervalSecs, enabled, tts, listening, chordAuto, workingSetSize, noteNaming, spokenNaming, voiceURI]);
 
   useEffect(() => {
     if (!session.inSession) return;
@@ -194,6 +207,7 @@ export default function GuitarPractice() {
     session.start();
   };
 
+  const renderContent = () => {
   if (import.meta.env.DEV && devScreen === "mic") {
     return <DebugView onBack={() => setDevScreen(null)} />;
   }
@@ -255,6 +269,12 @@ export default function GuitarPractice() {
         onResetWeights={resetAllWeights}
         workingSetSize={workingSetSize}
         setWorkingSetSize={setWorkingSetSize}
+        noteNaming={noteNaming}
+        setNoteNaming={setNoteNaming}
+        spokenNaming={spokenNaming}
+        setSpokenNaming={setSpokenNaming}
+        voiceURI={voiceURI}
+        setVoiceURI={setVoiceURI}
       />
     );
   }
@@ -298,5 +318,12 @@ export default function GuitarPractice() {
       showDebugLink={import.meta.env.DEV}
       onShowDebug={() => setDevScreen("mic")}
     />
+  );
+  };
+
+  return (
+    <NoteNamingProvider naming={noteNaming}>
+      {renderContent()}
+    </NoteNamingProvider>
   );
 }

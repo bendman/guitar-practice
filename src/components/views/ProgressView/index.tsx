@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { ALL } from "../../../lib/constants";
+import { useEffect, useState } from "react";
+import { ALL, isSupportedVoiceLang, formatLocaleName } from "../../../lib/constants";
 import type { PracticeItem, ChordItem } from "../../../lib/constants";
-import { weightToLevel } from "../../../lib/util";
+import { weightToLevel, sayAloud, pickRandom } from "../../../lib/util";
+import type { NoteNaming } from "../../../lib/util";
+import { useFormatLabel } from "../../../lib/noteNaming";
 import type { Weights } from "../../../lib/stats";
 import ProgressDot from "../../ui/ProgressDot";
 import ChordDiagram from "../../ui/ChordDiagram";
@@ -10,18 +12,55 @@ import s from "./index.module.css";
 
 const LEVEL_LABELS = ["", "Difficile", "Facile", "Maîtrisé"];
 
+/** Group voices by their full locale (e.g. "fr-FR", "fr-CA"), locales sorted. */
+function groupVoicesByLocale(
+  voices: SpeechSynthesisVoice[],
+): [string, SpeechSynthesisVoice[]][] {
+  const groups = new Map<string, SpeechSynthesisVoice[]>();
+  for (const v of voices) {
+    const list = groups.get(v.lang) ?? [];
+    list.push(v);
+    groups.set(v.lang, list);
+  }
+  return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
+}
+
 interface ProgressViewProps {
   weights?: Weights;
   onBack: () => void;
   onResetWeights?: () => void;
   workingSetSize: number;
   setWorkingSetSize?: (size: number) => void;
+  noteNaming?: NoteNaming;
+  setNoteNaming?: (naming: NoteNaming) => void;
+  spokenNaming?: NoteNaming;
+  setSpokenNaming?: (naming: NoteNaming) => void;
+  voiceURI?: string | null;
+  setVoiceURI?: (uri: string | null) => void;
 }
 
 export default function ProgressView({
   weights = {}, onBack, onResetWeights, workingSetSize, setWorkingSetSize,
+  noteNaming = "solfege", setNoteNaming,
+  spokenNaming = "solfege", setSpokenNaming,
+  voiceURI = null, setVoiceURI,
 }: ProgressViewProps) {
   const [openChordIds, setOpenChordIds] = useState<Set<string>>(new Set());
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  useEffect(() => {
+    if (typeof speechSynthesis === "undefined") return;
+    const load = () => setVoices(speechSynthesis.getVoices().filter((v) => isSupportedVoiceLang(v.lang)));
+    load();
+    speechSynthesis.addEventListener("voiceschanged", load);
+    return () => speechSynthesis.removeEventListener("voiceschanged", load);
+  }, []);
+
+  const previewVoice = () => {
+    const sample = pickRandom(ALL, null);
+    if (sample) sayAloud(sample, spokenNaming, voiceURI);
+  };
+
   const practiced = ALL.filter((item) => weights[item.id] != null);
   const notes = practiced.filter((i) => i.type === "note");
   const chords = practiced.filter((i) => i.type === "chord");
@@ -36,8 +75,8 @@ export default function ProgressView({
     <div className={shared.screen}>
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
-          <h1 className={shared.title}>Progression</h1>
-          <p className={shared.subtitle}>Éléments pratiqués jusqu&apos;ici</p>
+          <h1 className={shared.title}>Paramètres</h1>
+          <p className={shared.subtitle}>Préférences et progression</p>
 
           {practiced.length === 0 && (
             <p className={s.empty}>Aucun élément pratiqué pour l&apos;instant.</p>
@@ -58,6 +97,56 @@ export default function ProgressView({
 
           <div className={s.settingsSection}>
             <span className={shared.eyebrow}>Réglages</span>
+            {setNoteNaming && (
+              <NamingControl
+                label="Notes écrites"
+                testidPrefix="note-naming"
+                value={noteNaming}
+                onChange={setNoteNaming}
+              />
+            )}
+            {setSpokenNaming && (
+              <NamingControl
+                label="Notes parlées"
+                testidPrefix="spoken-naming"
+                value={spokenNaming}
+                onChange={setSpokenNaming}
+              />
+            )}
+            {setVoiceURI && (
+              <div className={s.settingRow}>
+                <span className={s.settingLabel}>Voix</span>
+                <div className={s.voiceControl}>
+                  <select
+                    className={s.voiceSelect}
+                    aria-label="Voix"
+                    data-testid="voice-select"
+                    value={voiceURI ?? ""}
+                    onChange={(e) => setVoiceURI(e.target.value || null)}
+                  >
+                    <option value="">Par défaut</option>
+                    {groupVoicesByLocale(voices).map(([locale, localeVoices]) => (
+                      <optgroup key={locale} label={formatLocaleName(locale)}>
+                        {localeVoices.map((v) => (
+                          <option key={v.voiceURI} value={v.voiceURI}>
+                            {v.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                  <button
+                    className={s.previewBtn}
+                    data-testid="voice-preview"
+                    onClick={previewVoice}
+                    aria-label="Écouter un aperçu"
+                    title="Écouter un aperçu"
+                  >
+                    ▶
+                  </button>
+                </div>
+              </div>
+            )}
             {setWorkingSetSize && (
               <div className={s.settingRow}>
                 <span className={s.settingLabel}>Éléments actifs à la fois</span>
@@ -89,6 +178,41 @@ export default function ProgressView({
   );
 }
 
+interface NamingControlProps {
+  label: string;
+  testidPrefix: string;
+  value: NoteNaming;
+  onChange: (naming: NoteNaming) => void;
+}
+
+function NamingControl({ label, testidPrefix, value, onChange }: NamingControlProps) {
+  return (
+    <div className={s.settingRow}>
+      <span className={s.settingLabel}>{label}</span>
+      <div className={s.segmented} role="radiogroup" aria-label={label}>
+        <button
+          className={`${s.segBtn} ${value === "solfege" ? s.segBtnActive : ""}`}
+          role="radio"
+          aria-checked={value === "solfege"}
+          data-testid={`${testidPrefix}-solfege`}
+          onClick={() => onChange("solfege")}
+        >
+          Do Re Mi
+        </button>
+        <button
+          className={`${s.segBtn} ${value === "letters" ? s.segBtnActive : ""}`}
+          role="radio"
+          aria-checked={value === "letters"}
+          data-testid={`${testidPrefix}-letters`}
+          onClick={() => onChange("letters")}
+        >
+          C D E
+        </button>
+      </div>
+    </div>
+  );
+}
+
 interface SectionProps {
   title: string;
   items: PracticeItem[];
@@ -98,6 +222,7 @@ interface SectionProps {
 }
 
 function Section({ title, items, weights, openIds, onToggle }: SectionProps) {
+  const formatLabel = useFormatLabel();
   return (
     <div className={s.section}>
       <span className={shared.eyebrow}>{title}</span>
@@ -113,7 +238,7 @@ function Section({ title, items, weights, openIds, onToggle }: SectionProps) {
                 onClick={isChord ? () => onToggle?.(item.id) : undefined}
               >
                 <ProgressDot level={level} size={12} />
-                <span className={s.label}>{item.label}</span>
+                <span className={s.label}>{formatLabel(item.label)}</span>
                 <span className={s.levelLabel}>{LEVEL_LABELS[level]}</span>
               </div>
               {isOpen && item.type === "chord" && (item as ChordItem).voicings.length > 0 && (

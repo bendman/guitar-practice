@@ -1,6 +1,7 @@
 import { ALL } from "../../../lib/constants";
 import type { PracticeItem } from "../../../lib/constants";
 import { weightToLevel } from "../../../lib/util";
+import { useFormatLabel } from "../../../lib/noteNaming";
 import type { Weights } from "../../../lib/stats";
 import ProgressDot from "../../ui/ProgressDot";
 import shared from "../../shared.module.css";
@@ -131,6 +132,7 @@ interface ItemSectionProps {
 }
 
 function ItemSection({ title, items, weights, highlight, muted }: ItemSectionProps) {
+  const formatLabel = useFormatLabel();
   return (
     <div className={s.section}>
       <span className={`${shared.eyebrow} ${muted ? s.eyebrowMuted : ""}`}>{title}</span>
@@ -142,7 +144,7 @@ function ItemSection({ title, items, weights, highlight, muted }: ItemSectionPro
           return (
             <div key={item.id} className={`${s.row} ${highlight ? s.rowHighlight : ""} ${muted ? s.rowMuted : ""}`}>
               <ProgressDot level={level} size={10} />
-              <span className={s.itemLabel}>{item.label}</span>
+              <span className={s.itemLabel}>{formatLabel(item.label)}</span>
               <span className={s.levelBadge}>{LEVEL_LABEL[level]}</span>
               <div className={s.weightCell}>
                 <div className={s.weightTrack}>

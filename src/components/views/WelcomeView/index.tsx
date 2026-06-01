@@ -65,7 +65,7 @@ export default function WelcomeView({
           {onShowProgress && (
             <div className={s.progressLink}>
               <button className={shared.resetLink} onClick={onShowProgress}>
-                Ma progression
+                Paramètres
               </button>
             </div>
           )}

@@ -1,4 +1,5 @@
 import { NOTES, CHROMATIC_NOTES, NOTES_DISPLAY_ORDER } from "../../../lib/constants";
+import { useFormatLabel } from "../../../lib/noteNaming";
 import shared from "../../shared.module.css";
 import s from "./index.module.css";
 
@@ -9,6 +10,7 @@ interface NotesPickerProps {
 }
 
 export default function NotesPicker({ enabled, setEnabled, selectedNoteCount }: NotesPickerProps) {
+  const formatLabel = useFormatLabel();
   const toggle = (id: string) => setEnabled((p) => ({ ...p, [id]: !p[id] }));
 
   const preset = (kind: "none" | "naturals" | "all") => {
@@ -51,7 +53,7 @@ export default function NotesPicker({ enabled, setEnabled, selectedNoteCount }: 
                   onClick={() => toggle(chromatic[0].id)}
                   className={`${s.accKey} ${enabled[chromatic[0].id] ? s.keyOn : ""}`}
                 >
-                  {chromatic[0].label}
+                  {formatLabel(chromatic[0].label)}
                 </button>
               ) : null}
             </div>
@@ -65,7 +67,7 @@ export default function NotesPicker({ enabled, setEnabled, selectedNoteCount }: 
               onClick={() => toggle(natural.id)}
               className={`${s.natKey} ${enabled[natural.id] ? s.keyOn : ""}`}
             >
-              {natural.label}
+              {formatLabel(natural.label)}
             </button>
           ))}
         </div>

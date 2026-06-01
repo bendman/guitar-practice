@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NOTES, CHROMATIC_SHARPS } from "../../../lib/constants";
 import type { PracticeItem, ChordItem } from "../../../lib/constants";
 import { formatTime } from "../../../lib/util";
+import { useFormatLabel } from "../../../lib/noteNaming";
 import ChordDiagram from "../../ui/ChordDiagram";
 import Icon from "../../ui/Icon";
 import s from "./index.module.css";
@@ -80,6 +81,7 @@ export default function SessionView({
   onStop,
   onShowLearning,
 }: SessionViewProps) {
+  const formatLabel = useFormatLabel();
   const [revealed, setRevealed] = useState(false);
   const [voicingIdx, setVoicingIdx] = useState(0);
   const isCorrect = listening && hitStatus === "correct" && !paused;
@@ -186,14 +188,14 @@ export default function SessionView({
         )}
 
         <div className={`${s.noteName} ${isCorrect ? s.noteNameCorrect : ""}`} data-testid="prompt">
-          {current?.label || "—"}
+          {current ? formatLabel(current.label) : "—"}
         </div>
 
         {isCorrect && <div className={s.correctMark}>✓</div>}
 
         {listening && !isCorrect && !revealed && current?.type === "note" && !paused && (
           <div className={s.listenHint}>
-            Note · {detected ? detected : "Écoute…"}
+            Note · {detected ? formatLabel(detected) : "Écoute…"}
           </div>
         )}
 

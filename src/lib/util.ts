@@ -58,11 +58,60 @@ export function pickWeightedRandom<T extends HasId>(
   return pool[pool.length - 1];
 }
 
-export function sayAloud(item: HasSpeakLabel): void {
+export function sayAloud(
+  item: HasSpeakLabel,
+  naming: NoteNaming = "solfege",
+  voiceURI?: string | null,
+): void {
   speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(item.speak || item.label);
-  utt.lang = "fr-FR";
+  const text = formatSpeak(item.speak || item.label, naming);
+  const utt = new SpeechSynthesisUtterance(text);
+  // Letter names read correctly with an English voice ("C sharp"); solfège
+  // names need a French voice ("Do dièse").
+  utt.lang = naming === "letters" ? "en-US" : "fr-FR";
+  if (voiceURI) {
+    const voice = speechSynthesis.getVoices().find((v) => v.voiceURI === voiceURI);
+    if (voice) {
+      utt.voice = voice;
+      utt.lang = voice.lang;
+    }
+  }
   speechSynthesis.speak(utt);
+}
+
+export type NoteNaming = "solfege" | "letters";
+
+const SOLFEGE_TO_LETTER: Record<string, string> = {
+  Do: "C", Ré: "D", Re: "D", Mi: "E", Fa: "F", Sol: "G", La: "A", Si: "B",
+};
+// Longest syllables first so "Sol" is matched before shorter alternatives.
+const SOLFEGE_ROOT_RE = /^(Sol|Do|Ré|Re|Mi|Fa|La|Si)/;
+
+/**
+ * Translate the leading solfège syllable of a note or chord label into its
+ * letter-name equivalent (e.g. "Ré# Majeur" -> "D# Majeur"). Accidentals and
+ * any trailing words (chord qualities) are preserved. Returns the label
+ * unchanged when solfège naming is selected.
+ */
+export function formatNoteLabel(label: string, naming: NoteNaming): string {
+  if (naming === "solfege") return label;
+  return label.replace(SOLFEGE_ROOT_RE, (m) => SOLFEGE_TO_LETTER[m] ?? m);
+}
+
+/**
+ * Translate a `speak` string into letter-name form for text-to-speech: drops
+ * the guillemets, swaps the leading solfège syllable for its letter, and
+ * renders French accidental words in English so an English voice pronounces
+ * e.g. "C sharp" correctly. Returns the string unchanged for solfège.
+ */
+export function formatSpeak(speak: string, naming: NoteNaming): string {
+  if (naming === "solfege") return speak;
+  return speak
+    .replace(/[«»]/g, "")
+    .trimStart()
+    .replace(SOLFEGE_ROOT_RE, (m) => SOLFEGE_TO_LETTER[m] ?? m)
+    .replace(/dièse/g, "sharp")
+    .replace(/bémol/g, "flat");
 }
 
 export function formatTime(secs: number): string {

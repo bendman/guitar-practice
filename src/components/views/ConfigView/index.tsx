@@ -2,6 +2,7 @@ import React from "react";
 import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS, NOTES, CHROMATIC_NOTES } from "../../../lib/constants";
 import type { PracticeItem } from "../../../lib/constants";
 import { weightToLevel } from "../../../lib/util";
+import { useFormatLabel } from "../../../lib/noteNaming";
 import type { Weights } from "../../../lib/stats";
 import NotesPicker from "../../ui/NotesPicker";
 import Toggle from "../../ui/Toggle";
@@ -54,6 +55,7 @@ interface ChordsBuilderProps {
 function ChordsBuilder({
   enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression, weights = {},
 }: ChordsBuilderProps) {
+  const formatLabel = useFormatLabel();
   const totalEnabled = CHORDS.filter((c) => enabled[c.id]).length;
 
   const clearAll = () => {
@@ -177,7 +179,7 @@ function ChordsBuilder({
                 className={`${s.mxRowBtn} ${isRootActive(r.id) ? s.mxRowBtnOn : ""}`}
                 onClick={() => toggleRoot(r.id)}
               >
-                {r.label}
+                {formatLabel(r.label)}
               </button>
               {CHORD_QUALITIES.map((q) => {
                 const id = `${r.id}_${q.id}`;
@@ -188,7 +190,7 @@ function ChordsBuilder({
                     key={q.id}
                     className={`${s.mxCell} ${on ? s.mxCellOn : ""}`}
                     onClick={() => toggleCell(r.id, q.id)}
-                    aria-label={`${r.label} ${q.label}`}
+                    aria-label={`${formatLabel(r.label)} ${q.label}`}
                   >
                     <ProgressDot level={level} size={12} dim={!on} />
                   </button>

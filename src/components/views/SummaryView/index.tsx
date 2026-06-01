@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { formatTime, formatDuration, weightToLevel } from "../../../lib/util";
+import { useFormatLabel } from "../../../lib/noteNaming";
 import { mergeSessionIntoStats, accuracyPercent } from "../../../lib/stats";
 import type { Stats, SessionSummary, Weights } from "../../../lib/stats";
 import ProgressDot from "../../ui/ProgressDot";
@@ -97,6 +98,7 @@ export default function SummaryView({
     practiceTime, wasListening, missedItems,
     wasManualChord, chordCorrectCount, totalChords, chordAccuracy, chordMissedItems,
   } = summary;
+  const formatLabel = useFormatLabel();
 
   const postStats = preSessionStats
     ? mergeSessionIntoStats(preSessionStats, summary)
@@ -185,7 +187,7 @@ export default function SummaryView({
                 {missedItems.map((item) => (
                   <div key={item.id} className={s.workonRow}>
                     <ProgressDot level={weightToLevel(weights[item.id])} size={12} />
-                    <span className={s.workonLabel}>{item.label}</span>
+                    <span className={s.workonLabel}>{formatLabel(item.label)}</span>
                     <span className={s.workonRate}>{100 - item.missRate}%</span>
                   </div>
                 ))}
@@ -206,7 +208,7 @@ export default function SummaryView({
                 {chordMissedItems.map((item) => (
                   <div key={item.id} className={s.workonRow}>
                     <ProgressDot level={weightToLevel(weights[item.id])} size={12} />
-                    <span className={s.workonLabel}>{item.label}</span>
+                    <span className={s.workonLabel}>{formatLabel(item.label)}</span>
                     <span className={s.workonRate}>{100 - item.missRate}%</span>
                   </div>
                 ))}
