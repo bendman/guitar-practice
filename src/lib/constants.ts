@@ -33,6 +33,30 @@ export interface ChordItem {
 
 export type PracticeItem = NoteItem | ChordItem;
 
+/**
+ * Language codes (BCP-47 primary subtags) the app supports for spoken output.
+ * Voice options are filtered to voices whose `lang` starts with one of these
+ * (e.g. "fr" matches "fr-FR", "fr-CA").
+ */
+export const SUPPORTED_LANGUAGES = ["fr"] as const;
+
+export function isSupportedVoiceLang(lang: string): boolean {
+  const primary = lang.toLowerCase().split("-")[0];
+  return (SUPPORTED_LANGUAGES as readonly string[]).includes(primary);
+}
+
+/**
+ * Human-friendly name for a BCP-47 locale, in French
+ * (e.g. "fr-FR" -> "Français (France)"). Falls back to the raw code.
+ */
+export function formatLocaleName(lang: string): string {
+  try {
+    const display = new Intl.DisplayNames(["fr"], { type: "language" }).of(lang);
+    if (display) return display.charAt(0).toUpperCase() + display.slice(1);
+  } catch { /* Intl.DisplayNames unsupported */ }
+  return lang;
+}
+
 export const NOTES: NoteItem[] = [
   { id: "do",  label: "Do",  type: "note" },
   { id: "re",  label: "Ré",  type: "note" },

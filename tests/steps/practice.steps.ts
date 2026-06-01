@@ -9,6 +9,7 @@ function screenAnchor(page: Page, screen: string) {
     case "config":   return page.getByRole("button", { name: "Commencer" });
     case "session":  return page.getByRole("button", { name: "Arrêter" });
     case "summary":  return page.getByRole("heading");
+    case "settings": return page.getByRole("heading", { name: "Paramètres" });
     case "learning": return page.getByText("Learning details");
     default: throw new Error(`Unknown screen: ${screen}`);
   }
@@ -38,7 +39,7 @@ When("I return to the home screen", async function (this: GuitarWorld) {
 });
 
 When("I open my progress", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Ma progression" }).click();
+  await this.page.getByRole("button", { name: "Paramètres" }).click();
 });
 
 When("I leave my progress", async function (this: GuitarWorld) {
@@ -69,6 +70,17 @@ Then(
     await expect(this.page.getByRole("button", { name: label, exact: true })).toHaveCount(0);
   },
 );
+
+Then("I should see the voice picker", async function (this: GuitarWorld) {
+  await expect(this.page.getByTestId("voice-select")).toBeVisible();
+  await expect(this.page.getByTestId("voice-preview")).toBeVisible();
+});
+
+Then("previewing the voice does not error", async function (this: GuitarWorld) {
+  await this.page.getByTestId("voice-preview").click();
+  // The button stays interactive (no crash / navigation away from settings).
+  await expect(this.page.getByTestId("voice-preview")).toBeEnabled();
+});
 
 When(
   "I set the spoken note naming to {string}",

@@ -39,3 +39,9 @@ Feature: Note naming preference
     And I reload the app
     And I open my progress
     Then the stored setting "spokenNaming" should be "letters"
+
+  Scenario: The settings screen offers a voice picker with a preview
+    When I open my progress
+    Then I should see the settings screen
+    And I should see the voice picker
+    And previewing the voice does not error

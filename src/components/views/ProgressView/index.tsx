@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { ALL } from "../../../lib/constants";
+import { useEffect, useState } from "react";
+import { ALL, isSupportedVoiceLang, formatLocaleName } from "../../../lib/constants";
 import type { PracticeItem, ChordItem } from "../../../lib/constants";
-import { weightToLevel } from "../../../lib/util";
+import { weightToLevel, sayAloud, pickRandom } from "../../../lib/util";
 import type { NoteNaming } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
 import type { Weights } from "../../../lib/stats";
@@ -11,6 +11,19 @@ import shared from "../../shared.module.css";
 import s from "./index.module.css";
 
 const LEVEL_LABELS = ["", "Difficile", "Facile", "Maîtrisé"];
+
+/** Group voices by their full locale (e.g. "fr-FR", "fr-CA"), locales sorted. */
+function groupVoicesByLocale(
+  voices: SpeechSynthesisVoice[],
+): [string, SpeechSynthesisVoice[]][] {
+  const groups = new Map<string, SpeechSynthesisVoice[]>();
+  for (const v of voices) {
+    const list = groups.get(v.lang) ?? [];
+    list.push(v);
+    groups.set(v.lang, list);
+  }
+  return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
+}
 
 interface ProgressViewProps {
   weights?: Weights;
@@ -22,14 +35,32 @@ interface ProgressViewProps {
   setNoteNaming?: (naming: NoteNaming) => void;
   spokenNaming?: NoteNaming;
   setSpokenNaming?: (naming: NoteNaming) => void;
+  voiceURI?: string | null;
+  setVoiceURI?: (uri: string | null) => void;
 }
 
 export default function ProgressView({
   weights = {}, onBack, onResetWeights, workingSetSize, setWorkingSetSize,
   noteNaming = "solfege", setNoteNaming,
   spokenNaming = "solfege", setSpokenNaming,
+  voiceURI = null, setVoiceURI,
 }: ProgressViewProps) {
   const [openChordIds, setOpenChordIds] = useState<Set<string>>(new Set());
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  useEffect(() => {
+    if (typeof speechSynthesis === "undefined") return;
+    const load = () => setVoices(speechSynthesis.getVoices().filter((v) => isSupportedVoiceLang(v.lang)));
+    load();
+    speechSynthesis.addEventListener("voiceschanged", load);
+    return () => speechSynthesis.removeEventListener("voiceschanged", load);
+  }, []);
+
+  const previewVoice = () => {
+    const sample = pickRandom(ALL, null);
+    if (sample) sayAloud(sample, spokenNaming, voiceURI);
+  };
+
   const practiced = ALL.filter((item) => weights[item.id] != null);
   const notes = practiced.filter((i) => i.type === "note");
   const chords = practiced.filter((i) => i.type === "chord");
@@ -44,8 +75,8 @@ export default function ProgressView({
     <div className={shared.screen}>
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
-          <h1 className={shared.title}>Progression</h1>
-          <p className={shared.subtitle}>Éléments pratiqués jusqu&apos;ici</p>
+          <h1 className={shared.title}>Paramètres</h1>
+          <p className={shared.subtitle}>Préférences et progression</p>
 
           {practiced.length === 0 && (
             <p className={s.empty}>Aucun élément pratiqué pour l&apos;instant.</p>
@@ -81,6 +112,40 @@ export default function ProgressView({
                 value={spokenNaming}
                 onChange={setSpokenNaming}
               />
+            )}
+            {setVoiceURI && (
+              <div className={s.settingRow}>
+                <span className={s.settingLabel}>Voix</span>
+                <div className={s.voiceControl}>
+                  <select
+                    className={s.voiceSelect}
+                    aria-label="Voix"
+                    data-testid="voice-select"
+                    value={voiceURI ?? ""}
+                    onChange={(e) => setVoiceURI(e.target.value || null)}
+                  >
+                    <option value="">Par défaut</option>
+                    {groupVoicesByLocale(voices).map(([locale, localeVoices]) => (
+                      <optgroup key={locale} label={formatLocaleName(locale)}>
+                        {localeVoices.map((v) => (
+                          <option key={v.voiceURI} value={v.voiceURI}>
+                            {v.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                  <button
+                    className={s.previewBtn}
+                    data-testid="voice-preview"
+                    onClick={previewVoice}
+                    aria-label="Écouter un aperçu"
+                    title="Écouter un aperçu"
+                  >
+                    ▶
+                  </button>
+                </div>
+              </div>
             )}
             {setWorkingSetSize && (
               <div className={s.settingRow}>

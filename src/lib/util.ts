@@ -58,13 +58,24 @@ export function pickWeightedRandom<T extends HasId>(
   return pool[pool.length - 1];
 }
 
-export function sayAloud(item: HasSpeakLabel, naming: NoteNaming = "solfege"): void {
+export function sayAloud(
+  item: HasSpeakLabel,
+  naming: NoteNaming = "solfege",
+  voiceURI?: string | null,
+): void {
   speechSynthesis.cancel();
   const text = formatSpeak(item.speak || item.label, naming);
   const utt = new SpeechSynthesisUtterance(text);
   // Letter names read correctly with an English voice ("C sharp"); solfège
   // names need a French voice ("Do dièse").
   utt.lang = naming === "letters" ? "en-US" : "fr-FR";
+  if (voiceURI) {
+    const voice = speechSynthesis.getVoices().find((v) => v.voiceURI === voiceURI);
+    if (voice) {
+      utt.voice = voice;
+      utt.lang = voice.lang;
+    }
+  }
   speechSynthesis.speak(utt);
 }
 
