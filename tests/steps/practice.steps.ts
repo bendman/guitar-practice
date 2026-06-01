@@ -111,6 +111,44 @@ Then("the chord total should be {string}", async function (this: GuitarWorld, to
   await expect(this.page.getByText(`${total} au total`)).toBeVisible();
 });
 
+When("I select the QCM progression mode", async function (this: GuitarWorld) {
+  await this.page.getByTestId("mode-quiz").click();
+});
+
+Then("the QCM mode should be disabled", async function (this: GuitarWorld) {
+  await expect(this.page.getByTestId("mode-quiz")).toBeDisabled();
+});
+
+Then("the quiz should show 4 choices", async function (this: GuitarWorld) {
+  await expect(this.page.locator('[data-testid^="quiz-choice-"]')).toHaveCount(4);
+});
+
+Then("the quiz choice names should be hidden", async function (this: GuitarWorld) {
+  const names = this.page.locator('[data-testid^="quiz-choice-"] >> text="?"');
+  await expect(names).toHaveCount(4);
+});
+
+When("I pick a quiz choice", async function (this: GuitarWorld) {
+  await this.page.locator('[data-testid^="quiz-choice-"]').first().click();
+});
+
+Then("the quiz choice names should be revealed", async function (this: GuitarWorld) {
+  const hidden = this.page.locator('[data-testid^="quiz-choice-"] >> text="?"');
+  await expect(hidden).toHaveCount(0);
+});
+
+Then("the Next button should be disabled", async function (this: GuitarWorld) {
+  await expect(this.page.getByTestId("ctrl-next")).toBeDisabled();
+});
+
+Then("the Next button should be enabled", async function (this: GuitarWorld) {
+  await expect(this.page.getByTestId("ctrl-next")).toBeEnabled();
+});
+
+When("I advance to the next quiz round", async function (this: GuitarWorld) {
+  await this.page.getByTestId("ctrl-next").click();
+});
+
 When("I enable microphone detection", async function (this: GuitarWorld) {
   await this.page.getByRole("switch", { name: "Détecter les notes (micro)" }).click();
 });

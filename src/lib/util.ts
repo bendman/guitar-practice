@@ -58,6 +58,60 @@ export function pickWeightedRandom<T extends HasId>(
   return pool[pool.length - 1];
 }
 
+export function shuffle<T>(arr: T[]): T[] {
+  const out = [...arr];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+/**
+ * Choose `count` unique distractor chords for a quiz round. Candidates are drawn
+ * preferentially from `activePool` (minus the target); if there aren't enough
+ * unique ones there, top up from `fullPool`. Selection is weighted toward chords
+ * the user tends to confuse with the target, in both directions
+ * (confusions[target][c] and confusions[c][target]).
+ */
+export function pickDistractors<T extends HasId>(
+  target: T,
+  activePool: T[],
+  fullPool: T[],
+  confusions: Record<string, Record<string, number>>,
+  count = 3,
+): T[] {
+  const K = 2;
+  const seen = new Set<string>([target.id]);
+  const candidates: T[] = [];
+  for (const list of [activePool, fullPool]) {
+    for (const item of list) {
+      if (seen.has(item.id)) continue;
+      seen.add(item.id);
+      candidates.push(item);
+    }
+    if (candidates.length >= count) break;
+  }
+
+  const remaining = [...candidates];
+  const chosen: T[] = [];
+  while (chosen.length < count && remaining.length > 0) {
+    const weights = remaining.map(
+      (c) => 1 + K * (confusions[target.id]?.[c.id] ?? 0) + K * (confusions[c.id]?.[target.id] ?? 0),
+    );
+    const total = weights.reduce((a, b) => a + b, 0);
+    let rand = Math.random() * total;
+    let idx = remaining.length - 1;
+    for (let i = 0; i < remaining.length; i++) {
+      rand -= weights[i];
+      if (rand <= 0) { idx = i; break; }
+    }
+    chosen.push(remaining[idx]);
+    remaining.splice(idx, 1);
+  }
+  return chosen;
+}
+
 export function sayAloud(
   item: HasSpeakLabel,
   naming: NoteNaming = "solfege",

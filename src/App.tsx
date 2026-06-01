@@ -9,8 +9,10 @@ import { summarizeSession } from "./lib/summarizeSession";
 import {
   loadStats, saveStats, resetStats, mergeSessionIntoStats,
   loadWeights, saveWeights, resetWeights,
+  loadConfusions, saveConfusions, resetConfusions,
 } from "./lib/stats";
-import type { Stats, SessionSummary, Weights } from "./lib/stats";
+import type { Stats, SessionSummary, Weights, Confusions } from "./lib/stats";
+import type { ChordMode } from "./hooks/useSession";
 import WelcomeView from "./components/views/WelcomeView";
 import ConfigView from "./components/views/ConfigView";
 import SessionView from "./components/views/SessionView";
@@ -27,6 +29,7 @@ interface StoredSettings {
   tts?: boolean;
   listening?: boolean;
   chordAuto?: boolean;
+  chordMode?: ChordMode;
   workingSetSize?: number;
   noteNaming?: NoteNaming;
   spokenNaming?: NoteNaming;
@@ -47,7 +50,7 @@ function parseInitialSettings() {
     enabled: s.enabled ? { ...DEFAULT_ENABLED, ...s.enabled } : { ...DEFAULT_ENABLED },
     tts: s.tts ?? false,
     listening: s.listening ?? false,
-    chordAuto: s.chordAuto ?? false,
+    chordMode: (s.chordMode ?? (s.chordAuto ? "auto" : "manual")) as ChordMode,
     workingSetSize: typeof s.workingSetSize === "number" ? s.workingSetSize : 5,
     noteNaming: (s.noteNaming === "letters" ? "letters" : "solfege") as NoteNaming,
     spokenNaming: (s.spokenNaming === "letters" ? "letters" : "solfege") as NoteNaming,
@@ -63,7 +66,7 @@ export default function GuitarPractice() {
   const [listening, setListening] = useState<boolean>(initialSettings.listening);
   const [chordPreset, setChordPreset] = useState<string | null>(null);
   const [chordProgression, setChordProgression] = useState<string | null>(null);
-  const [chordAuto, setChordAuto] = useState<boolean>(initialSettings.chordAuto);
+  const [chordMode, setChordMode] = useState<ChordMode>(initialSettings.chordMode);
   const [workingSetSize, setWorkingSetSize] = useState<number>(initialSettings.workingSetSize);
   const [noteNaming, setNoteNaming] = useState<NoteNaming>(initialSettings.noteNaming);
   const [spokenNaming, setSpokenNaming] = useState<NoteNaming>(initialSettings.spokenNaming);
@@ -73,6 +76,7 @@ export default function GuitarPractice() {
   const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
   const [stats, setStats] = useState<Stats>(loadStats);
   const [weights, setWeights] = useState<Weights>(loadWeights);
+  const [confusions, setConfusions] = useState<Confusions>(loadConfusions);
   const [screen, setScreen] = useState<"welcome" | "config" | "progress">("welcome");
   const [mode, setMode] = useState<"notes" | "chords" | null>(null);
   const [preSessionStats, setPreSessionStats] = useState<Stats | null>(null);
@@ -89,16 +93,29 @@ export default function GuitarPractice() {
     });
   };
 
+  const recordConfusion = (correctId: string, chosenWrongId: string) => {
+    setConfusions((prev) => {
+      const forTarget = { ...(prev[correctId] ?? {}) };
+      forTarget[chosenWrongId] = (forTarget[chosenWrongId] ?? 0) + 1;
+      const next = { ...prev, [correctId]: forTarget };
+      saveConfusions(next);
+      return next;
+    });
+  };
+
   const session = useSession({
     interval: intervalSecs,
     pool: activePool,
+    fullPool: pool,
     listening: mode === "notes" && listening,
     tts,
     spokenNaming,
     voiceURI,
-    chordAuto,
+    chordMode,
     weights,
+    confusions,
     onResult: handleResult,
+    onConfusion: recordConfusion,
   });
 
   const detectedNote = usePitchDetection(session.micActive, session.count);
@@ -110,10 +127,10 @@ export default function GuitarPractice() {
   useEffect(() => {
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-        interval: intervalSecs, enabled, tts, listening, chordAuto, workingSetSize, noteNaming, spokenNaming, voiceURI,
+        interval: intervalSecs, enabled, tts, listening, chordMode, workingSetSize, noteNaming, spokenNaming, voiceURI,
       }));
     } catch { /* ignore quota / disabled storage */ }
-  }, [intervalSecs, enabled, tts, listening, chordAuto, workingSetSize, noteNaming, spokenNaming, voiceURI]);
+  }, [intervalSecs, enabled, tts, listening, chordMode, workingSetSize, noteNaming, spokenNaming, voiceURI]);
 
   useEffect(() => {
     if (!session.inSession) return;
@@ -170,7 +187,7 @@ export default function GuitarPractice() {
     const summary = summarizeSession({
       ...raw,
       wasListening: mode === "notes" && listening,
-      wasManualChord: mode === "chords" && !chordAuto,
+      wasManualChord: mode === "chords" && (chordMode === "manual" || chordMode === "quiz"),
     });
     setSessionSummary(summary);
     setStats((prev) => {
@@ -181,7 +198,10 @@ export default function GuitarPractice() {
   };
 
   const resetAllStats = () => setStats(resetStats());
-  const resetAllWeights = () => setWeights(resetWeights());
+  const resetAllWeights = () => {
+    setWeights(resetWeights());
+    setConfusions(resetConfusions());
+  };
 
   const goWelcome = () => {
     setSessionSummary(null);
@@ -237,12 +257,17 @@ export default function GuitarPractice() {
         hitStatus={session.hitStatus}
         practiceTime={session.practiceTime}
         interval={intervalSecs}
-        chordAuto={chordAuto}
+        chordMode={chordMode}
         pendingReveal={session.pendingReveal}
+        choices={session.choices}
+        correctId={session.correctId}
+        selectedId={session.selectedId}
         onPauseToggle={session.pauseToggle}
         onForceAccept={session.forceAccept}
         onManualNext={session.manualNext}
         onChordGrade={session.manualGrade}
+        onQuizSelect={session.quizSelect}
+        onQuizNext={session.quizNext}
         onStop={stopSession}
         onShowLearning={() => setShowLearning(true)}
       />
@@ -296,8 +321,8 @@ export default function GuitarPractice() {
         chordProgression={chordProgression}
         onPreset={applyPreset}
         onProgression={applyProgression}
-        chordAuto={chordAuto}
-        setChordAuto={setChordAuto}
+        chordMode={chordMode}
+        setChordMode={setChordMode}
         weights={weights}
         onStart={startSession}
         onBack={goWelcome}

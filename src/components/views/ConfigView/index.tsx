@@ -4,6 +4,7 @@ import type { PracticeItem } from "../../../lib/constants";
 import { weightToLevel } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
 import type { Weights } from "../../../lib/stats";
+import type { ChordMode } from "../../../hooks/useSession";
 import NotesPicker from "../../ui/NotesPicker";
 import Toggle from "../../ui/Toggle";
 import ProgressDot from "../../ui/ProgressDot";
@@ -219,8 +220,8 @@ interface ConfigViewProps {
   chordProgression: string | null;
   onPreset: (id: string) => void;
   onProgression: (id: string) => void;
-  chordAuto: boolean;
-  setChordAuto: (v: boolean) => void;
+  chordMode: ChordMode;
+  setChordMode: (v: ChordMode) => void;
   weights?: Weights;
   onStart: () => void;
   onBack: () => void;
@@ -237,7 +238,7 @@ export default function ConfigView({
   pool,
   chordPreset, chordProgression,
   onPreset, onProgression,
-  chordAuto, setChordAuto,
+  chordMode, setChordMode,
   onStart, onBack,
   weights = {},
   showDebugLink, onShowDebug,
@@ -249,6 +250,12 @@ export default function ConfigView({
     : "Configure ta session d'accords";
 
   const noteCount = [...NOTES, ...CHROMATIC_NOTES].filter((n) => enabled[n.id]).length;
+  const chordCount = CHORDS.filter((c) => enabled[c.id]).length;
+  const quizDisabled = chordCount < 4;
+
+  React.useEffect(() => {
+    if (quizDisabled && chordMode === "quiz") setChordMode("manual");
+  }, [quizDisabled, chordMode, setChordMode]);
 
   return (
     <div className={shared.screen} data-testid="config">
@@ -298,23 +305,34 @@ export default function ConfigView({
                 <div>
                   <div className={s.toggleLabel}>Progression</div>
                   <div className={s.toggleSublabel}>
-                    {chordAuto
+                    {chordMode === "auto"
                       ? "Auto · pratique la vitesse de transition"
+                      : chordMode === "quiz"
+                      ? "QCM · reconnais l'accord parmi 4 diagrammes"
                       : "Manuelle · mémorise, évalue Trouvé / Raté"}
                   </div>
                 </div>
                 <div className={s.segmented}>
                   <button
-                    className={`${s.seg} ${!chordAuto ? s.segOn : ""}`}
-                    onClick={() => setChordAuto(false)}
+                    className={`${s.seg} ${chordMode === "manual" ? s.segOn : ""}`}
+                    onClick={() => setChordMode("manual")}
                   >
                     Manuelle
                   </button>
                   <button
-                    className={`${s.seg} ${chordAuto ? s.segOn : ""}`}
-                    onClick={() => setChordAuto(true)}
+                    className={`${s.seg} ${chordMode === "auto" ? s.segOn : ""}`}
+                    onClick={() => setChordMode("auto")}
                   >
                     Auto
+                  </button>
+                  <button
+                    className={`${s.seg} ${chordMode === "quiz" ? s.segOn : ""}`}
+                    onClick={() => setChordMode("quiz")}
+                    disabled={quizDisabled}
+                    data-testid="mode-quiz"
+                    title={quizDisabled ? "QCM : au moins 4 accords" : undefined}
+                  >
+                    QCM
                   </button>
                 </div>
               </div>

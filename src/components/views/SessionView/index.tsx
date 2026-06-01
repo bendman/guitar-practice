@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NOTES, CHROMATIC_SHARPS } from "../../../lib/constants";
 import type { PracticeItem, ChordItem } from "../../../lib/constants";
+import type { ChordMode } from "../../../hooks/useSession";
 import { formatTime } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
 import ChordDiagram from "../../ui/ChordDiagram";
@@ -40,6 +41,15 @@ function CtrlBtn({ icon, label, onClick, variant = "secondary" }: CtrlBtnProps) 
   );
 }
 
+function DisabledCtrlBtn({ icon, label }: { icon: string; label: string }) {
+  return (
+    <button disabled data-testid={`ctrl-${icon}`} className={`${s.ctrlBtn} ${s.ctrlBtnSecondary}`}>
+      <span className={s.ctrlIcon}><Icon name={icon} size={20} /></span>
+      <span className={s.ctrlLabel}>{label}</span>
+    </button>
+  );
+}
+
 interface SessionViewProps {
   current: PracticeItem | null;
   count: number;
@@ -51,12 +61,17 @@ interface SessionViewProps {
   hitStatus: "correct" | "wrong" | null;
   practiceTime: number;
   interval: number;
-  chordAuto: boolean;
+  chordMode: ChordMode;
   pendingReveal: boolean;
+  choices: ChordItem[];
+  correctId: string | null;
+  selectedId: string | null;
   onPauseToggle: () => void;
   onForceAccept: () => void;
   onManualNext: () => void;
   onChordGrade: (correct: boolean) => void;
+  onQuizSelect: (id: string) => void;
+  onQuizNext: () => void;
   onStop: () => void;
   onShowLearning: () => void;
 }
@@ -72,16 +87,23 @@ export default function SessionView({
   hitStatus,
   practiceTime,
   interval,
-  chordAuto,
+  chordMode,
   pendingReveal,
+  choices,
+  correctId,
+  selectedId,
   onPauseToggle,
   onForceAccept,
   onManualNext,
   onChordGrade,
+  onQuizSelect,
+  onQuizNext,
   onStop,
   onShowLearning,
 }: SessionViewProps) {
   const formatLabel = useFormatLabel();
+  const chordAuto = chordMode === "auto";
+  const quiz = chordMode === "quiz";
   const [revealed, setRevealed] = useState(false);
   const [voicingIdx, setVoicingIdx] = useState(0);
   const isCorrect = listening && hitStatus === "correct" && !paused;
@@ -115,7 +137,17 @@ export default function SessionView({
   const detected = detectedLabel(detectedNote);
 
   let controls: React.ReactNode;
-  if (revealed) {
+  if (quiz) {
+    controls = (
+      <>
+        <CtrlBtn icon="pause" label="Pause" onClick={onPauseToggle} variant="accent-line" />
+        {selectedId != null
+          ? <CtrlBtn icon="next" label="Suivant" onClick={onQuizNext} variant="primary" />
+          : <DisabledCtrlBtn icon="next" label="Suivant" />}
+        <CtrlBtn icon="stop" label="Arrêter" onClick={onStop} variant="danger" />
+      </>
+    );
+  } else if (revealed) {
     if (chordAuto) {
       controls = (
         <>
@@ -163,10 +195,12 @@ export default function SessionView({
 
   return (
     <div className={s.root} data-testid="session">
-      <div
-        className={s.progressBar}
-        style={{ width: `${progress * 100}%`, opacity: paused ? 0.2 : 1 }}
-      />
+      {!quiz && (
+        <div
+          className={s.progressBar}
+          style={{ width: `${progress * 100}%`, opacity: paused ? 0.2 : 1 }}
+        />
+      )}
 
       {isCorrect && <div className={s.correctFlash} />}
       {isCorrect && <div className={s.correctGlow} />}
@@ -183,13 +217,39 @@ export default function SessionView({
       </div>
 
       <div className={s.center}>
-        {paused && !revealed && (
+        {paused && !revealed && !quiz && (
           <div className={s.pauseBadge}>En pause</div>
         )}
 
         <div className={`${s.noteName} ${isCorrect ? s.noteNameCorrect : ""}`} data-testid="prompt">
           {current ? formatLabel(current.label) : "—"}
         </div>
+
+        {quiz && (
+          <div className={s.quizGrid}>
+            {choices.map((c) => {
+              const isCorrectChoice = c.id === correctId;
+              const isPicked = c.id === selectedId;
+              const cardClass = selectedId == null
+                ? s.quizCard
+                : `${s.quizCard} ${isCorrectChoice ? s.quizCardCorrect : isPicked ? s.quizCardWrong : s.quizCardDim}`;
+              return (
+                <button
+                  key={c.id}
+                  className={cardClass}
+                  data-testid={`quiz-choice-${c.id}`}
+                  onClick={() => onQuizSelect(c.id)}
+                  disabled={selectedId != null}
+                >
+                  {c.voicings[0] && <ChordDiagram fingering={c.voicings[0]} size={160} />}
+                  <span className={s.quizCardName}>
+                    {selectedId != null ? formatLabel(c.labelShort) : "?"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {isCorrect && <div className={s.correctMark}>✓</div>}
 
@@ -225,7 +285,7 @@ export default function SessionView({
         {controls}
       </div>
 
-      <div className={s.keyHints}>▲▼ intervalle ({interval.toFixed(1)}s)</div>
+      {!quiz && <div className={s.keyHints}>▲▼ intervalle ({interval.toFixed(1)}s)</div>}
     </div>
   );
 }

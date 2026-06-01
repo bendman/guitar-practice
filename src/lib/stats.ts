@@ -1,5 +1,6 @@
 const STATS_KEY = "guitar-practice-stats";
 const WEIGHTS_KEY = "guitar-practice-weights";
+const CONFUSIONS_KEY = "guitar-practice-confusions";
 
 export interface Stats {
   bestStreak: number;
@@ -45,6 +46,7 @@ export interface MissedChordItem {
 }
 
 export type Weights = Record<string, number>;
+export type Confusions = Record<string, Record<string, number>>;
 
 const EMPTY: Stats = {
   bestStreak: 0,
@@ -101,6 +103,21 @@ export function saveWeights(weights: Weights): void {
 
 export function resetWeights(): Weights {
   saveWeights({});
+  return {};
+}
+
+export function loadConfusions(): Confusions {
+  try { return (JSON.parse(localStorage.getItem(CONFUSIONS_KEY) ?? "null") as Confusions | null) ?? {}; }
+  catch { return {}; }
+}
+
+export function saveConfusions(confusions: Confusions): void {
+  try { localStorage.setItem(CONFUSIONS_KEY, JSON.stringify(confusions)); }
+  catch { /* ignore quota / disabled storage */ }
+}
+
+export function resetConfusions(): Confusions {
+  saveConfusions({});
   return {};
 }
 
