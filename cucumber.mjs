@@ -3,7 +3,7 @@
 const common = {
   import: ["tests/support/**/*.ts", "tests/steps/**/*.ts"],
   paths: ["tests/features/**/*.feature"],
-  format: ["progress", "html:tests/report.html"],
+  format: ["@cucumber/pretty-formatter", "html:tests/report.html"],
   formatOptions: { snippetInterface: "async-await" },
 };
 
