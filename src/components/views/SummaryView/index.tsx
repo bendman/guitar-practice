@@ -300,11 +300,11 @@ export default function SummaryView({
       </div>
 
       <div className={shared.screenFooter}>
-        <button onClick={onReplay} className={shared.footerBtnSecondary}>
-          Rejouer
-        </button>
-        <button onClick={onDismiss} className={shared.footerBtnPrimary}>
+        <button onClick={onDismiss} className={shared.footerBtnSecondary}>
           Accueil
+        </button>
+        <button onClick={onReplay} className={shared.footerBtnPrimary}>
+          Rejouer
         </button>
       </div>
     </div>
