@@ -17,6 +17,18 @@ import ProgressView from "./components/views/ProgressView";
 import DebugView from "./components/views/DebugView";
 import LearningView from "./components/views/LearningView";
 
+const PREFERRED_VOICINGS_KEY = "guitar-practice-preferred-voicings";
+
+function loadPreferredVoicings(): Record<string, number> {
+  try { return (JSON.parse(localStorage.getItem(PREFERRED_VOICINGS_KEY) ?? "null") as Record<string, number> | null) ?? {}; }
+  catch { return {}; }
+}
+
+function savePreferredVoicings(v: Record<string, number>) {
+  try { localStorage.setItem(PREFERRED_VOICINGS_KEY, JSON.stringify(v)); }
+  catch { /* ignore quota / disabled storage */ }
+}
+
 export default function GuitarPractice() {
   const {
     intervalSecs, setIntervalSecs,
@@ -43,6 +55,7 @@ export default function GuitarPractice() {
   const [mode, setMode] = useState<"notes" | "chords" | null>(null);
   const [preSessionStats, setPreSessionStats] = useState<Stats | null>(null);
   const [preSessionWeights, setPreSessionWeights] = useState<Weights>({});
+  const [preferredVoicings, setPreferredVoicings] = useState<Record<string, number>>(loadPreferredVoicings);
 
   const targetType = mode === "chords" ? "chord" : "note";
   const pool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
@@ -117,6 +130,14 @@ export default function GuitarPractice() {
     commitSession(summary);
   };
 
+  const handleVoicingChange = (chordId: string, idx: number) => {
+    setPreferredVoicings((prev) => {
+      const next = { ...prev, [chordId]: idx };
+      savePreferredVoicings(next);
+      return next;
+    });
+  };
+
   const goWelcome = () => {
     setSessionSummary(null);
     setMode(null);
@@ -184,6 +205,8 @@ export default function GuitarPractice() {
         onQuizNext={session.quizNext}
         onStop={stopSession}
         onShowLearning={() => setShowLearning(true)}
+        preferredVoicings={preferredVoicings}
+        onVoicingChange={handleVoicingChange}
       />
     );
   }
