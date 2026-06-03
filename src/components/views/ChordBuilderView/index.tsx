@@ -26,25 +26,20 @@ export default function ChordBuilderView({
   const [rootId, setRootId] = useState(prefillRootId);
   const [qualityId, setQualityId] = useState(prefillQualityId);
   const [baseFret, setBaseFret] = useState(1);
+  // `frets` holds positions RELATIVE to the first visible case: a fretted note
+  // is its row number (1…FRET_COUNT), 0 = open, -1 = muted. Keeping them
+  // relative means moving the first case never moves the dots — only the fret
+  // label changes. Absolute frets are derived for display and saving.
   const [frets, setFrets] = useState<number[]>([0, 0, 0, 0, 0, 0]);
 
   const id = chordId(rootId, qualityId);
-  const voicing: Voicing = baseFret === 1 ? { frets } : { frets, baseFret };
+  const absoluteFrets = frets.map((f) => (f > 0 ? f + baseFret - 1 : f));
+  const voicing: Voicing = baseFret === 1 ? { frets: absoluteFrets } : { frets: absoluteFrets, baseFret };
 
   const setString = (i: number, value: number) =>
     setFrets((prev) => prev.map((v, idx) => (idx === i ? value : v)));
 
-  // Moving the first visible fret shifts the whole fingering with it, so the
-  // shape keeps its relative position on the neck (open/muted strings stay put).
-  const shiftBaseFret = (delta: number) =>
-    setBaseFret((prev) => {
-      const next = Math.min(15, Math.max(1, prev + delta));
-      const applied = next - prev;
-      if (applied) setFrets((f) => f.map((v) => (v > 0 ? v + applied : v)));
-      return next;
-    });
-
-  const handleCellTap = (i: number, absoluteFret: number) => setString(i, absoluteFret);
+  const handleCellTap = (i: number, absoluteFret: number) => setString(i, absoluteFret - baseFret + 1);
   const handleMarkerTap = (i: number) => setString(i, frets[i] === 0 ? -1 : 0);
   const handleDotTap = (i: number) => setString(i, 0);
 
@@ -85,13 +80,13 @@ export default function ChordBuilderView({
               <button
                 className={s.pick}
                 aria-label="Diminuer la première case"
-                onClick={() => shiftBaseFret(-1)}
+                onClick={() => setBaseFret((b) => Math.max(1, b - 1))}
               >−</button>
               <span className={s.settingLabel} aria-live="polite">{baseFret}</span>
               <button
                 className={s.pick}
                 aria-label="Augmenter la première case"
-                onClick={() => shiftBaseFret(1)}
+                onClick={() => setBaseFret((b) => Math.min(15, b + 1))}
               >+</button>
             </div>
           </div>
