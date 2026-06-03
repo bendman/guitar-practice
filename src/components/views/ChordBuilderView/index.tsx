@@ -34,6 +34,16 @@ export default function ChordBuilderView({
   const setString = (i: number, value: number) =>
     setFrets((prev) => prev.map((v, idx) => (idx === i ? value : v)));
 
+  // Moving the first visible fret shifts the whole fingering with it, so the
+  // shape keeps its relative position on the neck (open/muted strings stay put).
+  const shiftBaseFret = (delta: number) =>
+    setBaseFret((prev) => {
+      const next = Math.min(15, Math.max(1, prev + delta));
+      const applied = next - prev;
+      if (applied) setFrets((f) => f.map((v) => (v > 0 ? v + applied : v)));
+      return next;
+    });
+
   const handleCellTap = (i: number, absoluteFret: number) => setString(i, absoluteFret);
   const handleMarkerTap = (i: number) => setString(i, frets[i] === 0 ? -1 : 0);
   const handleDotTap = (i: number) => setString(i, 0);
@@ -60,7 +70,7 @@ export default function ChordBuilderView({
           <div className={s.diagramWrap}>
             <ChordDiagram
               fingering={voicing}
-              size={220}
+              size={300}
               fretCount={FRET_COUNT}
               editable
               onCellTap={handleCellTap}
@@ -75,20 +85,20 @@ export default function ChordBuilderView({
               <button
                 className={s.pick}
                 aria-label="Diminuer la première case"
-                onClick={() => setBaseFret((b) => Math.max(1, b - 1))}
+                onClick={() => shiftBaseFret(-1)}
               >−</button>
               <span className={s.settingLabel} aria-live="polite">{baseFret}</span>
               <button
                 className={s.pick}
                 aria-label="Augmenter la première case"
-                onClick={() => setBaseFret((b) => Math.min(15, b + 1))}
+                onClick={() => shiftBaseFret(1)}
               >+</button>
             </div>
           </div>
 
           <div className={s.field}>
             <span className={shared.eyebrow}>Fondamentale</span>
-            <div className={s.pickerRow} role="radiogroup" aria-label="Fondamentale">
+            <div className={s.scrollRow} role="radiogroup" aria-label="Fondamentale">
               {CHORD_ROOTS.map((r) => (
                 <button
                   key={r.id}
@@ -105,7 +115,7 @@ export default function ChordBuilderView({
 
           <div className={s.field}>
             <span className={shared.eyebrow}>Famille</span>
-            <div className={s.pickerRow} role="radiogroup" aria-label="Famille">
+            <div className={s.scrollRow} role="radiogroup" aria-label="Famille">
               {CHORD_QUALITIES.map((q) => (
                 <button
                   key={q.id}
@@ -125,7 +135,7 @@ export default function ChordBuilderView({
           )}
         </div>
 
-        <div className={shared.screenFooter}>
+        <div className={s.footer}>
           <button onClick={onCancel} className={shared.footerBtnSecondary}>
             Annuler
           </button>

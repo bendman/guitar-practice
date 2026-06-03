@@ -31,6 +31,17 @@
   gap: 22px;
 }
 
+/* The shared screen footer zeroes its side padding at desktop widths (it
+   assumes a full-bleed screen); inside the fixed-width sheet that leaves the
+   buttons flush to the edges, so pin the horizontal padding here. */
+.footer {
+  composes: screenFooter from "../../shared.module.css";
+  /* Equal space around and between the buttons, horizontally and vertically. */
+  gap: 16px;
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
 .diagramWrap {
   display: flex;
   justify-content: center;
@@ -47,6 +58,22 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+/* Single-row, horizontally scrollable list of chips so the root/family
+   pickers stay compact instead of wrapping onto several lines. */
+.scrollRow {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.scrollRow > * {
+  flex: 0 0 auto;
 }
 
 .pick {
