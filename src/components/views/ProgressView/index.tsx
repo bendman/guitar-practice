@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { ALL, isSupportedVoiceLang, formatLocaleName } from "../../../lib/constants";
-import type { PracticeItem, ChordItem } from "../../../lib/constants";
+import { ALL, CHORDS, isSupportedVoiceLang, formatLocaleName } from "../../../lib/constants";
+import type { PracticeItem, ChordItem, Voicing } from "../../../lib/constants";
+import type { CustomVoicings } from "../../../hooks/useCustomVoicings";
 import { weightToLevel, sayAloud, pickRandom } from "../../../lib/util";
 import type { NoteNaming } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
@@ -37,6 +38,10 @@ interface ProgressViewProps {
   setSpokenNaming?: (naming: NoteNaming) => void;
   voiceURI?: string | null;
   setVoiceURI?: (uri: string | null) => void;
+  customVoicings?: CustomVoicings;
+  onCreateChord?: () => void;
+  onAddVoicing?: (rootId: string, qualityId: string) => void;
+  onRemoveVoicing?: (chordId: string, index: number) => void;
 }
 
 export default function ProgressView({
@@ -44,6 +49,7 @@ export default function ProgressView({
   noteNaming = "solfege", setNoteNaming,
   spokenNaming = "solfege", setSpokenNaming,
   voiceURI = null, setVoiceURI,
+  customVoicings = {}, onCreateChord, onAddVoicing, onRemoveVoicing,
 }: ProgressViewProps) {
   const [openChordIds, setOpenChordIds] = useState<Set<string>>(new Set());
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -63,7 +69,7 @@ export default function ProgressView({
 
   const practiced = ALL.filter((item) => weights[item.id] != null);
   const notes = practiced.filter((i) => i.type === "note");
-  const chords = practiced.filter((i) => i.type === "chord");
+  const chords = CHORDS.filter((c) => weights[c.id] != null || customVoicings[c.id]?.length);
 
   const toggleChord = (id: string) => setOpenChordIds((prev) => {
     const next = new Set(prev);
@@ -78,7 +84,7 @@ export default function ProgressView({
           <h1 className={shared.title}>Paramètres</h1>
           <p className={shared.subtitle}>Préférences et progression</p>
 
-          {practiced.length === 0 && (
+          {practiced.length === 0 && chords.length === 0 && (
             <p className={s.empty}>Aucun élément pratiqué pour l&apos;instant.</p>
           )}
 
@@ -92,7 +98,17 @@ export default function ProgressView({
               weights={weights}
               openIds={openChordIds}
               onToggle={toggleChord}
+              customVoicings={customVoicings}
+              onAddVoicing={onAddVoicing}
+              onRemoveVoicing={onRemoveVoicing}
             />
+          )}
+          {onCreateChord && (
+            <div className={s.section}>
+              <button className={shared.resetLink} onClick={onCreateChord}>
+                + Créer un accord
+              </button>
+            </div>
           )}
 
           <div className={s.settingsSection}>
@@ -212,9 +228,15 @@ interface SectionProps {
   weights: Weights;
   openIds?: Set<string>;
   onToggle?: (id: string) => void;
+  customVoicings?: CustomVoicings;
+  onAddVoicing?: (rootId: string, qualityId: string) => void;
+  onRemoveVoicing?: (chordId: string, index: number) => void;
 }
 
-function Section({ title, items, weights, openIds, onToggle }: SectionProps) {
+function Section({
+  title, items, weights, openIds, onToggle,
+  customVoicings = {}, onAddVoicing, onRemoveVoicing,
+}: SectionProps) {
   const formatLabel = useFormatLabel();
   return (
     <div className={s.section}>
@@ -224,6 +246,8 @@ function Section({ title, items, weights, openIds, onToggle }: SectionProps) {
           const level = weightToLevel(weights[item.id]);
           const isOpen = openIds?.has(item.id);
           const isChord = item.type === "chord";
+          const chord = item as ChordItem;
+          const custom = customVoicings[item.id] ?? [];
           return (
             <div key={item.id}>
               <div
@@ -234,9 +258,32 @@ function Section({ title, items, weights, openIds, onToggle }: SectionProps) {
                 <span className={s.label}>{formatLabel(item.label)}</span>
                 <span className={s.levelLabel}>{LEVEL_LABELS[level]}</span>
               </div>
-              {isOpen && item.type === "chord" && (item as ChordItem).voicings.length > 0 && (
+              {isOpen && isChord && (
                 <div className={s.diagramWrap}>
-                  <ChordDiagram fingering={(item as ChordItem).voicings[0]} size={240} />
+                  {chord.voicings.length > 0 && (
+                    <ChordDiagram fingering={chord.voicings[0]} size={240} />
+                  )}
+                  {custom.map((v: Voicing, idx: number) => (
+                    <div key={idx} className={s.customVoicing}>
+                      <ChordDiagram fingering={v} size={200} />
+                      <button
+                        className={shared.resetLink}
+                        aria-label={`Supprimer la position ${idx + 1} ${formatLabel(item.label)}`}
+                        onClick={() => onRemoveVoicing?.(item.id, idx)}
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  ))}
+                  {onAddVoicing && (
+                    <button
+                      className={shared.resetLink}
+                      aria-label={`Ajouter une position ${formatLabel(item.label)}`}
+                      onClick={() => onAddVoicing(chord.rootId, chord.qualityId)}
+                    >
+                      + Ajouter une position
+                    </button>
+                  )}
                 </div>
               )}
             </div>

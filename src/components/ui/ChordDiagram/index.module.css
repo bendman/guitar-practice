@@ -41,3 +41,14 @@
   font-family: var(--mono);
   font-size: 9px;
 }
+
+.hitZone {
+  fill: transparent;
+  cursor: pointer;
+  outline: none;
+}
+
+.hitZone:focus-visible {
+  fill: var(--accent-deep);
+  fill-opacity: 0.25;
+}

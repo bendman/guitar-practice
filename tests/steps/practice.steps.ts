@@ -10,6 +10,7 @@ function screenAnchor(page: Page, screen: string) {
     case "session":  return page.getByRole("button", { name: "Arrêter" });
     case "summary":  return page.getByRole("heading");
     case "settings": return page.getByRole("heading", { name: "Paramètres" });
+    case "builder":  return page.getByRole("dialog", { name: "Créer un accord" });
     case "learning": return page.getByText("Learning details");
     default: throw new Error(`Unknown screen: ${screen}`);
   }
@@ -214,6 +215,86 @@ Then("the sessions stat should be {string}", async function (this: GuitarWorld, 
 
 When("I set the interval to {string}", async function (this: GuitarWorld, seconds: string) {
   await this.page.getByRole("slider", { name: "Intervalle" }).fill(seconds);
+});
+
+// ---- Chord builder ------------------------------------------------------
+
+When("I open the chord builder", async function (this: GuitarWorld) {
+  await this.page.getByRole("button", { name: "Créer un accord" }).click();
+});
+
+Then("I should see the chord builder", async function (this: GuitarWorld) {
+  await expect(this.page.getByRole("dialog", { name: "Créer un accord" })).toBeVisible();
+});
+
+function builder(page: Page) {
+  return page.getByRole("dialog", { name: "Créer un accord" });
+}
+
+When("I select the chord root {string}", async function (this: GuitarWorld, root: string) {
+  await builder(this.page)
+    .getByRole("radiogroup", { name: "Fondamentale" })
+    .getByRole("radio", { name: root, exact: true })
+    .click();
+});
+
+When("I select the chord family {string}", async function (this: GuitarWorld, family: string) {
+  await builder(this.page)
+    .getByRole("radiogroup", { name: "Famille" })
+    .getByRole("radio", { name: family, exact: true })
+    .click();
+});
+
+When("I tap string {int} at fret {int}", async function (this: GuitarWorld, str: number, fret: number) {
+  await builder(this.page).getByRole("button", { name: `corde ${str} case ${fret}` }).click();
+});
+
+When("I save the chord", async function (this: GuitarWorld) {
+  await this.page.getByRole("button", { name: "Enregistrer" }).click();
+});
+
+Then("the save chord button should be disabled", async function (this: GuitarWorld) {
+  await expect(this.page.getByRole("button", { name: "Enregistrer" })).toBeDisabled();
+});
+
+Then("I should see the duplicate warning", async function (this: GuitarWorld) {
+  await expect(this.page.getByText("Cet accord existe déjà")).toBeVisible();
+});
+
+When("I expand the chord {string}", async function (this: GuitarWorld, label: string) {
+  await this.page.getByText(label, { exact: true }).click();
+});
+
+Then("I should see a custom voicing for {string}", async function (this: GuitarWorld, label: string) {
+  await expect(this.page.getByRole("button", { name: `Supprimer la position 1 ${label}` })).toBeVisible();
+});
+
+When("I delete the custom voicing for {string}", async function (this: GuitarWorld, label: string) {
+  await this.page.getByRole("button", { name: `Supprimer la position 1 ${label}` }).click();
+});
+
+Then("there should be no custom voicing for {string}", async function (this: GuitarWorld, label: string) {
+  await expect(this.page.getByRole("button", { name: `Supprimer la position 1 ${label}` })).toHaveCount(0);
+});
+
+Then("the custom voicings store should contain {string}", async function (this: GuitarWorld, chordId: string) {
+  const store = await this.readStorage<Record<string, unknown>>("guitar-practice-custom-voicings");
+  expect(store?.[chordId]).toBeTruthy();
+});
+
+Then("the custom voicings store should be empty", async function (this: GuitarWorld) {
+  const store = await this.readStorage<Record<string, unknown>>("guitar-practice-custom-voicings");
+  expect(store == null || Object.keys(store).length === 0).toBe(true);
+});
+
+When("I add a voicing from the session", async function (this: GuitarWorld) {
+  await this.page.getByRole("button", { name: "Ajouter une position", exact: true }).click();
+});
+
+Then("I should be back at the revealed chord", async function (this: GuitarWorld) {
+  // The "+" lives in the revealed state, which pauses the timer; returning
+  // lands the user on the same revealed card with its grading controls.
+  await expect(this.page.getByRole("button", { name: "Trouvé" })).toBeVisible();
 });
 
 Then(

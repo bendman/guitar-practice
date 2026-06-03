@@ -36,9 +36,18 @@
 
 .diagramWrap {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   padding: 12px 0 8px;
   border-bottom: 1px solid var(--line);
+}
+
+.customVoicing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 
 .label {

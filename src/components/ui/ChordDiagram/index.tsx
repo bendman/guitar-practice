@@ -16,13 +16,27 @@ interface ChordDiagramProps {
   size?: number;
   fretCount?: number;
   className?: string;
+  /** When set, overlay invisible hit-zones that let the user edit the shape. */
+  editable?: boolean;
+  /** Tap an empty cell: set this string to the given absolute fret. */
+  onCellTap?: (stringIndex: number, absoluteFret: number) => void;
+  /** Tap the o/x marker above an unfretted string: toggle open/muted. */
+  onMarkerTap?: (stringIndex: number) => void;
+  /** Tap an existing fretted dot: remove it (back to open). */
+  onDotTap?: (stringIndex: number) => void;
 }
+
+const STRING_LABEL = (i: number) => `corde ${i + 1}`;
 
 export default function ChordDiagram({
   fingering,
   size = 120,
   fretCount = 4,
   className = "",
+  editable = false,
+  onCellTap,
+  onMarkerTap,
+  onDotTap,
 }: ChordDiagramProps) {
   if (!fingering) return null;
   const { frets = [], baseFret = 1, barres = [] } = fingering;
@@ -53,7 +67,7 @@ export default function ChordDiagram({
       width={size}
       height={(size * vbH) / vbW}
       viewBox={`0 0 ${vbW} ${vbH}`}
-      role="img"
+      role={editable ? "group" : "img"}
     >
       {!showNut && (
         <text
@@ -142,6 +156,56 @@ export default function ChordDiagram({
           />
         );
       })}
+
+      {editable && (
+        <>
+          {Array.from({ length: STRINGS }, (_, i) => {
+            const onTap = () => onMarkerTap?.(i);
+            return (
+              <rect
+                key={`hm${i}`}
+                className={s.hitZone}
+                role="button"
+                tabIndex={0}
+                aria-label={`${STRING_LABEL(i)} : ouverte ou étouffée`}
+                x={stringX(i) - STRING_SPACING / 2}
+                y={0}
+                width={STRING_SPACING}
+                height={HEADER}
+                onClick={onTap}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onTap(); }
+                }}
+              />
+            );
+          })}
+          {Array.from({ length: STRINGS }, (_, i) =>
+            Array.from({ length: fretCount }, (_, r) => {
+              const row = r + 1;
+              const absoluteFret = baseFret + row - 1;
+              const isDot = frets[i] === absoluteFret;
+              const onTap = () => (isDot ? onDotTap?.(i) : onCellTap?.(i, absoluteFret));
+              return (
+                <rect
+                  key={`hc${i}-${row}`}
+                  className={s.hitZone}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={isDot ? `retirer la note ${STRING_LABEL(i)}` : `${STRING_LABEL(i)} case ${absoluteFret}`}
+                  x={stringX(i) - STRING_SPACING / 2}
+                  y={fretLineY(row - 1)}
+                  width={STRING_SPACING}
+                  height={FRET_SPACING}
+                  onClick={onTap}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onTap(); }
+                  }}
+                />
+              );
+            }),
+          )}
+        </>
+      )}
     </svg>
   );
 }
