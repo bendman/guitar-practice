@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NOTES, CHROMATIC_SHARPS } from "../../../lib/constants";
 import type { PracticeItem, ChordItem } from "../../../lib/constants";
 import type { ChordMode } from "../../../hooks/useSession";
@@ -74,6 +74,8 @@ interface SessionViewProps {
   onQuizNext: () => void;
   onStop: () => void;
   onShowLearning: () => void;
+  preferredVoicings: Record<string, number>;
+  onVoicingChange: (chordId: string, idx: number) => void;
 }
 
 export default function SessionView({
@@ -100,6 +102,8 @@ export default function SessionView({
   onQuizNext,
   onStop,
   onShowLearning,
+  preferredVoicings,
+  onVoicingChange,
 }: SessionViewProps) {
   const formatLabel = useFormatLabel();
   const chordAuto = chordMode === "auto";
@@ -110,8 +114,14 @@ export default function SessionView({
   const isChord = current?.type === "chord";
   const voicings = current?.type === "chord" ? (current as ChordItem).voicings : [];
 
+  const preferredVoicingsRef = useRef(preferredVoicings);
+  preferredVoicingsRef.current = preferredVoicings;
+
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setRevealed(false); setVoicingIdx(0); }, [current?.id]);
+  useEffect(() => {
+    setRevealed(false);
+    setVoicingIdx(current?.id ? Math.min(preferredVoicingsRef.current[current.id] ?? 0, Math.max((current as ChordItem).voicings?.length - 1, 0)) : 0);
+  }, [current?.id]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (pendingReveal) setRevealed(true); }, [pendingReveal]);
@@ -240,7 +250,7 @@ export default function SessionView({
                   onClick={() => onQuizSelect(c.id)}
                   disabled={selectedId != null}
                 >
-                  {c.voicings[0] && <ChordDiagram fingering={c.voicings[0]} size={160} />}
+                  {c.voicings.length > 0 && <ChordDiagram fingering={c.voicings[Math.min(preferredVoicings[c.id] ?? 0, c.voicings.length - 1)]} size={160} />}
                   <span className={s.quizCardName}>
                     {selectedId != null ? formatLabel(c.labelShort) : "?"}
                   </span>
@@ -267,12 +277,20 @@ export default function SessionView({
               <div className={s.voicingSwitcher}>
                 <button
                   className={s.cycleBtn}
-                  onClick={() => setVoicingIdx((i) => (i - 1 + voicings.length) % voicings.length)}
+                  onClick={() => {
+                    const next = (voicingIdx - 1 + voicings.length) % voicings.length;
+                    setVoicingIdx(next);
+                    if (current?.type === "chord") onVoicingChange(current.id, next);
+                  }}
                 >‹</button>
                 <span className={s.voicingCount}>{voicingIdx + 1}/{voicings.length}</span>
                 <button
                   className={s.cycleBtn}
-                  onClick={() => setVoicingIdx((i) => (i + 1) % voicings.length)}
+                  onClick={() => {
+                    const next = (voicingIdx + 1) % voicings.length;
+                    setVoicingIdx(next);
+                    if (current?.type === "chord") onVoicingChange(current.id, next);
+                  }}
                 >›</button>
               </div>
             )}

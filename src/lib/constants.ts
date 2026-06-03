@@ -150,8 +150,8 @@ const CHORD_VOICINGS: Record<string, Record<string, Voicing[]>> = {
     dom7: [{ frets: [0, 2, 0, 1, 0, 0] }, { frets: [0, 2, 0, 1, 3, 0] }],
   },
   la: {
-    maj:  [{ frets: [-1, 0, 2, 2, 2, 0] }],
-    min:  [{ frets: [-1, 0, 2, 2, 1, 0] }],
+    maj:  [{ frets: [-1, 0, 2, 2, 2, 0] }, { frets: [5, 7, 7, 6, 5, 5], baseFret: 5, barres: [{ fret: 5, fromString: 0, toString: 5 }] }],
+    min:  [{ frets: [-1, 0, 2, 2, 1, 0] }, { frets: [5, 7, 7, 5, 5, 5], baseFret: 5, barres: [{ fret: 5, fromString: 0, toString: 5 }] }],
     dim:  [{ frets: [-1, 0, 1, 2, 1, -1] }],
     maj7: [{ frets: [-1, 0, 2, 1, 2, 0] }],
     min7: [{ frets: [-1, 0, 2, 0, 1, 0] }, { frets: [-1, 0, 2, 0, 1, 3] }],
@@ -159,7 +159,7 @@ const CHORD_VOICINGS: Record<string, Record<string, Voicing[]>> = {
     dom7: [{ frets: [-1, 0, 2, 0, 2, 0] }, { frets: [-1, 0, 2, 0, 2, 3] }],
   },
   do: {
-    maj:  [{ frets: [-1, 3, 2, 0, 1, 0] }],
+    maj:  [{ frets: [-1, 3, 2, 0, 1, 0] }, { frets: [-1, 3, 5, 5, 5, 3], baseFret: 3, barres: [{ fret: 3, fromString: 1, toString: 5 }] }],
     min:  [{ frets: [-1, 3, 5, 5, 4, 3], baseFret: 3, barres: [{ fret: 3, fromString: 1, toString: 5 }] }],
     dim:  [{ frets: [-1, 3, 4, 2, 4, -1], baseFret: 2 }],
     maj7: [{ frets: [-1, 3, 2, 0, 0, 0] }],
@@ -168,8 +168,8 @@ const CHORD_VOICINGS: Record<string, Record<string, Voicing[]>> = {
     dom7: [{ frets: [-1, 3, 2, 3, 1, 0] }],
   },
   re: {
-    maj:  [{ frets: [-1, -1, 0, 2, 3, 2] }],
-    min:  [{ frets: [-1, -1, 0, 2, 3, 1] }],
+    maj:  [{ frets: [-1, -1, 0, 2, 3, 2] }, { frets: [-1, 5, 7, 7, 7, 5], baseFret: 5, barres: [{ fret: 5, fromString: 1, toString: 5 }] }],
+    min:  [{ frets: [-1, -1, 0, 2, 3, 1] }, { frets: [-1, 5, 7, 7, 6, 5], baseFret: 5, barres: [{ fret: 5, fromString: 1, toString: 5 }] }],
     dim:  [{ frets: [-1, -1, 0, 1, 3, 1] }],
     maj7: [{ frets: [-1, -1, 0, 2, 2, 2] }],
     min7: [{ frets: [-1, -1, 0, 2, 1, 1] }],
@@ -186,7 +186,7 @@ const CHORD_VOICINGS: Record<string, Record<string, Voicing[]>> = {
     dom7: [{ frets: [1, 3, 1, 2, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] }],
   },
   sol: {
-    maj:  [{ frets: [3, 2, 0, 0, 0, 3] }],
+    maj:  [{ frets: [3, 2, 0, 0, 0, 3] }, { frets: [3, 5, 5, 4, 3, 3], baseFret: 3, barres: [{ fret: 3, fromString: 0, toString: 5 }] }],
     min:  [{ frets: [3, 5, 5, 3, 3, 3], baseFret: 3, barres: [{ fret: 3, fromString: 0, toString: 5 }] }],
     dim:  [{ frets: [3, 4, 5, 3, -1, -1], baseFret: 3 }],
     maj7: [{ frets: [3, 2, 0, 0, 0, 2] }],
