@@ -20,19 +20,37 @@ interface ChordBuilderViewProps {
 const FRET_COUNT = 5;
 
 /**
- * Auto-detect a barre: when two or more strings share the lowest fretted fret
- * (the base of the shape), draw a barre across them — from the first to the
- * last string at that fret, matching how the built-in voicings encode barres.
- * `relFrets` are relative to the first case; the returned barre fret is
- * absolute so it lines up with `baseFret`.
+ * Auto-detect a barre. A real barre is the foundation of the shape: one finger
+ * lies across the lowest fretted fret starting at the lowest *played* string,
+ * with every string it spans pressed at that fret or higher. That last part is
+ * what tells a true barre apart from a shape like open D ([x x 0 2 3 2]), where
+ * two strings share the lowest fret but the lowest played string is open — so
+ * no barre. `relFrets` are relative to the first case; the returned barre fret
+ * is absolute so it lines up with `baseFret`.
  */
 function detectBarres(relFrets: number[], baseFret: number): Barre[] {
   const positives = relFrets.filter((f) => f > 0);
   if (positives.length === 0) return [];
   const minRel = Math.min(...positives);
-  const atMin = relFrets.flatMap((f, i) => (f === minRel ? [i] : []));
-  if (atMin.length < 2) return [];
-  return [{ fret: baseFret + minRel - 1, fromString: atMin[0], toString: atMin[atMin.length - 1] }];
+
+  // The barre must begin on the lowest played (non-muted) string.
+  const lo = relFrets.findIndex((f) => f !== -1);
+  if (lo < 0 || relFrets[lo] !== minRel) return [];
+
+  // …and reach at least one more string at the same fret.
+  let hi = lo;
+  for (let i = relFrets.length - 1; i > lo; i--) {
+    if (relFrets[i] === minRel) { hi = i; break; }
+  }
+  if (hi === lo) return [];
+
+  // Every string under the barre must be pressed at the barre fret or above
+  // (an open or muted string in the span means it isn't a barre).
+  for (let i = lo; i <= hi; i++) {
+    if (relFrets[i] < minRel) return [];
+  }
+
+  return [{ fret: baseFret + minRel - 1, fromString: lo, toString: hi }];
 }
 
 export default function ChordBuilderView({

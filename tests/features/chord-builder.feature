@@ -68,6 +68,17 @@ Feature: Chord builder
     And I save the chord
     Then the custom voicing "do_maj" should have a barre
 
+  Scenario: A D-shape with an open low string does not auto-detect a barre
+    When I open my progress
+    And I open the chord builder
+    And I select the chord root "Ré"
+    And I select the chord family "Majeur"
+    And I tap string 4 at fret 2
+    And I tap string 5 at fret 3
+    And I tap string 6 at fret 2
+    And I save the chord
+    Then the custom voicing "re_maj" should not have a barre
+
   Scenario: Adding a voicing from a session pauses it and returns there
     When I choose the "Accords" mode
     And I start the session
