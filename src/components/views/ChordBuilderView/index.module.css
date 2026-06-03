@@ -57,16 +57,23 @@
 .pickerRow {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
 }
 
 /* Single-row, horizontally scrollable list of chips so the root/family
-   pickers stay compact instead of wrapping onto several lines. */
+   pickers stay compact instead of wrapping. The negative margins let the row
+   bleed to the sheet edges (cancelling the body's side padding) while the
+   leading padding keeps the first chip aligned with the section titles. */
 .scrollRow {
   display: flex;
   flex-wrap: nowrap;
   gap: 6px;
   overflow-x: auto;
+  margin-left: -22px;
+  margin-right: -22px;
+  padding-left: 22px;
+  padding-right: 0;
   padding-bottom: 4px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
