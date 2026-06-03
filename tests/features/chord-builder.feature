@@ -58,6 +58,16 @@ Feature: Chord builder
     Then the save chord button should be disabled
     And I should see the duplicate warning
 
+  Scenario: Two strings on the same fret auto-detect a barre
+    When I open my progress
+    And I open the chord builder
+    And I select the chord root "Do"
+    And I select the chord family "Majeur"
+    And I tap string 1 at fret 3
+    And I tap string 2 at fret 3
+    And I save the chord
+    Then the custom voicing "do_maj" should have a barre
+
   Scenario: Adding a voicing from a session pauses it and returns there
     When I choose the "Accords" mode
     And I start the session

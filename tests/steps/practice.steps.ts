@@ -282,6 +282,12 @@ Then("the custom voicings store should contain {string}", async function (this: 
   expect(store?.[chordId]).toBeTruthy();
 });
 
+Then("the custom voicing {string} should have a barre", async function (this: GuitarWorld, chordId: string) {
+  const store = await this.readStorage<Record<string, { barres?: unknown[] }[]>>("guitar-practice-custom-voicings");
+  const voicing = store?.[chordId]?.[0];
+  expect(voicing?.barres?.length ?? 0).toBeGreaterThan(0);
+});
+
 Then("the custom voicings store should be empty", async function (this: GuitarWorld) {
   const store = await this.readStorage<Record<string, unknown>>("guitar-practice-custom-voicings");
   expect(store == null || Object.keys(store).length === 0).toBe(true);

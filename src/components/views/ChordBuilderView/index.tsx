@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   CHORDS, CHORD_ROOTS, CHORD_QUALITIES, chordId, voicingsEqual,
 } from "../../../lib/constants";
-import type { Voicing } from "../../../lib/constants";
+import type { Voicing, Barre } from "../../../lib/constants";
 import type { CustomVoicings } from "../../../hooks/useCustomVoicings";
 import { useFormatLabel } from "../../../lib/noteNaming";
 import ChordDiagram from "../../ui/ChordDiagram";
@@ -19,6 +19,22 @@ interface ChordBuilderViewProps {
 
 const FRET_COUNT = 5;
 
+/**
+ * Auto-detect a barre: when two or more strings share the lowest fretted fret
+ * (the base of the shape), draw a barre across them — from the first to the
+ * last string at that fret, matching how the built-in voicings encode barres.
+ * `relFrets` are relative to the first case; the returned barre fret is
+ * absolute so it lines up with `baseFret`.
+ */
+function detectBarres(relFrets: number[], baseFret: number): Barre[] {
+  const positives = relFrets.filter((f) => f > 0);
+  if (positives.length === 0) return [];
+  const minRel = Math.min(...positives);
+  const atMin = relFrets.flatMap((f, i) => (f === minRel ? [i] : []));
+  if (atMin.length < 2) return [];
+  return [{ fret: baseFret + minRel - 1, fromString: atMin[0], toString: atMin[atMin.length - 1] }];
+}
+
 export default function ChordBuilderView({
   prefillRootId, prefillQualityId, customVoicings, onSave, onCancel,
 }: ChordBuilderViewProps) {
@@ -34,7 +50,12 @@ export default function ChordBuilderView({
 
   const id = chordId(rootId, qualityId);
   const absoluteFrets = frets.map((f) => (f > 0 ? f + baseFret - 1 : f));
-  const voicing: Voicing = baseFret === 1 ? { frets: absoluteFrets } : { frets: absoluteFrets, baseFret };
+  const barres = detectBarres(frets, baseFret);
+  const voicing: Voicing = {
+    frets: absoluteFrets,
+    ...(baseFret === 1 ? {} : { baseFret }),
+    ...(barres.length ? { barres } : {}),
+  };
 
   const setString = (i: number, value: number) =>
     setFrets((prev) => prev.map((v, idx) => (idx === i ? value : v)));
