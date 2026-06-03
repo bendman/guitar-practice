@@ -211,8 +211,12 @@ export function useSession({
     }
   };
 
-  // Build a fresh quiz round from the latest pools. Sets current (target),
-  // the shuffled choices, the correct id, and clears any prior selection.
+  /**
+   * Builds a fresh quiz round from the latest pools.
+   *
+   * Used in QCM chord mode to start each round and advance to the next.
+   * Sets the target, shuffled choices, and correct id; clears any selection.
+   */
   const buildQuizRound = () => {
     const l = latest.current;
     const target = pickWeightedRandom(l.pool, lastIdRef.current, l.weights) as ChordItem | null;

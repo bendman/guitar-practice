@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { formatTime, formatDuration, weightToLevel } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
 import { mergeSessionIntoStats, accuracyPercent } from "../../../lib/stats";
@@ -6,34 +5,18 @@ import type { Stats, SessionSummary, Weights } from "../../../lib/stats";
 import ProgressDot from "../../ui/ProgressDot";
 import shared from "../../shared.module.css";
 import s from "./index.module.css";
+import { useCountUp, useDelayedLevel } from "./hooks";
 
 interface AccuracyRingProps {
   accuracy: number;
 }
 
-const RING_DURATION = 1200;
-
 function AccuracyRing({ accuracy }: AccuracyRingProps) {
-  const [animated, setAnimated] = useState(false);
-  const [display, setDisplay] = useState(0);
+  const { display, animated } = useCountUp(accuracy);
   const radius = 64;
   const stroke = 7;
   const circ = 2 * Math.PI * radius;
   const offset = animated ? circ * (1 - accuracy / 100) : circ;
-
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => setAnimated(true));
-    let frame: number;
-    let startTime: number | null = null;
-    const tick = (now: number) => {
-      if (startTime == null) startTime = now;
-      const t = Math.min((now - startTime) / RING_DURATION, 1);
-      setDisplay(Math.round(t * accuracy));
-      if (t < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => { cancelAnimationFrame(raf); cancelAnimationFrame(frame); };
-  }, [accuracy]);
 
   const size = (radius + stroke) * 2;
 
@@ -121,17 +104,11 @@ interface ChordProgressRowProps {
 function ChordProgressRow({ label, before, after, attempts, misses, index }: ChordProgressRowProps) {
   // Start the "after" dot at the old level, then animate up to the new level so
   // the user sees the gain fill in.
-  const [shown, setShown] = useState<0 | 1 | 2 | 3>(before);
+  const shown = useDelayedLevel(before, after, index);
   const improved = after > before;
   const regressed = after < before;
   const changed = after !== before;
   const successRate = attempts > 0 ? Math.round(((attempts - misses) / attempts) * 100) : 0;
-
-  useEffect(() => {
-    if (!changed) return;
-    const id = setTimeout(() => setShown(after), 250 + index * 120);
-    return () => clearTimeout(id);
-  }, [after, changed, index]);
 
   return (
     <div className={`${s.chordProgRow} ${improved ? s.chordProgUp : ""}`}>
