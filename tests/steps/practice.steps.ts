@@ -173,6 +173,37 @@ When("I advance to the next quiz round", async function (this: GuitarWorld) {
   await this.page.getByRole("button", { name: "Suivant" }).click();
 });
 
+Then(
+  "the pause button should show {string}",
+  async function (this: GuitarWorld, label: string) {
+    await expect(this.page.getByRole("button", { name: label })).toBeVisible();
+  },
+);
+
+When("I click the pause button", async function (this: GuitarWorld) {
+  const btn =
+    (await this.page.getByRole("button", { name: "Pause" }).count()) > 0
+      ? this.page.getByRole("button", { name: "Pause" })
+      : this.page.getByRole("button", { name: "Reprendre" });
+  await btn.click();
+});
+
+When("I wait {int} seconds", async function (this: GuitarWorld, seconds: number) {
+  await this.page.waitForTimeout(seconds * 1000);
+});
+
+Then(
+  "the session duration should be at least {int} second",
+  async function (this: GuitarWorld, minSeconds: number) {
+    const durationCell = this.page.getByText("Durée", { exact: true }).locator("..");
+    const valueText = await durationCell.getByText(/\d/).first().textContent();
+    // formatTime produces "0:SS" or "M:SS"; parse total seconds
+    const parts = (valueText ?? "0:00").split(":").map(Number);
+    const totalSeconds = parts.length === 2 ? parts[0] * 60 + parts[1] : 0;
+    expect(totalSeconds).toBeGreaterThanOrEqual(minSeconds);
+  },
+);
+
 When("I enable microphone detection", async function (this: GuitarWorld) {
   await this.page.getByRole("switch", { name: "Détecter les notes (micro)" }).click();
 });

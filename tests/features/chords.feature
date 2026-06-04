@@ -34,3 +34,24 @@ Feature: Chord configuration
     When I advance to the next quiz round
     Then the quiz should show 4 choices
     And the quiz choice names should be hidden
+
+  Scenario: QCM pause button toggles between pause and resume states
+    When I select the "Triades" preset
+    And I select the QCM progression mode
+    And I start the session
+    Then I should see the session screen
+    And the pause button should show "Pause"
+    When I click the pause button
+    Then the pause button should show "Reprendre"
+    When I click the pause button
+    Then the pause button should show "Pause"
+
+  Scenario: QCM session tracks practice time for summary
+    When I select the "Triades" preset
+    And I select the QCM progression mode
+    And I start the session
+    Then I should see the session screen
+    When I wait 2 seconds
+    And I stop the session
+    Then I should see the summary screen
+    And the session duration should be at least 1 second

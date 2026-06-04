@@ -152,7 +152,12 @@ export default function SessionView({
   if (quiz) {
     controls = (
       <>
-        <CtrlBtn icon="pause" label="Pause" onClick={onPauseToggle} variant="accent-line" />
+        <CtrlBtn
+          icon={paused ? "play" : "pause"}
+          label={paused ? "Reprendre" : "Pause"}
+          onClick={onPauseToggle}
+          variant={paused ? "primary" : "accent-line"}
+        />
         {selectedId != null
           ? <CtrlBtn icon="next" label="Suivant" onClick={onQuizNext} variant="primary" />
           : <DisabledCtrlBtn icon="next" label="Suivant" />}
