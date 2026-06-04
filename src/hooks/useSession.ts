@@ -196,6 +196,21 @@ export function useSession({
     };
   }, [inSession, paused, interval, quiz]);
 
+  useEffect(() => {
+    if (!inSession || !quiz || paused) return;
+    let rafId: number;
+    let lastFrame = performance.now();
+    const animate = () => {
+      const now = performance.now();
+      practiceTimeRef.current += (now - lastFrame) / 1000;
+      setPracticeTime(practiceTimeRef.current);
+      lastFrame = now;
+      rafId = requestAnimationFrame(animate);
+    };
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
+  }, [inSession, quiz, paused]);
+
   const onDetectedNote = (noteId: string | null) => {
     if (!listening || !inSession || paused) return;
     const cur = latest.current.current;
