@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import type { Voicing } from "../../../lib/constants";
 import s from "./index.module.css";
 
@@ -24,6 +25,8 @@ interface ChordDiagramProps {
   onMarkerTap?: (stringIndex: number) => void;
   /** Tap an existing fretted dot: remove it (back to open). */
   onDotTap?: (stringIndex: number) => void;
+  /** Drag between two cells on the same fret: barre across the spanned strings. */
+  onBarre?: (fromString: number, toString: number, absoluteFret: number) => void;
 }
 
 const STRING_LABEL = (i: number) => `corde ${i + 1}`;
@@ -37,7 +40,14 @@ export default function ChordDiagram({
   onCellTap,
   onMarkerTap,
   onDotTap,
+  onBarre,
 }: ChordDiagramProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const dragStart = useRef<{ i: number; fret: number } | null>(null);
+  // Live preview of the pending gesture (ghost dot or barre) shown while the
+  // pointer is held, before release commits it.
+  const [preview, setPreview] = useState<{ startI: number; startFret: number; curI: number; curFret: number } | null>(null);
+
   if (!fingering) return null;
   const { frets = [], baseFret = 1, barres = [] } = fingering;
 
@@ -61,13 +71,79 @@ export default function ChordDiagram({
         i <= Math.max(b.fromString, b.toString),
     );
 
+  // Map a pointer event to the cell under it (viewBox coordinates), so drag
+  // works the same for mouse and touch (touch's implicit pointer capture means
+  // pointerup reports the start element, so we hit-test by position instead).
+  const cellFromEvent = (e: React.PointerEvent): { i: number; fret: number; header: boolean } | null => {
+    const svg = svgRef.current;
+    const ctm = svg?.getScreenCTM();
+    if (!svg || !ctm) return null;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const loc = pt.matrixTransform(ctm.inverse());
+    const i = Math.round((loc.x - gridLeft) / STRING_SPACING);
+    if (i < 0 || i >= STRINGS) return null;
+    if (loc.y < gridTop) return { i, fret: 0, header: true };
+    const row = Math.floor((loc.y - gridTop) / FRET_SPACING) + 1;
+    if (row < 1 || row > fretCount) return null;
+    return { i, fret: baseFret + row - 1, header: false };
+  };
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (!editable) return;
+    const c = cellFromEvent(e);
+    if (c && !c.header) {
+      dragStart.current = { i: c.i, fret: c.fret };
+      setPreview({ startI: c.i, startFret: c.fret, curI: c.i, curFret: c.fret });
+    } else {
+      dragStart.current = null;
+      setPreview(null);
+    }
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!editable || !dragStart.current) return;
+    const c = cellFromEvent(e);
+    const start = dragStart.current;
+    setPreview(
+      c && !c.header
+        ? { startI: start.i, startFret: start.fret, curI: c.i, curFret: c.fret }
+        : { startI: start.i, startFret: start.fret, curI: start.i, curFret: start.fret },
+    );
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!editable) return;
+    const start = dragStart.current;
+    dragStart.current = null;
+    setPreview(null);
+    if (!start) return;
+    const c = cellFromEvent(e);
+    if (!c || c.header) return;
+    if (c.i === start.i) return; // same cell → a tap, handled by the rect's onClick
+    if (c.fret !== start.fret) return; // a barre must sit on a single fret
+    onBarre?.(Math.min(start.i, c.i), Math.max(start.i, c.i), c.fret);
+  };
+
+  const handlePointerCancel = () => {
+    dragStart.current = null;
+    setPreview(null);
+  };
+
   return (
     <svg
-      className={`${s.root} ${className}`}
+      ref={svgRef}
+      className={`${s.root} ${editable ? s.editable : ""} ${className}`}
       width={size}
       height={(size * vbH) / vbW}
       viewBox={`0 0 ${vbW} ${vbH}`}
       role={editable ? "group" : "img"}
+      onPointerDown={editable ? handlePointerDown : undefined}
+      onPointerMove={editable ? handlePointerMove : undefined}
+      onPointerUp={editable ? handlePointerUp : undefined}
+      onPointerCancel={editable ? handlePointerCancel : undefined}
+      onPointerLeave={editable ? handlePointerCancel : undefined}
     >
       {!showNut && (
         <text
@@ -137,6 +213,8 @@ export default function ChordDiagram({
             y2={cellY(row)}
             strokeWidth={DOT_R * 2}
             strokeLinecap="round"
+            role={editable ? "img" : undefined}
+            aria-label={editable ? `barré case ${b.fret}` : undefined}
           />
         );
       })}
@@ -156,6 +234,35 @@ export default function ChordDiagram({
           />
         );
       })}
+
+      {editable && preview && (() => {
+        const { startI, startFret, curI, curFret } = preview;
+        // Dragged onto another string at the same fret → preview a barre.
+        if (curI !== startI && curFret === startFret) {
+          const row = startFret - baseFret + 1;
+          if (row < 1 || row > fretCount) return null;
+          const a = Math.min(startI, curI);
+          const z = Math.max(startI, curI);
+          return (
+            <line
+              className={`${s.barre} ${s.ghost}`}
+              x1={stringX(a)}
+              y1={cellY(row)}
+              x2={stringX(z)}
+              y2={cellY(row)}
+              strokeWidth={DOT_R * 2}
+              strokeLinecap="round"
+            />
+          );
+        }
+        // Held on a single cell → preview a finger there.
+        if (curI === startI && curFret === startFret) {
+          const row = curFret - baseFret + 1;
+          if (row < 1 || row > fretCount) return null;
+          return <circle className={`${s.dot} ${s.ghost}`} cx={stringX(curI)} cy={cellY(row)} r={DOT_R} />;
+        }
+        return null;
+      })()}
 
       {editable && (
         <>

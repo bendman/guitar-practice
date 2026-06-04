@@ -25,10 +25,10 @@
 .body {
   flex: 1;
   overflow-y: auto;
-  padding: 28px 22px 24px;
+  padding: 18px 22px 20px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 14px;
 }
 
 /* The shared screen footer zeroes its side padding at desktop widths (it
@@ -45,7 +45,16 @@
 .diagramWrap {
   display: flex;
   justify-content: center;
-  padding: 8px 0;
+  padding: 0;
+}
+
+.hint {
+  margin: -10px 0 0;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  letter-spacing: 0.2px;
 }
 
 .field {
@@ -73,10 +82,15 @@
   margin-left: -22px;
   margin-right: -22px;
   padding-left: 22px;
-  padding-right: 0;
-  padding-bottom: 4px;
+  padding-right: 16px;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+  /* Hide the persistent scrollbar track; the OS overlay bar still appears while
+     actively scrolling. */
+  scrollbar-width: none;
+}
+
+.scrollRow::-webkit-scrollbar {
+  display: none;
 }
 
 .scrollRow > * {

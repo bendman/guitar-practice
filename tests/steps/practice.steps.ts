@@ -282,17 +282,64 @@ Then("the custom voicings store should contain {string}", async function (this: 
   expect(store?.[chordId]).toBeTruthy();
 });
 
-Then("the custom voicing {string} should have a barre", async function (this: GuitarWorld, chordId: string) {
-  const store = await this.readStorage<Record<string, { barres?: unknown[] }[]>>("guitar-practice-custom-voicings");
-  const voicing = store?.[chordId]?.[0];
-  expect(voicing?.barres?.length ?? 0).toBeGreaterThan(0);
+interface StoredBarre { fret: number; fromString: number; toString: number }
+interface StoredVoicing { frets: number[]; baseFret?: number; barres?: StoredBarre[] }
+
+async function firstVoicing(world: GuitarWorld, chordId: string): Promise<StoredVoicing | undefined> {
+  const store = await world.readStorage<Record<string, StoredVoicing[]>>("guitar-practice-custom-voicings");
+  return store?.[chordId]?.[0];
+}
+
+When("I raise the first case to {int}", async function (this: GuitarWorld, target: number) {
+  const plus = this.page.getByRole("button", { name: "Augmenter la première case" });
+  for (let i = 1; i < target; i++) await plus.click();
+});
+
+When(
+  "I drag a barre from string {int} fret {int} to string {int} fret {int}",
+  async function (this: GuitarWorld, s1: number, f1: number, s2: number, f2: number) {
+    const src = await this.page.getByRole("button", { name: `corde ${s1} case ${f1}` }).boundingBox();
+    const dst = await this.page.getByRole("button", { name: `corde ${s2} case ${f2}` }).boundingBox();
+    if (!src || !dst) throw new Error("barre drag endpoints not found");
+    await this.page.mouse.move(src.x + src.width / 2, src.y + src.height / 2);
+    await this.page.mouse.down();
+    await this.page.mouse.move(dst.x + dst.width / 2, dst.y + dst.height / 2, { steps: 8 });
+    await this.page.mouse.up();
+  },
+);
+
+Then("the builder diagram should show a barre at fret {int}", async function (this: GuitarWorld, fret: number) {
+  // The barre is an SVG <line>; a horizontal line has zero bbox height, which
+  // Playwright reports as "hidden", so assert it is present rather than visible.
+  await expect(this.page.getByRole("img", { name: `barré case ${fret}` })).toBeAttached();
+});
+
+Then("the builder diagram should not show a barre at fret {int}", async function (this: GuitarWorld, fret: number) {
+  await expect(this.page.getByRole("img", { name: `barré case ${fret}` })).toHaveCount(0);
+});
+
+When("I tap to remove string {int}", async function (this: GuitarWorld, str: number) {
+  await this.page.getByRole("button", { name: `retirer la note corde ${str}` }).click();
+});
+
+Then("the custom voicing {string} frets should be {string}", async function (this: GuitarWorld, chordId: string, frets: string) {
+  const voicing = await firstVoicing(this, chordId);
+  expect((voicing?.frets ?? []).join(",")).toBe(frets);
 });
 
 Then("the custom voicing {string} should not have a barre", async function (this: GuitarWorld, chordId: string) {
-  const store = await this.readStorage<Record<string, { barres?: unknown[] }[]>>("guitar-practice-custom-voicings");
-  const voicing = store?.[chordId]?.[0];
+  const voicing = await firstVoicing(this, chordId);
   expect(voicing?.barres?.length ?? 0).toBe(0);
 });
+
+Then(
+  "the custom voicing {string} should have a barre from string {int} to string {int} at fret {int}",
+  async function (this: GuitarWorld, chordId: string, from: number, to: number, fret: number) {
+    const voicing = await firstVoicing(this, chordId);
+    const barre = voicing?.barres?.[0];
+    expect(barre).toMatchObject({ fret, fromString: from, toString: to });
+  },
+);
 
 Then("the custom voicings store should be empty", async function (this: GuitarWorld) {
   const store = await this.readStorage<Record<string, unknown>>("guitar-practice-custom-voicings");
