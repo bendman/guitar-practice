@@ -76,6 +76,7 @@ interface SessionViewProps {
   onShowLearning: () => void;
   preferredVoicings: Record<string, number>;
   onVoicingChange: (chordId: string, idx: number) => void;
+  onAddVoicing: (rootId: string, qualityId: string) => void;
 }
 
 export default function SessionView({
@@ -104,6 +105,7 @@ export default function SessionView({
   onShowLearning,
   preferredVoicings,
   onVoicingChange,
+  onAddVoicing,
 }: SessionViewProps) {
   const formatLabel = useFormatLabel();
   const chordAuto = chordMode === "auto";
@@ -293,6 +295,13 @@ export default function SessionView({
                   }}
                 >›</button>
               </div>
+            )}
+            {current?.type === "chord" && (
+              <button
+                className={s.addVoicingBtn}
+                aria-label="Ajouter une position"
+                onClick={() => onAddVoicing((current as ChordItem).rootId, (current as ChordItem).qualityId)}
+              >+ Ajouter une position</button>
             )}
           </div>
         )}

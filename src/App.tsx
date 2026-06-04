@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { ALL, CHORDS, CHORD_PRESETS, CHORD_PROGRESSIONS } from "./lib/constants";
+import { ALL, CHORDS, CHORD_PRESETS, CHORD_PROGRESSIONS, mergeCustomVoicings } from "./lib/constants";
+import type { ChordItem, Voicing } from "./lib/constants";
 import { usePitchDetection } from "./hooks/usePitchDetection";
 import { useSession } from "./hooks/useSession";
 import { useSettings } from "./hooks/useSettings";
 import { useProgress } from "./hooks/useProgress";
+import { useCustomVoicings } from "./hooks/useCustomVoicings";
 import { useIntervalHotkeys } from "./hooks/useIntervalHotkeys";
 import { buildActivePool } from "./lib/util";
 import { NoteNamingProvider } from "./lib/noteNaming";
@@ -16,6 +18,7 @@ import SummaryView from "./components/views/SummaryView";
 import ProgressView from "./components/views/ProgressView";
 import DebugView from "./components/views/DebugView";
 import LearningView from "./components/views/LearningView";
+import ChordBuilderView from "./components/views/ChordBuilderView";
 
 const PREFERRED_VOICINGS_KEY = "guitar-practice-preferred-voicings";
 
@@ -45,7 +48,9 @@ export default function GuitarPractice() {
     stats, weights, confusions,
     recordResult, recordConfusion, commitSession, resetAllStats, resetAllWeights,
   } = useProgress();
+  const { customVoicings, addVoicing, removeVoicing } = useCustomVoicings();
 
+  const [builder, setBuilder] = useState<{ rootId: string; qualityId: string } | null>(null);
   const [chordPreset, setChordPreset] = useState<string | null>(null);
   const [chordProgression, setChordProgression] = useState<string | null>(null);
   const [devScreen, setDevScreen] = useState<string | null>(null);
@@ -58,7 +63,10 @@ export default function GuitarPractice() {
   const [preferredVoicings, setPreferredVoicings] = useState<Record<string, number>>(loadPreferredVoicings);
 
   const targetType = mode === "chords" ? "chord" : "note";
-  const pool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
+  const basePool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
+  const pool = targetType === "chord"
+    ? mergeCustomVoicings(basePool as ChordItem[], customVoicings)
+    : basePool;
   const activePool = buildActivePool(pool, weights, workingSetSize);
 
   const session = useSession({
@@ -128,6 +136,16 @@ export default function GuitarPractice() {
     });
     setSessionSummary(summary);
     commitSession(summary);
+  };
+
+  const openBuilder = (prefill?: { rootId: string; qualityId: string }) => {
+    if (session.inSession && !session.paused) session.pauseToggle();
+    setBuilder(prefill ?? { rootId: "mi", qualityId: "maj" });
+  };
+
+  const handleBuilderSave = (id: string, voicing: Voicing) => {
+    addVoicing(id, voicing);
+    setBuilder(null);
   };
 
   const handleVoicingChange = (chordId: string, idx: number) => {
@@ -207,6 +225,7 @@ export default function GuitarPractice() {
         onShowLearning={() => setShowLearning(true)}
         preferredVoicings={preferredVoicings}
         onVoicingChange={handleVoicingChange}
+        onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
       />
     );
   }
@@ -238,6 +257,10 @@ export default function GuitarPractice() {
         setSpokenNaming={setSpokenNaming}
         voiceURI={voiceURI}
         setVoiceURI={setVoiceURI}
+        customVoicings={customVoicings}
+        onCreateChord={() => openBuilder()}
+        onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
+        onRemoveVoicing={removeVoicing}
       />
     );
   }
@@ -287,6 +310,15 @@ export default function GuitarPractice() {
   return (
     <NoteNamingProvider naming={noteNaming}>
       {renderContent()}
+      {builder && (
+        <ChordBuilderView
+          prefillRootId={builder.rootId}
+          prefillQualityId={builder.qualityId}
+          customVoicings={customVoicings}
+          onSave={handleBuilderSave}
+          onCancel={() => setBuilder(null)}
+        />
+      )}
     </NoteNamingProvider>
   );
 }

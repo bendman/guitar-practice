@@ -10,6 +10,7 @@ function screenAnchor(page: Page, screen: string) {
     case "session":  return page.getByRole("button", { name: "Arrêter" });
     case "summary":  return page.getByRole("heading");
     case "settings": return page.getByRole("heading", { name: "Paramètres" });
+    case "builder":  return page.getByRole("dialog", { name: "Créer un accord" });
     case "learning": return page.getByText("Learning details");
     default: throw new Error(`Unknown screen: ${screen}`);
   }
@@ -214,6 +215,145 @@ Then("the sessions stat should be {string}", async function (this: GuitarWorld, 
 
 When("I set the interval to {string}", async function (this: GuitarWorld, seconds: string) {
   await this.page.getByRole("slider", { name: "Intervalle" }).fill(seconds);
+});
+
+// ---- Chord builder ------------------------------------------------------
+
+When("I open the chord builder", async function (this: GuitarWorld) {
+  await this.page.getByRole("button", { name: "Créer un accord" }).click();
+});
+
+Then("I should see the chord builder", async function (this: GuitarWorld) {
+  await expect(this.page.getByRole("dialog", { name: "Créer un accord" })).toBeVisible();
+});
+
+function builder(page: Page) {
+  return page.getByRole("dialog", { name: "Créer un accord" });
+}
+
+When("I select the chord root {string}", async function (this: GuitarWorld, root: string) {
+  await builder(this.page)
+    .getByRole("radiogroup", { name: "Fondamentale" })
+    .getByRole("radio", { name: root, exact: true })
+    .click();
+});
+
+When("I select the chord family {string}", async function (this: GuitarWorld, family: string) {
+  await builder(this.page)
+    .getByRole("radiogroup", { name: "Famille" })
+    .getByRole("radio", { name: family, exact: true })
+    .click();
+});
+
+When("I tap string {int} at fret {int}", async function (this: GuitarWorld, str: number, fret: number) {
+  await builder(this.page).getByRole("button", { name: `corde ${str} case ${fret}` }).click();
+});
+
+When("I save the chord", async function (this: GuitarWorld) {
+  await this.page.getByRole("button", { name: "Enregistrer" }).click();
+});
+
+Then("the save chord button should be disabled", async function (this: GuitarWorld) {
+  await expect(this.page.getByRole("button", { name: "Enregistrer" })).toBeDisabled();
+});
+
+Then("I should see the duplicate warning", async function (this: GuitarWorld) {
+  await expect(this.page.getByText("Cet accord existe déjà")).toBeVisible();
+});
+
+When("I expand the chord {string}", async function (this: GuitarWorld, label: string) {
+  await this.page.getByText(label, { exact: true }).click();
+});
+
+Then("I should see a custom voicing for {string}", async function (this: GuitarWorld, label: string) {
+  await expect(this.page.getByRole("button", { name: `Supprimer la position 1 ${label}` })).toBeVisible();
+});
+
+When("I delete the custom voicing for {string}", async function (this: GuitarWorld, label: string) {
+  await this.page.getByRole("button", { name: `Supprimer la position 1 ${label}` }).click();
+});
+
+Then("there should be no custom voicing for {string}", async function (this: GuitarWorld, label: string) {
+  await expect(this.page.getByRole("button", { name: `Supprimer la position 1 ${label}` })).toHaveCount(0);
+});
+
+Then("the custom voicings store should contain {string}", async function (this: GuitarWorld, chordId: string) {
+  const store = await this.readStorage<Record<string, unknown>>("guitar-practice-custom-voicings");
+  expect(store?.[chordId]).toBeTruthy();
+});
+
+interface StoredBarre { fret: number; fromString: number; toString: number }
+interface StoredVoicing { frets: number[]; baseFret?: number; barres?: StoredBarre[] }
+
+async function firstVoicing(world: GuitarWorld, chordId: string): Promise<StoredVoicing | undefined> {
+  const store = await world.readStorage<Record<string, StoredVoicing[]>>("guitar-practice-custom-voicings");
+  return store?.[chordId]?.[0];
+}
+
+When("I raise the first case to {int}", async function (this: GuitarWorld, target: number) {
+  const plus = this.page.getByRole("button", { name: "Augmenter la première case" });
+  for (let i = 1; i < target; i++) await plus.click();
+});
+
+When(
+  "I drag a barre from string {int} fret {int} to string {int} fret {int}",
+  async function (this: GuitarWorld, s1: number, f1: number, s2: number, f2: number) {
+    const src = await this.page.getByRole("button", { name: `corde ${s1} case ${f1}` }).boundingBox();
+    const dst = await this.page.getByRole("button", { name: `corde ${s2} case ${f2}` }).boundingBox();
+    if (!src || !dst) throw new Error("barre drag endpoints not found");
+    await this.page.mouse.move(src.x + src.width / 2, src.y + src.height / 2);
+    await this.page.mouse.down();
+    await this.page.mouse.move(dst.x + dst.width / 2, dst.y + dst.height / 2, { steps: 8 });
+    await this.page.mouse.up();
+  },
+);
+
+Then("the builder diagram should show a barre at fret {int}", async function (this: GuitarWorld, fret: number) {
+  // The barre is an SVG <line>; a horizontal line has zero bbox height, which
+  // Playwright reports as "hidden", so assert it is present rather than visible.
+  await expect(this.page.getByRole("img", { name: `barré case ${fret}` })).toBeAttached();
+});
+
+Then("the builder diagram should not show a barre at fret {int}", async function (this: GuitarWorld, fret: number) {
+  await expect(this.page.getByRole("img", { name: `barré case ${fret}` })).toHaveCount(0);
+});
+
+When("I tap to remove string {int}", async function (this: GuitarWorld, str: number) {
+  await this.page.getByRole("button", { name: `retirer la note corde ${str}` }).click();
+});
+
+Then("the custom voicing {string} frets should be {string}", async function (this: GuitarWorld, chordId: string, frets: string) {
+  const voicing = await firstVoicing(this, chordId);
+  expect((voicing?.frets ?? []).join(",")).toBe(frets);
+});
+
+Then("the custom voicing {string} should not have a barre", async function (this: GuitarWorld, chordId: string) {
+  const voicing = await firstVoicing(this, chordId);
+  expect(voicing?.barres?.length ?? 0).toBe(0);
+});
+
+Then(
+  "the custom voicing {string} should have a barre from string {int} to string {int} at fret {int}",
+  async function (this: GuitarWorld, chordId: string, from: number, to: number, fret: number) {
+    const voicing = await firstVoicing(this, chordId);
+    const barre = voicing?.barres?.[0];
+    expect(barre).toMatchObject({ fret, fromString: from, toString: to });
+  },
+);
+
+Then("the custom voicings store should be empty", async function (this: GuitarWorld) {
+  const store = await this.readStorage<Record<string, unknown>>("guitar-practice-custom-voicings");
+  expect(store == null || Object.keys(store).length === 0).toBe(true);
+});
+
+When("I add a voicing from the session", async function (this: GuitarWorld) {
+  await this.page.getByRole("button", { name: "Ajouter une position", exact: true }).click();
+});
+
+Then("I should be back at the revealed chord", async function (this: GuitarWorld) {
+  // The "+" lives in the revealed state, which pauses the timer; returning
+  // lands the user on the same revealed card with its grading controls.
+  await expect(this.page.getByRole("button", { name: "Trouvé" })).toBeVisible();
 });
 
 Then(

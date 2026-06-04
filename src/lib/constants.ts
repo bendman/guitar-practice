@@ -269,6 +269,32 @@ export const CHORDS: ChordItem[] = CHORD_ROOTS.flatMap((root) =>
 
 export const ALL: PracticeItem[] = [...NOTES, ...CHROMATIC_NOTES, ...CHORDS];
 
+export const chordId = (rootId: string, qualityId: string) => `${rootId}_${qualityId}`;
+
+/**
+ * Return a copy of `chords` with any user-authored voicings appended to the
+ * matching chord's built-in voicings. Chords without custom voicings are
+ * returned unchanged (same reference).
+ */
+export function mergeCustomVoicings(
+  chords: ChordItem[],
+  custom: Record<string, Voicing[]>,
+): ChordItem[] {
+  return chords.map((c) => {
+    const extra = custom[c.id];
+    return extra && extra.length ? { ...c, voicings: [...c.voicings, ...extra] } : c;
+  });
+}
+
+/**
+ * Two voicings are the same shape when their absolute fret arrays match.
+ * `baseFret` is only a display window, so it is ignored here.
+ */
+export function voicingsEqual(a: Voicing, b: Voicing): boolean {
+  if (a.frets.length !== b.frets.length) return false;
+  return a.frets.every((f, i) => f === b.frets[i]);
+}
+
 export interface ChordPreset {
   id: string;
   label: string;

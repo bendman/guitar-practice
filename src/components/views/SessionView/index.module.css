@@ -198,6 +198,20 @@
   font-family: var(--mono);
 }
 
+.addVoicingBtn {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--mono);
+  letter-spacing: 0.3px;
+  padding: 6px 14px;
+}
+
+.addVoicingBtn:active { opacity: 0.7; }
+
 /* ── Control bar ────────────────────────────────────────────────────────────── */
 .controlBar {
   display: flex;
