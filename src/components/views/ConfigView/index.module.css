@@ -141,6 +141,62 @@
   color: var(--accent);
 }
 
+.chipGroup {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: transform 0.1s var(--ease);
+}
+
+/* Scale the whole group together on press — prevent the chip from scaling alone */
+.chipGroup:has(:active) { transform: scale(0.95); }
+.chipGroup .chip:active { transform: none; }
+
+.chipGroup .chip {
+  border-radius: var(--r-sm) 0 0 var(--r-sm);
+  border-right: none;
+}
+
+.chipDelete {
+  flex-shrink: 0;
+  font-size: 11px;
+  padding: 0 8px;
+  height: 100%;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  border: 1px solid var(--line);
+  border-left: none;
+  background: var(--surface-2);
+  color: var(--text-faint);
+  cursor: pointer;
+  line-height: 1;
+  font-family: var(--mono);
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+/* Match the accent highlight when the paired chip is selected */
+.chipGroup:has(.chipActive) .chipDelete {
+  border-color: var(--accent);
+  background: rgba(226, 178, 136, 0.15);
+  color: var(--text-dim);
+}
+
+.chipDelete:hover {
+  background: rgba(201, 64, 64, 0.12);
+  color: var(--danger);
+  border-color: rgba(201, 64, 64, 0.3);
+}
+
+.chipSave {
+  border-style: dashed;
+  color: var(--text-faint);
+  background: transparent;
+}
+
+.chipSave:hover {
+  color: var(--text-dim);
+  border-color: var(--text-faint);
+}
+
 /* ── Segmented control ───────────────────────────────────────────────────────── */
 .segmented {
   display: flex;

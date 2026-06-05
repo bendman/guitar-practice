@@ -393,3 +393,52 @@ Then(
     await expect(this.page.getByText(`${seconds}.0s`)).toBeVisible();
   },
 );
+
+// ---- Custom presets -----------------------------------------------------
+
+When(
+  "I save the current selection as a preset named {string}",
+  async function (this: GuitarWorld, name: string) {
+    await this.page.getByRole("button", { name: "Enregistrer le préréglage actuel" }).click();
+    await this.page
+      .getByRole("dialog", { name: "Enregistrer le préréglage" })
+      .getByRole("textbox", { name: "Nom du préréglage" })
+      .fill(name);
+    await this.page
+      .getByRole("dialog", { name: "Enregistrer le préréglage" })
+      .getByRole("button", { name: "Enregistrer", exact: true })
+      .click();
+  },
+);
+
+Then(
+  "I should see a chip labeled {string}",
+  async function (this: GuitarWorld, label: string) {
+    await expect(this.page.getByRole("button", { name: label, exact: true })).toBeVisible();
+  },
+);
+
+Then(
+  "the chip {string} should be active",
+  async function (this: GuitarWorld, label: string) {
+    await expect(this.page.getByRole("button", { name: label, exact: true })).toBeVisible();
+  },
+);
+
+When(
+  "I delete the preset {string}",
+  async function (this: GuitarWorld, label: string) {
+    await this.page.getByRole("button", { name: `Supprimer le préréglage ${label}` }).click();
+    await this.page
+      .getByRole("dialog", { name: "Supprimer le préréglage" })
+      .getByRole("button", { name: "Supprimer", exact: true })
+      .click();
+  },
+);
+
+Then(
+  "I should not see a chip labeled {string}",
+  async function (this: GuitarWorld, label: string) {
+    await expect(this.page.getByRole("button", { name: label, exact: true })).toHaveCount(0);
+  },
+);

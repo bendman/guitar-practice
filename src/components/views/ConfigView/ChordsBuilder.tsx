@@ -1,5 +1,6 @@
 import React from "react";
 import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS } from "../../../lib/constants";
+import type { ChordProgression } from "../../../lib/constants";
 import { weightToLevel } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
 import type { Weights } from "../../../lib/stats";
@@ -14,11 +15,17 @@ interface ChordsBuilderProps {
   chordProgression: string | null;
   onPreset: (id: string) => void;
   onProgression: (id: string) => void;
+  customPresets: ChordProgression[];
+  onCustomPreset: (id: string) => void;
+  onRemoveCustomPreset: (id: string) => void;
+  onSavePreset: () => void;
   weights?: Weights;
 }
 
 export default function ChordsBuilder({
-  enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression, weights = {},
+  enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression,
+  customPresets, onCustomPreset, onRemoveCustomPreset, onSavePreset,
+  weights = {},
 }: ChordsBuilderProps) {
   const formatLabel = useFormatLabel();
   const totalEnabled = CHORDS.filter((c) => enabled[c.id]).length;
@@ -109,6 +116,30 @@ export default function ChordsBuilder({
             {p.label}
           </button>
         ))}
+        {customPresets.map((p) => (
+          <span key={p.id} className={s.chipGroup}>
+            <button
+              onClick={() => onCustomPreset(p.id)}
+              className={`${s.chip} ${chordProgression === p.id ? s.chipActive : ""}`}
+            >
+              {p.label}
+            </button>
+            <button
+              onClick={() => onRemoveCustomPreset(p.id)}
+              className={s.chipDelete}
+              aria-label={`Supprimer le préréglage ${p.label}`}
+            >
+              ✕
+            </button>
+          </span>
+        ))}
+        <button
+          onClick={onSavePreset}
+          className={`${s.chip} ${s.chipSave}`}
+          aria-label="Enregistrer le préréglage actuel"
+        >
+          + Enregistrer
+        </button>
       </div>
 
       <div className={s.subsectionHeader}>
