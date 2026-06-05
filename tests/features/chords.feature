@@ -55,3 +55,19 @@ Feature: Chord configuration
     And I stop the session
     Then I should see the summary screen
     And the session duration should be at least 1 second
+
+  Scenario: User saves current chord selection as a named custom preset
+    When I select the "Pop I–V–vi–IV" progression
+    Then the chord total should be "4"
+    When I save the current selection as a preset named "Mon Pop"
+    Then I should see a chip labeled "Mon Pop"
+    And the chip "Mon Pop" should be active
+
+  Scenario: Custom preset persists across reload and can be deleted
+    When I select the "Blues en La" progression
+    And I save the current selection as a preset named "Blues perso"
+    And I reload the app
+    And I choose the "Accords" mode
+    Then I should see a chip labeled "Blues perso"
+    When I delete the preset "Blues perso"
+    Then I should not see a chip labeled "Blues perso"

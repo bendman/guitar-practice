@@ -1,6 +1,6 @@
 import React from "react";
 import { CHORDS, NOTES, CHROMATIC_NOTES } from "../../../lib/constants";
-import type { PracticeItem } from "../../../lib/constants";
+import type { PracticeItem, ChordProgression } from "../../../lib/constants";
 import type { Weights } from "../../../lib/stats";
 import type { ChordMode } from "../../../hooks/useSession";
 import NotesPicker from "../../ui/NotesPicker";
@@ -25,6 +25,10 @@ interface ConfigViewProps {
   chordProgression: string | null;
   onPreset: (id: string) => void;
   onProgression: (id: string) => void;
+  customPresets: ChordProgression[];
+  onCustomPreset: (id: string) => void;
+  onRemoveCustomPreset: (id: string) => void;
+  onSavePreset: () => void;
   chordMode: ChordMode;
   setChordMode: (v: ChordMode) => void;
   weights?: Weights;
@@ -43,6 +47,7 @@ export default function ConfigView({
   pool,
   chordPreset, chordProgression,
   onPreset, onProgression,
+  customPresets, onCustomPreset, onRemoveCustomPreset, onSavePreset,
   chordMode, setChordMode,
   onStart, onBack,
   weights = {},
@@ -103,6 +108,10 @@ export default function ConfigView({
                 chordProgression={chordProgression}
                 onPreset={onPreset}
                 onProgression={onProgression}
+                customPresets={customPresets}
+                onCustomPreset={onCustomPreset}
+                onRemoveCustomPreset={onRemoveCustomPreset}
+                onSavePreset={onSavePreset}
                 weights={weights}
               />
 

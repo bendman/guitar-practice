@@ -6,6 +6,7 @@ import { useSession } from "./hooks/useSession";
 import { useSettings } from "./hooks/useSettings";
 import { useProgress } from "./hooks/useProgress";
 import { useCustomVoicings } from "./hooks/useCustomVoicings";
+import { useCustomPresets } from "./hooks/useCustomPresets";
 import { useIntervalHotkeys } from "./hooks/useIntervalHotkeys";
 import { buildActivePool } from "./lib/util";
 import { NoteNamingProvider } from "./lib/noteNaming";
@@ -19,6 +20,8 @@ import ProgressView from "./components/views/ProgressView";
 import DebugView from "./components/views/DebugView";
 import LearningView from "./components/views/LearningView";
 import ChordBuilderView from "./components/views/ChordBuilderView";
+import SavePresetModal from "./components/ui/SavePresetModal";
+import DeletePresetModal from "./components/ui/DeletePresetModal";
 
 const PREFERRED_VOICINGS_KEY = "guitar-practice-preferred-voicings";
 
@@ -49,8 +52,11 @@ export default function GuitarPractice() {
     recordResult, recordConfusion, commitSession, resetAllStats, resetAllWeights,
   } = useProgress();
   const { customVoicings, addVoicing, removeVoicing } = useCustomVoicings();
+  const { customPresets, addPreset, removePreset } = useCustomPresets();
 
   const [builder, setBuilder] = useState<{ rootId: string; qualityId: string } | null>(null);
+  const [savingPreset, setSavingPreset] = useState(false);
+  const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
   const [chordPreset, setChordPreset] = useState<string | null>(null);
   const [chordProgression, setChordProgression] = useState<string | null>(null);
   const [devScreen, setDevScreen] = useState<string | null>(null);
@@ -112,19 +118,41 @@ export default function GuitarPractice() {
     setChordProgression(null);
   };
 
-  const applyProgression = (progId: string) => {
-    const prog = CHORD_PROGRESSIONS.find((p) => p.id === progId);
-    if (!prog) return;
-    const progSet = new Set(prog.chordIds);
+  const applyChordCollection = (chordIds: string[], id: string) => {
+    const idSet = new Set(chordIds);
     setEnabled((prev) => {
       const next = { ...prev };
-      for (const chord of CHORDS) {
-        next[chord.id] = progSet.has(chord.id);
-      }
+      for (const chord of CHORDS) next[chord.id] = idSet.has(chord.id);
       return next;
     });
-    setChordProgression(progId);
+    setChordProgression(id);
     setChordPreset(null);
+  };
+
+  const applyProgression = (progId: string) => {
+    const prog = CHORD_PROGRESSIONS.find((p) => p.id === progId);
+    if (prog) applyChordCollection(prog.chordIds, progId);
+  };
+
+  const applyCustomPreset = (presetId: string) => {
+    const preset = customPresets.find((p) => p.id === presetId);
+    if (preset) applyChordCollection(preset.chordIds, presetId);
+  };
+
+  const saveCurrentAsPreset = (name: string) => {
+    const chordIds = CHORDS.filter((c) => enabled[c.id]).map((c) => c.id);
+    addPreset(name, chordIds);
+    setSavingPreset(false);
+  };
+
+  const handleRemoveCustomPreset = (id: string) => setDeletingPresetId(id);
+
+  const confirmDeletePreset = () => {
+    if (deletingPresetId) {
+      removePreset(deletingPresetId);
+      if (chordProgression === deletingPresetId) setChordProgression(null);
+    }
+    setDeletingPresetId(null);
   };
 
   const stopSession = () => {
@@ -144,7 +172,15 @@ export default function GuitarPractice() {
   };
 
   const handleBuilderSave = (id: string, voicing: Voicing) => {
+    const inPool = pool.find((c) => c.id === id) as ChordItem | undefined;
+    const builtInCount = CHORDS.find((c) => c.id === id)?.voicings?.length ?? 0;
+    const newIdx = inPool?.voicings?.length ?? (builtInCount + (customVoicings[id]?.length ?? 0));
     addVoicing(id, voicing);
+    setPreferredVoicings((prev) => {
+      const next = { ...prev, [id]: newIdx };
+      savePreferredVoicings(next);
+      return next;
+    });
     setBuilder(null);
   };
 
@@ -198,9 +234,12 @@ export default function GuitarPractice() {
   }
 
   if (session.inSession) {
+    const resolvedCurrent = session.current
+      ? pool.find((c) => c.id === session.current!.id) ?? session.current
+      : null;
     return (
       <SessionView
-        current={session.current}
+        current={resolvedCurrent}
         count={session.count}
         streak={session.streak}
         progress={session.progress}
@@ -282,6 +321,10 @@ export default function GuitarPractice() {
         chordProgression={chordProgression}
         onPreset={applyPreset}
         onProgression={applyProgression}
+        customPresets={customPresets}
+        onCustomPreset={applyCustomPreset}
+        onRemoveCustomPreset={handleRemoveCustomPreset}
+        onSavePreset={() => setSavingPreset(true)}
         chordMode={chordMode}
         setChordMode={setChordMode}
         weights={weights}
@@ -310,6 +353,17 @@ export default function GuitarPractice() {
   return (
     <NoteNamingProvider naming={noteNaming}>
       {renderContent()}
+      <SavePresetModal
+        open={savingPreset}
+        onSave={saveCurrentAsPreset}
+        onCancel={() => setSavingPreset(false)}
+      />
+      <DeletePresetModal
+        open={deletingPresetId !== null}
+        presetLabel={customPresets.find((p) => p.id === deletingPresetId)?.label ?? ""}
+        onConfirm={confirmDeletePreset}
+        onCancel={() => setDeletingPresetId(null)}
+      />
       {builder && (
         <ChordBuilderView
           prefillRootId={builder.rootId}
