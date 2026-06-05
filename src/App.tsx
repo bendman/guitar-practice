@@ -172,7 +172,15 @@ export default function GuitarPractice() {
   };
 
   const handleBuilderSave = (id: string, voicing: Voicing) => {
+    const inPool = pool.find((c) => c.id === id) as ChordItem | undefined;
+    const builtInCount = CHORDS.find((c) => c.id === id)?.voicings?.length ?? 0;
+    const newIdx = inPool?.voicings?.length ?? (builtInCount + (customVoicings[id]?.length ?? 0));
     addVoicing(id, voicing);
+    setPreferredVoicings((prev) => {
+      const next = { ...prev, [id]: newIdx };
+      savePreferredVoicings(next);
+      return next;
+    });
     setBuilder(null);
   };
 
@@ -226,9 +234,12 @@ export default function GuitarPractice() {
   }
 
   if (session.inSession) {
+    const resolvedCurrent = session.current
+      ? pool.find((c) => c.id === session.current!.id) ?? session.current
+      : null;
     return (
       <SessionView
-        current={session.current}
+        current={resolvedCurrent}
         count={session.count}
         streak={session.streak}
         progress={session.progress}

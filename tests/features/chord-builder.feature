@@ -127,3 +127,5 @@ Feature: Chord builder
     When I save the chord
     Then I should see the session screen
     And I should be back at the revealed chord
+    And I should see a voicings picker
+    And the newly created voicing should be active

@@ -387,6 +387,23 @@ Then("I should be back at the revealed chord", async function (this: GuitarWorld
   await expect(this.page.getByRole("button", { name: "Trouvé" })).toBeVisible();
 });
 
+Then("I should see a voicings picker", async function (this: GuitarWorld) {
+  await expect(this.page.getByRole("group", { name: "Positions" })).toBeVisible();
+});
+
+Then("the newly created voicing should be active", async function (this: GuitarWorld) {
+  // Wait until the position status within the voicings picker shows "N/N"
+  // — current position equals total, meaning the last (newly created) voicing is active.
+  await this.page.waitForFunction(() => {
+    const group = document.querySelector('[role="group"][aria-label="Positions"]');
+    if (!group) return false;
+    const el = group.querySelector('[role="status"]');
+    if (!el) return false;
+    const [cur, total] = (el.textContent ?? "").split("/");
+    return cur !== undefined && total !== undefined && cur.trim() === total.trim() && cur.trim() !== "";
+  });
+});
+
 Then(
   "the interval display should show {string}",
   async function (this: GuitarWorld, seconds: string) {

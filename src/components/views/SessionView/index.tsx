@@ -119,11 +119,19 @@ export default function SessionView({
   const preferredVoicingsRef = useRef(preferredVoicings);
   preferredVoicingsRef.current = preferredVoicings;
 
+  // Reset revealed state when the chord changes.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setRevealed(false); }, [current?.id]);
+
+  // Keep voicingIdx in sync with preferredVoicings for the current chord.
+  // Runs on chord change, when the preference changes (e.g. user clicks ‹›), and
+  // when voicings are added to the pool (length increases after chord builder save).
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setRevealed(false);
-    setVoicingIdx(current?.id ? Math.min(preferredVoicingsRef.current[current.id] ?? 0, Math.max((current as ChordItem).voicings?.length - 1, 0)) : 0);
-  }, [current?.id]);
+    if (!current?.id) return;
+    setVoicingIdx(Math.min(preferredVoicingsRef.current[current.id] ?? 0, Math.max(voicings.length - 1, 0)));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current?.id, preferredVoicings, voicings.length]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (pendingReveal) setRevealed(true); }, [pendingReveal]);
@@ -281,18 +289,20 @@ export default function SessionView({
               <ChordDiagram fingering={voicings[voicingIdx]} size={320} />
             )}
             {voicings.length > 1 && (
-              <div className={s.voicingSwitcher}>
+              <div className={s.voicingSwitcher} role="group" aria-label="Positions">
                 <button
                   className={s.cycleBtn}
+                  aria-label="Position précédente"
                   onClick={() => {
                     const next = (voicingIdx - 1 + voicings.length) % voicings.length;
                     setVoicingIdx(next);
                     if (current?.type === "chord") onVoicingChange(current.id, next);
                   }}
                 >‹</button>
-                <span className={s.voicingCount}>{voicingIdx + 1}/{voicings.length}</span>
+                <span className={s.voicingCount} role="status" aria-label={`Position ${voicingIdx + 1} sur ${voicings.length}`}>{voicingIdx + 1}/{voicings.length}</span>
                 <button
                   className={s.cycleBtn}
+                  aria-label="Position suivante"
                   onClick={() => {
                     const next = (voicingIdx + 1) % voicings.length;
                     setVoicingIdx(next);
