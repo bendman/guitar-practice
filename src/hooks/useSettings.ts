@@ -16,6 +16,7 @@ interface StoredSettings {
   noteNaming?: NoteNaming;
   spokenNaming?: NoteNaming;
   voiceURI?: string | null;
+  showChordNotes?: boolean;
 }
 
 function loadSettings(): StoredSettings {
@@ -37,6 +38,7 @@ function parseInitialSettings() {
     noteNaming: (s.noteNaming === "letters" ? "letters" : "solfege") as NoteNaming,
     spokenNaming: (s.spokenNaming === "letters" ? "letters" : "solfege") as NoteNaming,
     voiceURI: typeof s.voiceURI === "string" ? s.voiceURI : null,
+    showChordNotes: s.showChordNotes ?? false,
   };
 }
 const initialSettings = parseInitialSettings();
@@ -57,14 +59,15 @@ export function useSettings() {
   const [noteNaming, setNoteNaming] = useState<NoteNaming>(initialSettings.noteNaming);
   const [spokenNaming, setSpokenNaming] = useState<NoteNaming>(initialSettings.spokenNaming);
   const [voiceURI, setVoiceURI] = useState<string | null>(initialSettings.voiceURI);
+  const [showChordNotes, setShowChordNotes] = useState<boolean>(initialSettings.showChordNotes);
 
   useEffect(() => {
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-        interval: intervalSecs, enabled, tts, listening, chordMode, workingSetSize, noteNaming, spokenNaming, voiceURI,
+        interval: intervalSecs, enabled, tts, listening, chordMode, workingSetSize, noteNaming, spokenNaming, voiceURI, showChordNotes,
       }));
     } catch { /* ignore quota / disabled storage */ }
-  }, [intervalSecs, enabled, tts, listening, chordMode, workingSetSize, noteNaming, spokenNaming, voiceURI]);
+  }, [intervalSecs, enabled, tts, listening, chordMode, workingSetSize, noteNaming, spokenNaming, voiceURI, showChordNotes]);
 
   return {
     intervalSecs, setIntervalSecs,
@@ -76,5 +79,6 @@ export function useSettings() {
     noteNaming, setNoteNaming,
     spokenNaming, setSpokenNaming,
     voiceURI, setVoiceURI,
+    showChordNotes, setShowChordNotes,
   };
 }

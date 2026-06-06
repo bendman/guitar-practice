@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import type { Voicing } from "../../../lib/constants";
+import { getStringNoteLabel } from "../../../lib/util";
 import s from "./index.module.css";
 
 const STRINGS = 6;
@@ -27,6 +28,8 @@ interface ChordDiagramProps {
   onDotTap?: (stringIndex: number) => void;
   /** Drag between two cells on the same fret: barre across the spanned strings. */
   onBarre?: (fromString: number, toString: number, absoluteFret: number) => void;
+  /** When true, overlay note names on fretted dots, barres, and open strings. */
+  showNotes?: boolean;
 }
 
 const STRING_LABEL = (i: number) => `corde ${i + 1}`;
@@ -41,6 +44,7 @@ export default function ChordDiagram({
   onMarkerTap,
   onDotTap,
   onBarre,
+  showNotes = false,
 }: ChordDiagramProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const dragStart = useRef<{ i: number; fret: number } | null>(null);
@@ -184,6 +188,16 @@ export default function ChordDiagram({
       {Array.from({ length: STRINGS }, (_, i) => {
         const f = frets[i];
         if (f !== 0 && f !== -1) return null;
+        if (f === 0 && showNotes) {
+          return (
+            <g key={`m${i}`}>
+              <circle className={s.noteCircle} cx={stringX(i)} cy={HEADER / 2} r={DOT_R} />
+              <text className={s.noteLabel} x={stringX(i)} y={HEADER / 2} textAnchor="middle" dominantBaseline="central">
+                {getStringNoteLabel(i, 0, "letters")}
+              </text>
+            </g>
+          );
+        }
         return (
           <text
             key={`m${i}`}
@@ -204,18 +218,31 @@ export default function ChordDiagram({
         const a = Math.min(b.fromString, b.toString);
         const z = Math.max(b.fromString, b.toString);
         return (
-          <line
-            key={`b${idx}`}
-            className={s.barre}
-            x1={stringX(a)}
-            y1={cellY(row)}
-            x2={stringX(z)}
-            y2={cellY(row)}
-            strokeWidth={DOT_R * 2}
-            strokeLinecap="round"
-            role={editable ? "img" : undefined}
-            aria-label={editable ? `barré case ${b.fret}` : undefined}
-          />
+          <g key={`b${idx}`}>
+            <line
+              className={s.barre}
+              x1={stringX(a)}
+              y1={cellY(row)}
+              x2={stringX(z)}
+              y2={cellY(row)}
+              strokeWidth={DOT_R * 2}
+              strokeLinecap="round"
+              role={editable ? "img" : undefined}
+              aria-label={editable ? `barré case ${b.fret}` : undefined}
+            />
+            {showNotes && Array.from({ length: z - a + 1 }, (_, k) => {
+              const si = a + k;
+              if (frets[si] != null && frets[si] > b.fret) return null;
+              return (
+                <g key={`bn${si}`}>
+                  <circle className={s.noteCircle} cx={stringX(si)} cy={cellY(row)} r={DOT_R} />
+                  <text className={s.noteLabel} x={stringX(si)} y={cellY(row)} textAnchor="middle" dominantBaseline="central">
+                    {getStringNoteLabel(si, b.fret, "letters")}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
         );
       })}
 
@@ -225,13 +252,14 @@ export default function ChordDiagram({
         if (row < 1 || row > fretCount) return null;
         if (coveredByBarre(i, f)) return null;
         return (
-          <circle
-            key={`d${i}`}
-            className={s.dot}
-            cx={stringX(i)}
-            cy={cellY(row)}
-            r={DOT_R}
-          />
+          <g key={`d${i}`}>
+            <circle className={showNotes ? s.noteCircle : s.dot} cx={stringX(i)} cy={cellY(row)} r={DOT_R} />
+            {showNotes && (
+              <text className={s.noteLabel} x={stringX(i)} y={cellY(row)} textAnchor="middle" dominantBaseline="central">
+                {getStringNoteLabel(i, f, "letters")}
+              </text>
+            )}
+          </g>
         );
       })}
 
