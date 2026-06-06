@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import type { Voicing } from "../../../lib/constants";
+import type { NoteRole } from "../../../lib/chordAnalysis";
 import { getStringNoteLabel } from "../../../lib/util";
 import s from "./index.module.css";
 
@@ -12,6 +13,16 @@ const HEADER = 26;
 const BOTTOM_PAD = 8;
 const DOT_R = 7;
 const LINE_W = 1.5;
+
+// Circumradii/half-diagonal scaled so each role shape has the same area as the
+// base circle (π·DOT_R²). Derived from each shape's area formula:
+//   diamond:  2·d²          → d  = DOT_R·√(π/2)
+//   triangle: (3√3/4)·R²    → R  = DOT_R·√(4π/(3√3))
+//   pentagon: (5/2)·R²·sin72° → R = DOT_R·√(2π/(5·sin72°))
+const _SIN72 = Math.sin((72 * Math.PI) / 180);
+const DIAMOND_R  = DOT_R * Math.sqrt(Math.PI / 2);
+const TRIANGLE_R = DOT_R * Math.sqrt((4 * Math.PI) / (3 * Math.sqrt(3)));
+const PENTAGON_R = DOT_R * Math.sqrt((2 * Math.PI) / (5 * _SIN72));
 
 interface ChordDiagramProps {
   fingering: Voicing | null | undefined;
@@ -30,9 +41,40 @@ interface ChordDiagramProps {
   onBarre?: (fromString: number, toString: number, absoluteFret: number) => void;
   /** When true, overlay note names on fretted dots, barres, and open strings. */
   showNotes?: boolean;
+  /**
+   * When provided, fretted and barre notes render as role-specific shapes
+   * (diamond=root, triangle=third, pentagon=fifth, circle=other) instead of
+   * plain filled dots. The callback receives the string index and absolute fret.
+   */
+  noteRole?: (stringIndex: number, fret: number) => NoteRole;
 }
 
 const STRING_LABEL = (i: number) => `corde ${i + 1}`;
+
+/** Renders a role-appropriate SVG shape centered at (cx, cy) with radius r. */
+function NoteShape({ role, cx, cy, r }: { role: NoteRole; cx: number; cy: number; r: number }) {
+  switch (role) {
+    case "root": {
+      const d = DIAMOND_R;
+      const pts = `${cx},${cy - d} ${cx + d},${cy} ${cx},${cy + d} ${cx - d},${cy}`;
+      return <polygon points={pts} className={s.noteShape} />;
+    }
+    case "third": {
+      const R = TRIANGLE_R;
+      const h = R * 0.866;
+      const pts = `${cx},${cy - R} ${cx + h},${cy + R * 0.5} ${cx - h},${cy + R * 0.5}`;
+      return <polygon points={pts} className={s.noteShape} />;
+    }
+    case "fifth": {
+      const R = PENTAGON_R;
+      const angles = [-90, -18, 54, 126, 198].map((d) => (d * Math.PI) / 180);
+      const pts = angles.map((a) => `${cx + R * Math.cos(a)},${cy + R * Math.sin(a)}`).join(" ");
+      return <polygon points={pts} className={s.noteShape} />;
+    }
+    default:
+      return <circle cx={cx} cy={cy} r={r} className={s.noteCircle} />;
+  }
+}
 
 export default function ChordDiagram({
   fingering,
@@ -45,6 +87,7 @@ export default function ChordDiagram({
   onDotTap,
   onBarre,
   showNotes = false,
+  noteRole,
 }: ChordDiagramProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const dragStart = useRef<{ i: number; fret: number } | null>(null);
@@ -230,15 +273,18 @@ export default function ChordDiagram({
               role={editable ? "img" : undefined}
               aria-label={editable ? `barré case ${b.fret}` : undefined}
             />
-            {showNotes && Array.from({ length: z - a + 1 }, (_, k) => {
+            {(showNotes || noteRole) && Array.from({ length: z - a + 1 }, (_, k) => {
               const si = a + k;
               if (frets[si] != null && frets[si] > b.fret) return null;
+              const role = noteRole ? noteRole(si, b.fret) : "other";
               return (
                 <g key={`bn${si}`}>
-                  <circle className={s.noteCircle} cx={stringX(si)} cy={cellY(row)} r={DOT_R} />
-                  <text className={s.noteLabel} x={stringX(si)} y={cellY(row)} textAnchor="middle" dominantBaseline="central">
-                    {getStringNoteLabel(si, b.fret, "letters")}
-                  </text>
+                  <NoteShape role={role} cx={stringX(si)} cy={cellY(row)} r={DOT_R} />
+                  {showNotes && (
+                    <text className={s.noteLabel} x={stringX(si)} y={cellY(row)} textAnchor="middle" dominantBaseline="central">
+                      {getStringNoteLabel(si, b.fret, "letters")}
+                    </text>
+                  )}
                 </g>
               );
             })}
@@ -251,9 +297,12 @@ export default function ChordDiagram({
         const row = f - baseFret + 1;
         if (row < 1 || row > fretCount) return null;
         if (coveredByBarre(i, f)) return null;
+        const role = noteRole ? noteRole(i, f) : undefined;
         return (
           <g key={`d${i}`}>
-            <circle className={showNotes ? s.noteCircle : s.dot} cx={stringX(i)} cy={cellY(row)} r={DOT_R} />
+            {role != null
+              ? <NoteShape role={role} cx={stringX(i)} cy={cellY(row)} r={DOT_R} />
+              : <circle className={showNotes ? s.noteCircle : s.dot} cx={stringX(i)} cy={cellY(row)} r={DOT_R} />}
             {showNotes && (
               <text className={s.noteLabel} x={stringX(i)} y={cellY(row)} textAnchor="middle" dominantBaseline="central">
                 {getStringNoteLabel(i, f, "letters")}

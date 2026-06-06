@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
-  CHORDS, CHORD_ROOTS, CHORD_QUALITIES, chordId, voicingsEqual,
+  CHORDS, chordId, voicingsEqual,
 } from "../../../lib/constants";
 import type { Voicing, Barre } from "../../../lib/constants";
 import type { CustomVoicings } from "../../../hooks/useCustomVoicings";
-import { useFormatLabel } from "../../../lib/noteNaming";
+import { getNoteRole, filterPossibleChords } from "../../../lib/chordAnalysis";
+import {
+  applyCellTap, applyMarkerTap, applyDotTap, applyBarre,
+} from "../../../lib/chordBuilderState";
 import ChordDiagram from "../../ui/ChordDiagram";
 import shared from "../../shared.module.css";
 import s from "./index.module.css";
@@ -19,25 +22,26 @@ interface ChordBuilderViewProps {
 
 const FRET_COUNT = 5;
 
+// Standard guitar tuning open-string semitone values (C=0), low to high.
+const OPEN_STRING_SEMITONES = [4, 9, 2, 7, 11, 4];
+
 /** A barre held in the builder, with its fret relative to the first case. */
 interface RelBarre { fret: number; from: number; to: number }
 
 export default function ChordBuilderView({
   prefillRootId, prefillQualityId, customVoicings, onSave, onCancel,
 }: ChordBuilderViewProps) {
-  const formatLabel = useFormatLabel();
-  const [rootId, setRootId] = useState(prefillRootId);
-  const [qualityId, setQualityId] = useState(prefillQualityId);
+  const [selectedChordId, setSelectedChordId] = useState(
+    () => chordId(prefillRootId, prefillQualityId),
+  );
   const [baseFret, setBaseFret] = useState(1);
-  // `frets` holds positions RELATIVE to the first visible case: a fretted note
-  // is its row number (1…FRET_COUNT), 0 = open, -1 = muted. Keeping them
-  // relative means moving the first case never moves the dots — only the fret
-  // label changes. `barres` are likewise relative. Absolute values are derived
-  // for display and saving.
   const [frets, setFrets] = useState<number[]>([0, 0, 0, 0, 0, 0]);
   const [barres, setBarres] = useState<RelBarre[]>([]);
 
-  const id = chordId(rootId, qualityId);
+  const selectedChord = CHORDS.find((c) => c.id === selectedChordId) ?? CHORDS[0];
+  const { rootId, qualityId } = selectedChord;
+  const id = selectedChord.id;
+
   const absoluteFrets = frets.map((f) => (f > 0 ? f + baseFret - 1 : f));
   const absoluteBarres: Barre[] = barres.map((b) => ({
     fret: b.fret + baseFret - 1,
@@ -50,41 +54,66 @@ export default function ChordBuilderView({
     ...(absoluteBarres.length ? { barres: absoluteBarres } : {}),
   };
 
-  const setString = (i: number, value: number) =>
-    setFrets((prev) => prev.map((v, idx) => (idx === i ? value : v)));
+  // Semitones of all sounding strings. For a barre-covered string whose
+  // individual fret slot was reset to 0 (e.g. after removing a higher dot),
+  // the barre fret is the actual sounding pitch — use that instead.
+  const playedSemitones = useMemo(() => {
+    const set = new Set<number>();
+    absoluteFrets.forEach((f, i) => {
+      if (f === -1) return; // muted
+      const effectiveFret = absoluteBarres.reduce((acc, b) => {
+        const lo = Math.min(b.fromString, b.toString);
+        const hi = Math.max(b.fromString, b.toString);
+        return i >= lo && i <= hi && b.fret > acc ? b.fret : acc;
+      }, f);
+      set.add((OPEN_STRING_SEMITONES[i] + effectiveFret) % 12);
+    });
+    return set;
+  }, [absoluteFrets, absoluteBarres]);
 
-  const handleCellTap = (i: number, absoluteFret: number) => {
-    const rel = absoluteFret - baseFret + 1;
-    // You can't fret a separate note on or below a barre on the same string —
-    // that space belongs to the barre. (A tap exactly on the barre fret is a
-    // dot, handled by handleDotTap.)
-    if (barres.some((b) => i >= b.from && i <= b.to && rel <= b.fret)) return;
-    setString(i, rel);
+  const possibleChords = useMemo(() => {
+    // When the played note set matches no chord exactly (e.g. initial all-open
+    // state has 5 unique semitones, which no defined quality has) fall back to
+    // the full list so the user can always make a selection.
+    const matched = filterPossibleChords(playedSemitones, CHORDS);
+    return matched.length > 0 ? matched : CHORDS;
+  }, [playedSemitones]);
+
+  // If the selected chord fell out of the possible list, auto-pick the first.
+  const effectiveChordId = possibleChords.some((c) => c.id === selectedChordId)
+    ? selectedChordId
+    : (possibleChords[0]?.id ?? selectedChordId);
+
+  const handleNoteRole = (stringIndex: number, fret: number) => {
+    const semitone = (OPEN_STRING_SEMITONES[stringIndex] + fret) % 12;
+    return getNoteRole(semitone, rootId, qualityId);
   };
 
-  const handleMarkerTap = (i: number) => setString(i, frets[i] === 0 ? -1 : 0);
-
-  const handleDotTap = (i: number) => {
-    const rel = frets[i];
-    // Tapping anywhere on a barre removes the whole barre and opens the strings
-    // that were the bar itself (higher fingers on top are left in place).
-    const covering = barres.find((b) => b.fret === rel && i >= b.from && i <= b.to);
-    if (covering) {
-      setBarres((prev) => prev.filter((b) => b !== covering));
-      setFrets((prev) => prev.map((v, idx) => (idx >= covering.from && idx <= covering.to && v === covering.fret ? 0 : v)));
-      return;
-    }
-    setString(i, 0);
+  const applyState = (next: { frets: number[]; barres: typeof barres }) => {
+    setFrets(next.frets);
+    setBarres(next.barres);
   };
 
-  // Dragging between two cells on the same fret lays a barre across them: every
-  // spanned string is pressed at the barre fret (absorbing any notes at or below
-  // it), and higher fingers are left on top.
-  const handleBarre = (from: number, to: number, absoluteFret: number) => {
-    const rel = absoluteFret - baseFret + 1;
-    setFrets((prev) => prev.map((v, i) => (i >= from && i <= to && v <= rel ? rel : v)));
-    setBarres((prev) => [...prev.filter((b) => b.fret !== rel), { fret: rel, from, to }]);
+  const handleCellTap = (i: number, absoluteFret: number) =>
+    applyState(applyCellTap({ frets, barres }, i, absoluteFret - baseFret + 1));
+
+  const handleMarkerTap = (i: number) =>
+    applyState(applyMarkerTap({ frets, barres }, i));
+
+  const handleDotTap = (i: number) =>
+    applyState(applyDotTap({ frets, barres }, i));
+
+  const handleBarre = (from: number, to: number, absoluteFret: number) =>
+    applyState(applyBarre({ frets, barres }, from, to, absoluteFret - baseFret + 1));
+
+  const handleSelectChord = (cid: string) => {
+    setSelectedChordId(cid);
   };
+
+  // Keep effectiveChordId in sync with the state when auto-switching
+  if (effectiveChordId !== selectedChordId) {
+    setSelectedChordId(effectiveChordId);
+  }
 
   const existing = [
     ...(CHORDS.find((c) => c.id === id)?.voicings ?? []),
@@ -104,6 +133,8 @@ export default function ChordBuilderView({
               size={300}
               fretCount={FRET_COUNT}
               editable
+              showNotes
+              noteRole={handleNoteRole}
               onCellTap={handleCellTap}
               onMarkerTap={handleMarkerTap}
               onDotTap={handleDotTap}
@@ -130,36 +161,27 @@ export default function ChordBuilderView({
           </div>
 
           <div className={s.field}>
-            <span className={shared.eyebrow}>Fondamentale</span>
-            <div className={s.scrollRow} role="radiogroup" aria-label="Fondamentale">
-              {CHORD_ROOTS.map((r) => (
+            <span className={shared.eyebrow}>
+              Accord possible
+              {possibleChords.length < CHORDS.length && (
+                <span className={s.chordCount}> · {possibleChords.length}</span>
+              )}
+            </span>
+            <div className={s.scrollRow} role="radiogroup" aria-label="Accord">
+              {possibleChords.map((c) => (
                 <button
-                  key={r.id}
+                  key={c.id}
                   role="radio"
-                  aria-checked={rootId === r.id}
-                  className={`${s.pick} ${rootId === r.id ? s.pickOn : ""}`}
-                  onClick={() => setRootId(r.id)}
+                  aria-checked={c.id === effectiveChordId}
+                  className={`${s.pick} ${c.id === effectiveChordId ? s.pickOn : ""}`}
+                  onClick={() => handleSelectChord(c.id)}
                 >
-                  {formatLabel(r.label)}
+                  {c.labelShort}
                 </button>
               ))}
-            </div>
-          </div>
-
-          <div className={s.field}>
-            <span className={shared.eyebrow}>Famille</span>
-            <div className={s.scrollRow} role="radiogroup" aria-label="Famille">
-              {CHORD_QUALITIES.map((q) => (
-                <button
-                  key={q.id}
-                  role="radio"
-                  aria-checked={qualityId === q.id}
-                  className={`${s.pick} ${qualityId === q.id ? s.pickOn : ""}`}
-                  onClick={() => setQualityId(q.id)}
-                >
-                  {q.labelLong}
-                </button>
-              ))}
+              {possibleChords.length === 0 && (
+                <span className={s.settingLabel}>Aucun accord correspondant</span>
+              )}
             </div>
           </div>
 

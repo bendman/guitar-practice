@@ -60,6 +60,13 @@
   stroke-width: 1.5px;
 }
 
+/* Role-specific shapes (diamond, triangle, pentagon) — same visual style as noteCircle */
+.noteShape {
+  fill: color-mix(in srgb, var(--accent) 40%, var(--bg));
+  stroke: var(--accent);
+  stroke-width: 1.5px;
+}
+
 .noteLabel {
   fill: var(--text);
   font-family: var(--mono);
