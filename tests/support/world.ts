@@ -11,6 +11,8 @@ export class GuitarWorld extends World {
   browser!: Browser;
   context!: BrowserContext;
   page!: Page;
+  /** Carries the root label between "I select the chord root" and "I select the chord family" steps. */
+  pendingChordRoot: string = "";
 
   constructor(options: IWorldOptions) {
     super(options);

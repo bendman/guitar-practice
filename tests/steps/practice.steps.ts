@@ -262,17 +262,24 @@ function builder(page: Page) {
   return page.getByRole("dialog", { name: "Créer un accord" });
 }
 
+// Maps the French long quality names used in feature files to the short labels
+// shown in the unified chord selector (labelShort = "${root.label} ${q.label}").
+const QUALITY_SHORT: Record<string, string> = {
+  "Majeur": "Maj", "Mineur": "Min", "Diminué": "Dim",
+  "Maj 7": "Maj 7", "Min 7": "Min 7", "Demi-diminué": "♭7", "7": "7",
+};
+
 When("I select the chord root {string}", async function (this: GuitarWorld, root: string) {
-  await builder(this.page)
-    .getByRole("radiogroup", { name: "Fondamentale" })
-    .getByRole("radio", { name: root, exact: true })
-    .click();
+  // Store the root; the actual click happens when the family step provides the full name.
+  this.pendingChordRoot = root;
 });
 
 When("I select the chord family {string}", async function (this: GuitarWorld, family: string) {
+  const short = QUALITY_SHORT[family] ?? family;
+  const label = `${this.pendingChordRoot} ${short}`;
   await builder(this.page)
-    .getByRole("radiogroup", { name: "Famille" })
-    .getByRole("radio", { name: family, exact: true })
+    .getByRole("radiogroup", { name: "Accord" })
+    .getByRole("radio", { name: label, exact: true })
     .click();
 });
 
