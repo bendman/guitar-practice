@@ -2,7 +2,7 @@ import { createContext, useContext } from "react";
 import { formatNoteLabel } from "./util";
 import type { NoteNaming } from "./util";
 
-const NoteNamingContext = createContext<NoteNaming>("solfege");
+export const NoteNamingContext = createContext<NoteNaming>("solfege");
 
 export function NoteNamingProvider({
   naming, children,

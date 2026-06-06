@@ -77,6 +77,7 @@ interface SessionViewProps {
   preferredVoicings: Record<string, number>;
   onVoicingChange: (chordId: string, idx: number) => void;
   onAddVoicing: (rootId: string, qualityId: string) => void;
+  showChordNotes?: boolean;
 }
 
 export default function SessionView({
@@ -106,6 +107,7 @@ export default function SessionView({
   preferredVoicings,
   onVoicingChange,
   onAddVoicing,
+  showChordNotes = false,
 }: SessionViewProps) {
   const formatLabel = useFormatLabel();
   const chordAuto = chordMode === "auto";
@@ -265,7 +267,7 @@ export default function SessionView({
                   onClick={() => onQuizSelect(c.id)}
                   disabled={selectedId != null}
                 >
-                  {c.voicings.length > 0 && <ChordDiagram fingering={c.voicings[Math.min(preferredVoicings[c.id] ?? 0, c.voicings.length - 1)]} size={160} />}
+                  {c.voicings.length > 0 && <ChordDiagram fingering={c.voicings[Math.min(preferredVoicings[c.id] ?? 0, c.voicings.length - 1)]} size={160} showNotes={showChordNotes} />}
                   <span className={s.quizCardName}>
                     {selectedId != null ? formatLabel(c.labelShort) : "?"}
                   </span>
@@ -286,7 +288,7 @@ export default function SessionView({
         {revealed && isChord && (
           <div className={s.diagramWrap}>
             {voicings[voicingIdx] && (
-              <ChordDiagram fingering={voicings[voicingIdx]} size={320} />
+              <ChordDiagram fingering={voicings[voicingIdx]} size={320} showNotes={showChordNotes} />
             )}
             {voicings.length > 1 && (
               <div className={s.voicingSwitcher} role="group" aria-label="Positions">

@@ -31,6 +31,8 @@ interface ConfigViewProps {
   onSavePreset: () => void;
   chordMode: ChordMode;
   setChordMode: (v: ChordMode) => void;
+  showChordNotes: boolean;
+  setShowChordNotes: (v: boolean) => void;
   weights?: Weights;
   onStart: () => void;
   onBack: () => void;
@@ -49,6 +51,7 @@ export default function ConfigView({
   onPreset, onProgression,
   customPresets, onCustomPreset, onRemoveCustomPreset, onSavePreset,
   chordMode, setChordMode,
+  showChordNotes, setShowChordNotes,
   onStart, onBack,
   weights = {},
   showDebugLink, onShowDebug,
@@ -150,6 +153,12 @@ export default function ConfigView({
                 </div>
               </div>
 
+              <Toggle
+                label="Afficher les notes"
+                sublabel="Montre le nom de chaque note sur le diagramme"
+                value={showChordNotes}
+                onChange={setShowChordNotes}
+              />
               <Toggle
                 label="Annoncer à voix haute"
                 sublabel="Lit le nom au début de chaque carte"

@@ -135,6 +135,16 @@ export function sayAloud(
 
 export type NoteNaming = "solfege" | "letters";
 
+// Standard guitar tuning open-string semitone values (0 = C/Do), low to high.
+const OPEN_STRING_SEMITONES = [4, 9, 2, 7, 11, 4]; // E A D G B E
+const CHROMATIC_SOLFEGE = ["Do", "Do#", "Ré", "Ré#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si"];
+const CHROMATIC_LETTERS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+export function getStringNoteLabel(stringIndex: number, fret: number, naming: NoteNaming): string {
+  const semitone = (OPEN_STRING_SEMITONES[stringIndex] + fret) % 12;
+  return (naming === "letters" ? CHROMATIC_LETTERS : CHROMATIC_SOLFEGE)[semitone];
+}
+
 const SOLFEGE_TO_LETTER: Record<string, string> = {
   Do: "C", Ré: "D", Re: "D", Mi: "E", Fa: "F", Sol: "G", La: "A", Si: "B",
 };

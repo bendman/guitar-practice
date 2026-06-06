@@ -46,6 +46,7 @@ export default function GuitarPractice() {
     noteNaming, setNoteNaming,
     spokenNaming, setSpokenNaming,
     voiceURI, setVoiceURI,
+    showChordNotes, setShowChordNotes,
   } = useSettings();
   const {
     stats, weights, confusions,
@@ -265,6 +266,7 @@ export default function GuitarPractice() {
         preferredVoicings={preferredVoicings}
         onVoicingChange={handleVoicingChange}
         onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
+        showChordNotes={showChordNotes}
       />
     );
   }
@@ -327,6 +329,8 @@ export default function GuitarPractice() {
         onSavePreset={() => setSavingPreset(true)}
         chordMode={chordMode}
         setChordMode={setChordMode}
+        showChordNotes={showChordNotes}
+        setShowChordNotes={setShowChordNotes}
         weights={weights}
         onStart={startSession}
         onBack={goWelcome}

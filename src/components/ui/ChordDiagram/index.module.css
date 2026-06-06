@@ -53,6 +53,21 @@
   font-size: 9px;
 }
 
+/* Used for ALL note-bearing circles when showNotes is on (fret dots, barre positions, open strings) */
+.noteCircle {
+  fill: color-mix(in srgb, var(--accent) 40%, var(--bg));
+  stroke: var(--accent);
+  stroke-width: 1.5px;
+}
+
+.noteLabel {
+  fill: var(--text);
+  font-family: var(--mono);
+  font-size: 6px;
+  font-weight: bold;
+  pointer-events: none;
+}
+
 /* Preview shown under the finger before release — keep it translucent but give
    it a strong, bright glow so it stays visible beneath a fingertip. */
 .ghost {
