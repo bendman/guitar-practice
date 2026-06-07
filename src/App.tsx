@@ -302,6 +302,7 @@ export default function GuitarPractice() {
         onCreateChord={() => openBuilder()}
         onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
         onRemoveVoicing={removeVoicing}
+        onShowDebug={() => setDevScreen("mic")}
       />
     );
   }
@@ -334,8 +335,6 @@ export default function GuitarPractice() {
         weights={weights}
         onStart={startSession}
         onBack={goWelcome}
-        showDebugLink={import.meta.env.DEV}
-        onShowDebug={() => setDevScreen("mic")}
       />
     );
   }
@@ -348,8 +347,6 @@ export default function GuitarPractice() {
       onPickNotes={() => pickMode("notes")}
       onPickChords={() => pickMode("chords")}
       onShowProgress={goProgress}
-      showDebugLink={import.meta.env.DEV}
-      onShowDebug={() => setDevScreen("mic")}
     />
   );
   };

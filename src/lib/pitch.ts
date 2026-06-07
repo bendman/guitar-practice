@@ -1,4 +1,4 @@
-import { NOTE_FREQS } from "./constants";
+import { Note } from "tonal";
 
 export interface NoteInfo {
   noteId: string;
@@ -12,40 +12,40 @@ export interface PitchResult {
   corr: number;
 }
 
+/** Maps tonal pitch-class names (both sharp and flat spellings) to app note IDs. */
+const PC_TO_ID: Record<string, string> = {
+  C: "do",    "C#": "do_sharp", Db: "do_sharp",
+  D: "re",    "D#": "re_sharp", Eb: "re_sharp",
+  E: "mi",
+  F: "fa",    "F#": "fa_sharp", Gb: "fa_sharp",
+  G: "sol",   "G#": "sol_sharp", Ab: "sol_sharp",
+  A: "la",    "A#": "la_sharp", Bb: "la_sharp",
+  B: "si",
+};
+
 export function freqToNoteId(freq: number): string | null {
   if (freq < 60 || freq > 2000) return null;
-  let closest: string | null = null;
-  let minDist = Infinity;
-  for (const [id, freqs] of Object.entries(NOTE_FREQS)) {
-    for (const f of freqs) {
-      const cents = Math.abs(1200 * Math.log2(freq / f));
-      if (cents < minDist) {
-        minDist = cents;
-        closest = id;
-      }
-    }
-  }
-  return minDist < 50 ? closest : null;
+  const noteName = Note.fromFreq(freq);
+  const pc = Note.pitchClass(noteName);
+  const id = PC_TO_ID[pc] ?? null;
+  if (!id) return null;
+  // Reject if more than 50 cents from the nearest semitone
+  const refFreq = Note.freq(noteName);
+  if (refFreq === null) return null;
+  const cents = Math.abs(1200 * Math.log2(freq / refFreq));
+  return cents < 50 ? id : null;
 }
 
 export function freqToNoteInfo(freq: number): NoteInfo | null {
   if (freq < 60 || freq > 2000) return null;
-  let closest: string | null = null;
-  let closestFreq: number | null = null;
-  let minDist = Infinity;
-  for (const [id, freqs] of Object.entries(NOTE_FREQS)) {
-    for (const f of freqs) {
-      const cents = Math.abs(1200 * Math.log2(freq / f));
-      if (cents < minDist) {
-        minDist = cents;
-        closest = id;
-        closestFreq = f;
-      }
-    }
-  }
-  if (!closest || closestFreq === null) return null;
-  const signedCents = Math.round(1200 * Math.log2(freq / closestFreq));
-  return { noteId: closest, cents: Math.round(minDist), signedCents };
+  const noteName = Note.fromFreq(freq);
+  const pc = Note.pitchClass(noteName);
+  const noteId = PC_TO_ID[pc] ?? null;
+  if (!noteId) return null;
+  const refFreq = Note.freq(noteName);
+  if (refFreq === null) return null;
+  const signedCents = Math.round(1200 * Math.log2(freq / refFreq));
+  return { noteId, cents: Math.abs(signedCents), signedCents };
 }
 
 export function detectPitch(buffer: Float32Array, sampleRate: number): PitchResult {

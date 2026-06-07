@@ -36,8 +36,6 @@ interface ConfigViewProps {
   weights?: Weights;
   onStart: () => void;
   onBack: () => void;
-  showDebugLink: boolean;
-  onShowDebug: () => void;
 }
 
 export default function ConfigView({
@@ -54,7 +52,6 @@ export default function ConfigView({
   showChordNotes, setShowChordNotes,
   onStart, onBack,
   weights = {},
-  showDebugLink, onShowDebug,
 }: ConfigViewProps) {
   const isNotesMode = mode !== "chords";
   const title = isNotesMode ? "Notes" : "Accords";
@@ -72,9 +69,6 @@ export default function ConfigView({
 
   return (
     <div className={shared.screen}>
-      {showDebugLink && (
-        <button onClick={onShowDebug} className={s.debugBtn}>debug</button>
-      )}
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
           <h1 className={shared.title}>{title}</h1>

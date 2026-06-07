@@ -10,8 +10,6 @@ interface WelcomeViewProps {
   onPickNotes: () => void;
   onPickChords: () => void;
   onShowProgress: () => void;
-  showDebugLink: boolean;
-  onShowDebug: () => void;
 }
 
 export default function WelcomeView({
@@ -19,16 +17,11 @@ export default function WelcomeView({
   onPickNotes,
   onPickChords,
   onShowProgress,
-  showDebugLink,
-  onShowDebug,
 }: WelcomeViewProps) {
   const acc = accuracyPercent(stats);
 
   return (
     <div className={shared.screen}>
-      {showDebugLink && (
-        <button onClick={onShowDebug} className={s.debugBtn}>debug</button>
-      )}
       {onShowProgress && (
         <button onClick={onShowProgress} className={s.settingsBtn}>Paramètres</button>
       )}

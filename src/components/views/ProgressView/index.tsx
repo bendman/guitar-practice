@@ -42,6 +42,7 @@ interface ProgressViewProps {
   onCreateChord?: () => void;
   onAddVoicing?: (rootId: string, qualityId: string) => void;
   onRemoveVoicing?: (chordId: string, index: number) => void;
+  onShowDebug?: () => void;
 }
 
 export default function ProgressView({
@@ -49,7 +50,7 @@ export default function ProgressView({
   noteNaming = "solfege", setNoteNaming,
   spokenNaming = "solfege", setSpokenNaming,
   voiceURI = null, setVoiceURI,
-  customVoicings = {}, onCreateChord, onAddVoicing, onRemoveVoicing,
+  customVoicings = {}, onCreateChord, onAddVoicing, onRemoveVoicing, onShowDebug,
 }: ProgressViewProps) {
   const [openChordIds, setOpenChordIds] = useState<Set<string>>(new Set());
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -79,6 +80,11 @@ export default function ProgressView({
 
   return (
     <div className={shared.screen}>
+      {onShowDebug && (
+        <button onClick={onShowDebug} className={s.debugBtn}>
+          Build: {new Date(__BUILD_TIME__).toLocaleString()}
+        </button>
+      )}
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
           <h1 className={shared.title}>Paramètres</h1>

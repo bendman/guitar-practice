@@ -1,29 +1,44 @@
+import { Chord, Interval, Note } from "tonal";
 import type { ChordItem } from "./constants";
 
 export type NoteRole = "root" | "third" | "fifth" | "other";
 
-/** Semitone (C=0) for each chord root id. */
-const CHORD_ROOT_SEMITONES: Record<string, number> = {
-  do: 0, do_s: 1, re: 2, re_s: 3, mi: 4, fa: 5,
-  fa_s: 6, sol: 7, sol_s: 8, la: 9, la_s: 10, si: 11,
+/** Map from app root IDs (solfège) to tonal note names. */
+const ROOT_ID_TO_NOTE: Record<string, string> = {
+  do: "C", do_s: "C#", re: "D", re_s: "D#", mi: "E", fa: "F",
+  fa_s: "F#", sol: "G", sol_s: "G#", la: "A", la_s: "A#", si: "B",
 };
 
-/** Intervals (in semitones from root) for each chord quality id. */
-const QUALITY_INTERVALS: Record<string, number[]> = {
-  maj:  [0, 4, 7],
-  min:  [0, 3, 7],
-  dim:  [0, 3, 6],
-  maj7: [0, 4, 7, 11],
-  min7: [0, 3, 7, 10],
-  m7b5: [0, 3, 6, 10],
-  dom7: [0, 4, 7, 10],
+/** Map from app quality IDs to tonal chord type names. */
+const QUALITY_ID_TO_TYPE: Record<string, string> = {
+  maj:  "major",
+  min:  "minor",
+  dim:  "diminished",
+  maj7: "major seventh",
+  min7: "minor seventh",
+  m7b5: "half-diminished",
+  dom7: "dominant seventh",
 };
+
+/** Semitone intervals from root for a given quality. Cached per quality. */
+const intervalCache = new Map<string, number[]>();
+function getIntervals(qualityId: string): number[] {
+  if (intervalCache.has(qualityId)) return intervalCache.get(qualityId)!;
+  const type = QUALITY_ID_TO_TYPE[qualityId];
+  const intervals = type
+    ? Chord.get(`C ${type}`).intervals.map((i) => Interval.semitones(i) ?? 0)
+    : [0];
+  intervalCache.set(qualityId, intervals);
+  return intervals;
+}
 
 /** Returns the set of semitones (mod 12) that belong to a chord. */
 export function getChordSemitones(rootId: string, qualityId: string): Set<number> {
-  const root = CHORD_ROOT_SEMITONES[rootId] ?? 0;
-  const intervals = QUALITY_INTERVALS[qualityId] ?? [0];
-  return new Set(intervals.map((i) => (root + i) % 12));
+  const rootNote = ROOT_ID_TO_NOTE[rootId];
+  const type = QUALITY_ID_TO_TYPE[qualityId];
+  if (!rootNote || !type) return new Set([0]);
+  const { notes } = Chord.get(`${rootNote} ${type}`);
+  return new Set(notes.map((n) => Note.chroma(n) ?? 0));
 }
 
 /**
@@ -32,9 +47,11 @@ export function getChordSemitones(rootId: string, qualityId: string): Set<number
  * a minor or major third depending on the quality), and "fifth" is the third.
  */
 export function getNoteRole(noteSemitone: number, rootId: string, qualityId: string): NoteRole {
-  const root = CHORD_ROOT_SEMITONES[rootId] ?? 0;
-  const intervals = QUALITY_INTERVALS[qualityId] ?? [0];
-  const rel = (noteSemitone - root + 12) % 12;
+  const rootNote = ROOT_ID_TO_NOTE[rootId];
+  if (!rootNote) return "other";
+  const rootSemitone = Note.chroma(rootNote) ?? 0;
+  const intervals = getIntervals(qualityId);
+  const rel = (noteSemitone - rootSemitone + 12) % 12;
   if (rel === intervals[0]) return "root";
   if (rel === intervals[1]) return "third";
   if (rel === intervals[2]) return "fifth";
