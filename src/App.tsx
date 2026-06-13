@@ -16,7 +16,7 @@ import WelcomeView from "./components/views/WelcomeView";
 import ConfigView from "./components/views/ConfigView";
 import SessionView from "./components/views/SessionView";
 import SummaryView from "./components/views/SummaryView";
-import ProgressView from "./components/views/ProgressView";
+import SettingsView from "./components/views/SettingsView";
 import DebugView from "./components/views/DebugView";
 import LearningView from "./components/views/LearningView";
 import ChordBuilderView from "./components/views/ChordBuilderView";
@@ -63,7 +63,7 @@ export default function GuitarPractice() {
   const [devScreen, setDevScreen] = useState<string | null>(null);
   const [showLearning, setShowLearning] = useState(false);
   const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
-  const [screen, setScreen] = useState<"welcome" | "config" | "progress">("welcome");
+  const [screen, setScreen] = useState<"welcome" | "config" | "settings">("welcome");
   const [mode, setMode] = useState<"notes" | "chords" | null>(null);
   const [preSessionStats, setPreSessionStats] = useState<Stats | null>(null);
   const [preSessionWeights, setPreSessionWeights] = useState<Weights>({});
@@ -199,7 +199,7 @@ export default function GuitarPractice() {
     setScreen("welcome");
   };
 
-  const goProgress = () => setScreen("progress");
+  const goSettings = () => setScreen("settings");
 
   const pickMode = (m: "notes" | "chords") => {
     setMode(m);
@@ -250,7 +250,7 @@ export default function GuitarPractice() {
         hitStatus={session.hitStatus}
         practiceTime={session.practiceTime}
         interval={intervalSecs}
-        chordMode={chordMode}
+        chordMode={mode === "chords" ? chordMode : "manual"}
         pendingReveal={session.pendingReveal}
         choices={session.choices}
         correctId={session.correctId}
@@ -284,9 +284,9 @@ export default function GuitarPractice() {
     );
   }
 
-  if (screen === "progress") {
+  if (screen === "settings") {
     return (
-      <ProgressView
+      <SettingsView
         weights={weights}
         onBack={goWelcome}
         onResetWeights={resetAllWeights}
@@ -299,6 +299,8 @@ export default function GuitarPractice() {
         voiceURI={voiceURI}
         setVoiceURI={setVoiceURI}
         customVoicings={customVoicings}
+        preferredVoicings={preferredVoicings}
+        onVoicingChange={handleVoicingChange}
         onCreateChord={() => openBuilder()}
         onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
         onRemoveVoicing={removeVoicing}
@@ -346,7 +348,7 @@ export default function GuitarPractice() {
       stats={stats}
       onPickNotes={() => pickMode("notes")}
       onPickChords={() => pickMode("chords")}
-      onShowProgress={goProgress}
+      onShowProgress={goSettings}
     />
   );
   };
