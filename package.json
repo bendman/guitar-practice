@@ -25,7 +25,8 @@
     "@tanstack/react-router": "^1.170.15",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "tonal": "^6.4.3"
+    "tonal": "^6.4.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^12.9.0",
@@ -36,6 +37,7 @@
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/parser": "^8.61.0",
     "@vite-pwa/assets-generator": "^1.0.2",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^10.3.0",

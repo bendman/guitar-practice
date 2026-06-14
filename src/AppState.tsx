@@ -4,17 +4,10 @@ import { useProgress } from "./hooks/useProgress";
 import { useCustomVoicings } from "./hooks/useCustomVoicings";
 import { useCustomPresets } from "./hooks/useCustomPresets";
 import type { Stats, SessionSummary, Weights } from "./lib/stats";
-
-const PREFERRED_VOICINGS_KEY = "guitar-practice-preferred-voicings";
+import { load as loadPreferredVoicingsBlob, save as savePreferredVoicings } from "./persistence/preferredVoicings";
 
 function loadPreferredVoicings(): Record<string, number> {
-  try { return (JSON.parse(localStorage.getItem(PREFERRED_VOICINGS_KEY) ?? "null") as Record<string, number> | null) ?? {}; }
-  catch { return {}; }
-}
-
-function savePreferredVoicings(v: Record<string, number>) {
-  try { localStorage.setItem(PREFERRED_VOICINGS_KEY, JSON.stringify(v)); }
-  catch { /* ignore quota / disabled storage */ }
+  return loadPreferredVoicingsBlob().data;
 }
 
 type Settings = ReturnType<typeof useSettings>;
