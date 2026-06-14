@@ -1,12 +1,15 @@
-import { createBlob } from "../createBlob";
-import { StoredSettingsSchema, type StoredSettings } from "./schema";
+import { createVersionedBlob } from "../createVersionedBlob";
+import { LATEST_VERSION, latestSchema, migrations } from "./migrate";
+import type { StoredSettings } from "./schemas/v1";
 
-export type { StoredSettings } from "./schema";
+export type { StoredSettings } from "./schemas/v1";
 
-const blob = createBlob<StoredSettings>(
-  "guitar-practice-settings",
-  StoredSettingsSchema,
-  () => ({}),
-);
+export const blob = createVersionedBlob<StoredSettings>({
+  key: "guitar-practice-settings",
+  latestVersion: LATEST_VERSION,
+  schema: latestSchema,
+  makeDefaults: () => ({}),
+  migrations,
+});
 
 export const { load, save } = blob;

@@ -1,3 +1,14 @@
+# Append-only guard for frozen persistence schemas: a committed
+# src/persistence/**/schemas/vN.ts may be added, but never modified, renamed, or
+# deleted. To change a persisted shape, add the next vN+1 file plus a migration.
+frozen=$(git diff --cached --name-status --diff-filter=MDR \
+  | grep -E '[[:space:]]src/persistence/.*/schemas/v[0-9]+\.ts$' || true)
+if [ -n "$frozen" ]; then
+  echo "✘ Frozen schema files must be append-only (add vN+1 instead of editing):"
+  echo "$frozen"
+  exit 1
+fi
+
 # Fast feedback loop: typecheck + the no-mic BDD suite against the dev server.
 # The @audio scenario is excluded here (run it in CI / `npm run test:audio`).
 # `npm run lint` is intentionally omitted: the repo has pre-existing lint errors
