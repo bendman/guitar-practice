@@ -30,5 +30,6 @@ export default defineConfig({
   base: '/guitar-practice/',
   test: {
     include: ['src/**/*.test.ts'],
+    environment: 'jsdom',
   },
 })
