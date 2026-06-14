@@ -1,10 +1,15 @@
-import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import SettingsView from "../components/views/SettingsView";
 import ChordBuilderView from "../components/views/ChordBuilderView";
 import type { Voicing } from "../lib/constants";
 import { CHORDS, mergeCustomVoicings } from "../lib/constants";
 import { useAppState } from "../AppState";
+
+type SettingsSearch = {
+  overlay?: "chordBuilder";
+  root?: string;
+  quality?: string;
+};
 
 function SettingsScreen() {
   const {
@@ -17,12 +22,20 @@ function SettingsScreen() {
     preferredVoicings, setPreferredVoicing,
   } = useAppState();
   const navigate = useNavigate();
-
-  const [builder, setBuilder] = useState<{ rootId: string; qualityId: string } | null>(null);
+  const { overlay, root, quality } = Route.useSearch();
 
   const openBuilder = (prefill?: { rootId: string; qualityId: string }) => {
-    setBuilder(prefill ?? { rootId: "mi", qualityId: "maj" });
+    navigate({
+      to: ".",
+      search: {
+        overlay: "chordBuilder",
+        root: prefill?.rootId ?? "mi",
+        quality: prefill?.qualityId ?? "maj",
+      },
+    });
   };
+
+  const closeBuilder = () => navigate({ to: ".", search: {} });
 
   const handleBuilderSave = (id: string, voicing: Voicing) => {
     const pool = mergeCustomVoicings(CHORDS, customVoicings);
@@ -31,7 +44,7 @@ function SettingsScreen() {
     const newIdx = inPool?.voicings?.length ?? (builtInCount + (customVoicings[id]?.length ?? 0));
     addVoicing(id, voicing);
     setPreferredVoicing(id, newIdx);
-    setBuilder(null);
+    closeBuilder();
   };
 
   return (
@@ -56,17 +69,28 @@ function SettingsScreen() {
         onRemoveVoicing={removeVoicing}
         onShowDebug={() => navigate({ to: "/debug" })}
       />
-      {builder && (
+      {overlay === "chordBuilder" && (
         <ChordBuilderView
-          prefillRootId={builder.rootId}
-          prefillQualityId={builder.qualityId}
+          prefillRootId={root ?? "mi"}
+          prefillQualityId={quality ?? "maj"}
           customVoicings={customVoicings}
           onSave={handleBuilderSave}
-          onCancel={() => setBuilder(null)}
+          onCancel={closeBuilder}
         />
       )}
     </>
   );
 }
 
-export const Route = createFileRoute("/settings")({ component: SettingsScreen });
+export const Route = createFileRoute("/settings")({
+  validateSearch: (search: Record<string, unknown>): SettingsSearch => {
+    const overlay = search.overlay === "chordBuilder" ? "chordBuilder" : undefined;
+    if (!overlay) return {};
+    return {
+      overlay,
+      root: typeof search.root === "string" ? search.root : undefined,
+      quality: typeof search.quality === "string" ? search.quality : undefined,
+    };
+  },
+  component: SettingsScreen,
+});

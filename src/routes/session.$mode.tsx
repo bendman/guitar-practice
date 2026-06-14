@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useAppState } from "../AppState";
 import { ALL, CHORDS, mergeCustomVoicings } from "../lib/constants";
@@ -16,11 +16,17 @@ import ChordBuilderView from "../components/views/ChordBuilderView";
 
 type SessionMode = "notes" | "chords";
 type SessionFlow = "timed" | "reveal" | "quiz";
-type SessionSearch = { flow: SessionFlow };
+type SessionOverlay = "chordBuilder" | "learning";
+type SessionSearch = {
+  flow: SessionFlow;
+  overlay?: SessionOverlay;
+  root?: string;
+  quality?: string;
+};
 
 function SessionScreen() {
   const { mode } = Route.useParams();
-  const { flow } = Route.useSearch();
+  const { flow, overlay, root, quality } = Route.useSearch();
   const navigate = useNavigate();
   const {
     intervalSecs, setIntervalSecs,
@@ -34,9 +40,6 @@ function SessionScreen() {
     capturePreSession, setLastSummary,
     chordMode,
   } = useAppState();
-
-  const [builder, setBuilder] = useState<{ rootId: string; qualityId: string } | null>(null);
-  const [showLearning, setShowLearning] = useState(false);
 
   useEffect(() => {
     capturePreSession(stats, weights);
@@ -53,6 +56,16 @@ function SessionScreen() {
     : basePool;
   const activePool = buildActivePool(pool, weights, workingSetSize);
 
+  const closeOverlay = () => navigate({ to: ".", params: { mode }, search: { flow } });
+  const openBuilder = (rootId: string, qualityId: string) =>
+    navigate({
+      to: ".",
+      params: { mode },
+      search: { flow, overlay: "chordBuilder", root: rootId, quality: qualityId },
+    });
+  const openLearning = () =>
+    navigate({ to: ".", params: { mode }, search: { flow, overlay: "learning" } });
+
   const handleSessionStop = (raw: SessionRawResult) => {
     const summary = summarizeSession({
       ...raw,
@@ -64,30 +77,26 @@ function SessionScreen() {
     navigate({ to: "/summary" });
   };
 
-  const openBuilder = (rootId: string, qualityId: string) => setBuilder({ rootId, qualityId });
-
   const handleBuilderSave = (id: string, voicing: Voicing) => {
     const inPool = pool.find((c) => c.id === id) as ChordItem | undefined;
     const builtInCount = CHORDS.find((c) => c.id === id)?.voicings?.length ?? 0;
     const newIdx = inPool?.voicings?.length ?? (builtInCount + (customVoicings[id]?.length ?? 0));
     addVoicing(id, voicing);
     setPreferredVoicing(id, newIdx);
-    setBuilder(null);
+    closeOverlay();
   };
 
-  if (showLearning) {
+  if (overlay === "learning") {
     return (
       <LearningView
         pool={pool}
         activePool={activePool}
         weights={weights}
         workingSetSize={workingSetSize}
-        onBack={() => setShowLearning(false)}
+        onBack={closeOverlay}
       />
     );
   }
-
-  const onShowLearning = () => setShowLearning(true);
 
   const renderFlow = () => {
     if (mode === "notes") {
@@ -102,7 +111,7 @@ function SessionScreen() {
           voiceURI={voiceURI}
           onResult={recordResult}
           onStop={handleSessionStop}
-          onShowLearning={onShowLearning}
+          onShowLearning={openLearning}
         />
       );
     }
@@ -119,7 +128,7 @@ function SessionScreen() {
           onResult={recordResult}
           onConfusion={recordConfusion}
           onStop={handleSessionStop}
-          onShowLearning={onShowLearning}
+          onShowLearning={openLearning}
           preferredVoicings={preferredVoicings}
           showChordNotes={showChordNotes}
         />
@@ -136,7 +145,7 @@ function SessionScreen() {
         voiceURI={voiceURI}
         onResult={recordResult}
         onStop={handleSessionStop}
-        onShowLearning={onShowLearning}
+        onShowLearning={openLearning}
         preferredVoicings={preferredVoicings}
         onVoicingChange={setPreferredVoicing}
         onAddVoicing={openBuilder}
@@ -148,13 +157,13 @@ function SessionScreen() {
   return (
     <>
       {renderFlow()}
-      {builder && (
+      {overlay === "chordBuilder" && (
         <ChordBuilderView
-          prefillRootId={builder.rootId}
-          prefillQualityId={builder.qualityId}
+          prefillRootId={root ?? "mi"}
+          prefillQualityId={quality ?? "maj"}
           customVoicings={customVoicings}
           onSave={handleBuilderSave}
-          onCancel={() => setBuilder(null)}
+          onCancel={closeOverlay}
         />
       )}
     </>
@@ -169,11 +178,21 @@ export const Route = createFileRoute("/session/$mode")({
     return { mode: params.mode };
   },
   validateSearch: (search: Record<string, unknown>): SessionSearch => {
-    const flow = search.flow;
-    if (flow !== "timed" && flow !== "reveal" && flow !== "quiz") {
-      return { flow: "timed" };
-    }
-    return { flow };
+    const rawFlow = search.flow;
+    const flow: SessionFlow = rawFlow === "timed" || rawFlow === "reveal" || rawFlow === "quiz"
+      ? rawFlow
+      : "timed";
+    const overlay = search.overlay === "chordBuilder" || search.overlay === "learning"
+      ? (search.overlay as SessionOverlay)
+      : undefined;
+    if (!overlay) return { flow };
+    if (overlay === "learning") return { flow, overlay };
+    return {
+      flow,
+      overlay,
+      root: typeof search.root === "string" ? search.root : undefined,
+      quality: typeof search.quality === "string" ? search.quality : undefined,
+    };
   },
   component: SessionScreen,
 });

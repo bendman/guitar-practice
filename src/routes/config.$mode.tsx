@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import ConfigView from "../components/views/ConfigView";
 import SavePresetModal from "../components/ui/SavePresetModal";
@@ -12,6 +11,11 @@ import { buildActivePool } from "../lib/util";
 
 type ConfigMode = "notes" | "chords";
 
+type ConfigSearch = {
+  overlay?: "savePreset" | "deletePreset";
+  preset?: string;
+};
+
 function flowForMode(mode: ConfigMode, chordMode: string): "timed" | "reveal" | "quiz" {
   if (mode === "notes") return "timed";
   if (chordMode === "quiz") return "quiz";
@@ -21,6 +25,7 @@ function flowForMode(mode: ConfigMode, chordMode: string): "timed" | "reveal" | 
 
 function ConfigScreen() {
   const { mode } = Route.useParams();
+  const { overlay, preset } = Route.useSearch();
   const navigate = useNavigate();
   const {
     intervalSecs, setIntervalSecs,
@@ -37,15 +42,17 @@ function ConfigScreen() {
     chordProgression, setChordProgression,
   } = useAppState();
 
-  const [savingPreset, setSavingPreset] = useState(false);
-  const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
-
   const targetType = mode === "chords" ? "chord" : "note";
   const basePool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
   const pool = targetType === "chord"
     ? mergeCustomVoicings(basePool as ChordItem[], customVoicings)
     : basePool;
   const activePool = buildActivePool(pool, weights, workingSetSize);
+
+  const closeOverlay = () => navigate({ to: ".", params: { mode }, search: {} });
+  const openSavePreset = () => navigate({ to: ".", params: { mode }, search: { overlay: "savePreset" } });
+  const openDeletePreset = (id: string) =>
+    navigate({ to: ".", params: { mode }, search: { overlay: "deletePreset", preset: id } });
 
   const setEnabledManual = (next: (prev: Record<string, boolean>) => Record<string, boolean>) => {
     setEnabled(next);
@@ -54,12 +61,12 @@ function ConfigScreen() {
   };
 
   const applyPreset = (presetId: string) => {
-    const preset = CHORD_PRESETS.find((p) => p.id === presetId);
-    if (!preset) return;
+    const builtIn = CHORD_PRESETS.find((p) => p.id === presetId);
+    if (!builtIn) return;
     setEnabled((prev) => {
       const next = { ...prev };
       for (const chord of CHORDS) {
-        next[chord.id] = preset.qualityIds === null || preset.qualityIds.includes(chord.qualityId);
+        next[chord.id] = builtIn.qualityIds === null || builtIn.qualityIds.includes(chord.qualityId);
       }
       return next;
     });
@@ -84,22 +91,22 @@ function ConfigScreen() {
   };
 
   const applyCustomPreset = (presetId: string) => {
-    const preset = customPresets.find((p) => p.id === presetId);
-    if (preset) applyChordCollection(preset.chordIds, presetId);
+    const custom = customPresets.find((p) => p.id === presetId);
+    if (custom) applyChordCollection(custom.chordIds, presetId);
   };
 
   const saveCurrentAsPreset = (name: string) => {
     const chordIds = CHORDS.filter((c) => enabled[c.id]).map((c) => c.id);
     addPreset(name, chordIds);
-    setSavingPreset(false);
+    closeOverlay();
   };
 
   const confirmDeletePreset = () => {
-    if (deletingPresetId) {
-      removePreset(deletingPresetId);
-      if (chordProgression === deletingPresetId) setChordProgression(null);
+    if (preset) {
+      removePreset(preset);
+      if (chordProgression === preset) setChordProgression(null);
     }
-    setDeletingPresetId(null);
+    closeOverlay();
   };
 
   const startSession = () => {
@@ -129,8 +136,8 @@ function ConfigScreen() {
         onProgression={applyProgression}
         customPresets={customPresets}
         onCustomPreset={applyCustomPreset}
-        onRemoveCustomPreset={(id) => setDeletingPresetId(id)}
-        onSavePreset={() => setSavingPreset(true)}
+        onRemoveCustomPreset={openDeletePreset}
+        onSavePreset={openSavePreset}
         chordMode={chordMode}
         setChordMode={setChordMode}
         showChordNotes={showChordNotes}
@@ -140,15 +147,15 @@ function ConfigScreen() {
         onBack={() => navigate({ to: "/" })}
       />
       <SavePresetModal
-        open={savingPreset}
+        open={overlay === "savePreset"}
         onSave={saveCurrentAsPreset}
-        onCancel={() => setSavingPreset(false)}
+        onCancel={closeOverlay}
       />
       <DeletePresetModal
-        open={deletingPresetId !== null}
-        presetLabel={customPresets.find((p) => p.id === deletingPresetId)?.label ?? ""}
+        open={overlay === "deletePreset"}
+        presetLabel={customPresets.find((p) => p.id === preset)?.label ?? ""}
         onConfirm={confirmDeletePreset}
-        onCancel={() => setDeletingPresetId(null)}
+        onCancel={closeOverlay}
       />
     </>
   );
@@ -160,6 +167,17 @@ export const Route = createFileRoute("/config/$mode")({
       throw redirect({ to: "/" });
     }
     return { mode: params.mode };
+  },
+  validateSearch: (search: Record<string, unknown>): ConfigSearch => {
+    const overlay = search.overlay;
+    if (overlay === "savePreset") return { overlay };
+    if (overlay === "deletePreset") {
+      return {
+        overlay,
+        preset: typeof search.preset === "string" ? search.preset : undefined,
+      };
+    }
+    return {};
   },
   component: ConfigScreen,
 });
