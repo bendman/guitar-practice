@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import SettingsView from "../components/views/SettingsView";
-import DebugView from "../components/views/DebugView";
 import ChordBuilderView from "../components/views/ChordBuilderView";
 import type { Voicing } from "../lib/constants";
 import { CHORDS, mergeCustomVoicings } from "../lib/constants";
@@ -20,9 +19,6 @@ function SettingsScreen() {
   const navigate = useNavigate();
 
   const [builder, setBuilder] = useState<{ rootId: string; qualityId: string } | null>(null);
-  const [showDebug, setShowDebug] = useState(false);
-
-  if (showDebug) return <DebugView onBack={() => setShowDebug(false)} />;
 
   const openBuilder = (prefill?: { rootId: string; qualityId: string }) => {
     setBuilder(prefill ?? { rootId: "mi", qualityId: "maj" });
@@ -58,7 +54,7 @@ function SettingsScreen() {
         onCreateChord={() => openBuilder()}
         onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
         onRemoveVoicing={removeVoicing}
-        onShowDebug={() => setShowDebug(true)}
+        onShowDebug={() => navigate({ to: "/debug" })}
       />
       {builder && (
         <ChordBuilderView

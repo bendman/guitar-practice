@@ -8,8 +8,8 @@ function HomeScreen() {
   return (
     <WelcomeView
       stats={stats}
-      onPickNotes={() => navigate({ to: "/practice", search: { mode: "notes" } })}
-      onPickChords={() => navigate({ to: "/practice", search: { mode: "chords" } })}
+      onPickNotes={() => navigate({ to: "/config/$mode", params: { mode: "notes" } })}
+      onPickChords={() => navigate({ to: "/config/$mode", params: { mode: "chords" } })}
       onShowProgress={() => navigate({ to: "/settings" })}
     />
   );
