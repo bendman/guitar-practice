@@ -1,7 +1,7 @@
 import { Given, When, Then } from "@cucumber/cucumber";
 import { expect } from "playwright/test";
 import type { Page } from "playwright/test";
-import type { GuitarWorld } from "../support/world";
+import { BASE_URL, type GuitarWorld } from "../support/world";
 
 function screenAnchor(page: Page, screen: string) {
   switch (screen) {
@@ -48,7 +48,9 @@ When("I leave my progress", async function (this: GuitarWorld) {
 });
 
 When("I reload the app", async function (this: GuitarWorld) {
-  await this.page.reload({ waitUntil: "domcontentloaded" });
+  // Hash-routed app preserves the screen across reload; the existing
+  // scenarios assume reload returns to welcome, so navigate home explicitly.
+  await this.page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
 });
 
 // Maps the stored naming value to the radio button's visible label.

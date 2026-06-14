@@ -1,21 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { Route as PracticeRoute } from "./routes/practice";
 import { ALL, CHORDS, CHORD_PRESETS, CHORD_PROGRESSIONS, mergeCustomVoicings } from "./lib/constants";
 import type { ChordItem, Voicing } from "./lib/constants";
-import { useSettings } from "./hooks/useSettings";
-import { useProgress } from "./hooks/useProgress";
-import { useCustomVoicings } from "./hooks/useCustomVoicings";
-import { useCustomPresets } from "./hooks/useCustomPresets";
 import { useIntervalHotkeys } from "./hooks/useIntervalHotkeys";
 import { buildActivePool } from "./lib/util";
-import { NoteNamingProvider } from "./lib/noteNaming";
 import { summarizeSession } from "./lib/summarizeSession";
 import type { Stats, SessionSummary, Weights } from "./lib/stats";
 import type { SessionRawResult } from "./hooks/flows/types";
-import WelcomeView from "./components/views/WelcomeView";
 import ConfigView from "./components/views/ConfigView";
 import SummaryView from "./components/views/SummaryView";
-import SettingsView from "./components/views/SettingsView";
-import DebugView from "./components/views/DebugView";
 import LearningView from "./components/views/LearningView";
 import ChordBuilderView from "./components/views/ChordBuilderView";
 import NoteSession from "./components/sessions/NoteSession";
@@ -24,18 +18,7 @@ import ChordRevealSession from "./components/sessions/ChordRevealSession";
 import QuizSession from "./components/sessions/QuizSession";
 import SavePresetModal from "./components/ui/SavePresetModal";
 import DeletePresetModal from "./components/ui/DeletePresetModal";
-
-const PREFERRED_VOICINGS_KEY = "guitar-practice-preferred-voicings";
-
-function loadPreferredVoicings(): Record<string, number> {
-  try { return (JSON.parse(localStorage.getItem(PREFERRED_VOICINGS_KEY) ?? "null") as Record<string, number> | null) ?? {}; }
-  catch { return {}; }
-}
-
-function savePreferredVoicings(v: Record<string, number>) {
-  try { localStorage.setItem(PREFERRED_VOICINGS_KEY, JSON.stringify(v)); }
-  catch { /* ignore quota / disabled storage */ }
-}
+import { useAppState } from "./AppState";
 
 export default function GuitarPractice() {
   const {
@@ -44,33 +27,41 @@ export default function GuitarPractice() {
     tts, setTts,
     listening, setListening,
     chordMode, setChordMode,
-    workingSetSize, setWorkingSetSize,
-    noteNaming, setNoteNaming,
-    spokenNaming, setSpokenNaming,
-    voiceURI, setVoiceURI,
+    workingSetSize,
+    spokenNaming,
+    voiceURI,
     showChordNotes, setShowChordNotes,
-  } = useSettings();
-  const {
     stats, weights, confusions,
-    recordResult, recordConfusion, commitSession, resetAllStats, resetAllWeights,
-  } = useProgress();
-  const { customVoicings, addVoicing, removeVoicing } = useCustomVoicings();
-  const { customPresets, addPreset, removePreset } = useCustomPresets();
+    recordResult, recordConfusion, commitSession,
+    customVoicings, addVoicing,
+    customPresets, addPreset, removePreset,
+    preferredVoicings, setPreferredVoicing,
+  } = useAppState();
+
+  const navigate = useNavigate();
+  const { mode: searchMode } = PracticeRoute.useSearch();
 
   const [builder, setBuilder] = useState<{ rootId: string; qualityId: string } | null>(null);
   const [savingPreset, setSavingPreset] = useState(false);
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
   const [chordPreset, setChordPreset] = useState<string | null>(null);
   const [chordProgression, setChordProgression] = useState<string | null>(null);
-  const [devScreen, setDevScreen] = useState<string | null>(null);
   const [showLearning, setShowLearning] = useState(false);
   const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
-  const [screen, setScreen] = useState<"welcome" | "config" | "settings">("welcome");
-  const [mode, setMode] = useState<"notes" | "chords" | null>(null);
+  const [mode, setMode] = useState<"notes" | "chords" | null>(searchMode ?? null);
   const [sessionActive, setSessionActive] = useState(false);
   const [preSessionStats, setPreSessionStats] = useState<Stats | null>(null);
   const [preSessionWeights, setPreSessionWeights] = useState<Weights>({});
-  const [preferredVoicings, setPreferredVoicings] = useState<Record<string, number>>(loadPreferredVoicings);
+
+  useEffect(() => {
+    if (searchMode && searchMode !== mode) setMode(searchMode);
+  }, [searchMode, mode]);
+
+  useEffect(() => {
+    if (!mode && !sessionActive && !sessionSummary) {
+      navigate({ to: "/" });
+    }
+  }, [mode, sessionActive, sessionSummary, navigate]);
 
   const targetType = mode === "chords" ? "chord" : "note";
   const basePool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
@@ -158,33 +149,14 @@ export default function GuitarPractice() {
     const builtInCount = CHORDS.find((c) => c.id === id)?.voicings?.length ?? 0;
     const newIdx = inPool?.voicings?.length ?? (builtInCount + (customVoicings[id]?.length ?? 0));
     addVoicing(id, voicing);
-    setPreferredVoicings((prev) => {
-      const next = { ...prev, [id]: newIdx };
-      savePreferredVoicings(next);
-      return next;
-    });
+    setPreferredVoicing(id, newIdx);
     setBuilder(null);
-  };
-
-  const handleVoicingChange = (chordId: string, idx: number) => {
-    setPreferredVoicings((prev) => {
-      const next = { ...prev, [chordId]: idx };
-      savePreferredVoicings(next);
-      return next;
-    });
   };
 
   const goWelcome = () => {
     setSessionSummary(null);
     setMode(null);
-    setScreen("welcome");
-  };
-
-  const goSettings = () => setScreen("settings");
-
-  const pickMode = (m: "notes" | "chords") => {
-    setMode(m);
-    setScreen("config");
+    navigate({ to: "/" });
   };
 
   const startSession = () => {
@@ -195,7 +167,6 @@ export default function GuitarPractice() {
 
   const handleReplay = () => {
     setSessionSummary(null);
-    setScreen("config");
   };
 
   const renderSession = () => {
@@ -248,7 +219,7 @@ export default function GuitarPractice() {
         onStop={handleSessionStop}
         onShowLearning={onShowLearning}
         preferredVoicings={preferredVoicings}
-        onVoicingChange={handleVoicingChange}
+        onVoicingChange={setPreferredVoicing}
         onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
         showChordNotes={showChordNotes}
       />
@@ -256,10 +227,6 @@ export default function GuitarPractice() {
   };
 
   const renderContent = () => {
-    if (import.meta.env.DEV && devScreen === "mic") {
-      return <DebugView onBack={() => setDevScreen(null)} />;
-    }
-
     if (showLearning) {
       return (
         <LearningView
@@ -287,77 +254,41 @@ export default function GuitarPractice() {
       );
     }
 
-    if (screen === "settings") {
-      return (
-        <SettingsView
-          weights={weights}
-          onBack={goWelcome}
-          onResetWeights={resetAllWeights}
-          workingSetSize={workingSetSize}
-          setWorkingSetSize={setWorkingSetSize}
-          noteNaming={noteNaming}
-          setNoteNaming={setNoteNaming}
-          spokenNaming={spokenNaming}
-          setSpokenNaming={setSpokenNaming}
-          voiceURI={voiceURI}
-          setVoiceURI={setVoiceURI}
-          customVoicings={customVoicings}
-          preferredVoicings={preferredVoicings}
-          onVoicingChange={handleVoicingChange}
-          onCreateChord={() => openBuilder()}
-          onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
-          onRemoveVoicing={removeVoicing}
-          onShowDebug={() => setDevScreen("mic")}
-        />
-      );
-    }
-
-    if (screen === "config") {
-      return (
-        <ConfigView
-          mode={mode}
-          interval={intervalSecs}
-          setInterval={setIntervalSecs}
-          enabled={enabled}
-          setEnabled={setEnabledManual}
-          tts={tts}
-          setTts={setTts}
-          listening={listening}
-          setListening={setListening}
-          pool={activePool}
-          chordPreset={chordPreset}
-          chordProgression={chordProgression}
-          onPreset={applyPreset}
-          onProgression={applyProgression}
-          customPresets={customPresets}
-          onCustomPreset={applyCustomPreset}
-          onRemoveCustomPreset={handleRemoveCustomPreset}
-          onSavePreset={() => setSavingPreset(true)}
-          chordMode={chordMode}
-          setChordMode={setChordMode}
-          showChordNotes={showChordNotes}
-          setShowChordNotes={setShowChordNotes}
-          weights={weights}
-          onStart={startSession}
-          onBack={goWelcome}
-        />
-      );
-    }
-
-    void resetAllStats;
+    if (!mode) return null;
 
     return (
-      <WelcomeView
-        stats={stats}
-        onPickNotes={() => pickMode("notes")}
-        onPickChords={() => pickMode("chords")}
-        onShowProgress={goSettings}
+      <ConfigView
+        mode={mode}
+        interval={intervalSecs}
+        setInterval={setIntervalSecs}
+        enabled={enabled}
+        setEnabled={setEnabledManual}
+        tts={tts}
+        setTts={setTts}
+        listening={listening}
+        setListening={setListening}
+        pool={activePool}
+        chordPreset={chordPreset}
+        chordProgression={chordProgression}
+        onPreset={applyPreset}
+        onProgression={applyProgression}
+        customPresets={customPresets}
+        onCustomPreset={applyCustomPreset}
+        onRemoveCustomPreset={handleRemoveCustomPreset}
+        onSavePreset={() => setSavingPreset(true)}
+        chordMode={chordMode}
+        setChordMode={setChordMode}
+        showChordNotes={showChordNotes}
+        setShowChordNotes={setShowChordNotes}
+        weights={weights}
+        onStart={startSession}
+        onBack={goWelcome}
       />
     );
   };
 
   return (
-    <NoteNamingProvider naming={noteNaming}>
+    <>
       {renderContent()}
       <SavePresetModal
         open={savingPreset}
@@ -379,6 +310,6 @@ export default function GuitarPractice() {
           onCancel={() => setBuilder(null)}
         />
       )}
-    </NoteNamingProvider>
+    </>
   );
 }

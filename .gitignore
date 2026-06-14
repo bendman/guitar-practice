@@ -29,3 +29,6 @@ tests/report.html
 # AI
 .agent_scratchpad.md
 CLAUDE.local.md
+
+# TanStack Router generated tree
+src/routeTree.gen.ts

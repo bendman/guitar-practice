@@ -1,12 +1,14 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
 export default defineConfig({
   define: {
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
   },
   plugins: [
+    tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
