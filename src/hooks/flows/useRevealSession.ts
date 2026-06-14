@@ -5,7 +5,7 @@ import { useCountdown } from "../primitives/useCountdown";
 import { useItemQueue } from "../primitives/useItemQueue";
 import { usePracticeClock } from "../primitives/usePracticeClock";
 import { useScore } from "../primitives/useScore";
-import type { SessionRawResult } from "../useSession";
+import type { SessionRawResult } from "./types";
 
 interface RevealSessionOptions {
   interval: number;

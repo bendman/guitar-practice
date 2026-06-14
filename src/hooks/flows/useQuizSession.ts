@@ -6,7 +6,7 @@ import { pickDistractors, shuffle } from "../../lib/util";
 import { useItemQueue } from "../primitives/useItemQueue";
 import { usePracticeClock } from "../primitives/usePracticeClock";
 import { useScore } from "../primitives/useScore";
-import type { SessionRawResult } from "../useSession";
+import type { SessionRawResult } from "./types";
 
 interface QuizSessionOptions {
   pool: PracticeItem[];

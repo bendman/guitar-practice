@@ -49,6 +49,18 @@ describe("useTimedSession — auto (non-listening)", () => {
     act(() => vi.advanceTimersByTime(2000));
     expect(result.current.count).toBe(1);
   });
+
+  it("skip advances to the next item without recording", () => {
+    const onResult = vi.fn();
+    const { result } = renderHook(() => useTimedSession({ interval: 10, pool, onResult }));
+    act(() => result.current.start());
+    act(() => result.current.pauseToggle());
+    act(() => result.current.skip());
+    expect(onResult).not.toHaveBeenCalled();
+    expect(result.current.count).toBe(2);
+    expect(result.current.current?.id).toBe("re");
+    expect(result.current.hitStatus).toBeNull();
+  });
 });
 
 describe("useTimedSession — listening", () => {

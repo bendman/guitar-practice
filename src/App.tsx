@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ALL, CHORDS, CHORD_PRESETS, CHORD_PROGRESSIONS, mergeCustomVoicings } from "./lib/constants";
 import type { ChordItem, Voicing } from "./lib/constants";
-import { usePitchDetection } from "./hooks/usePitchDetection";
-import { useSession } from "./hooks/useSession";
 import { useSettings } from "./hooks/useSettings";
 import { useProgress } from "./hooks/useProgress";
 import { useCustomVoicings } from "./hooks/useCustomVoicings";
@@ -12,14 +10,18 @@ import { buildActivePool } from "./lib/util";
 import { NoteNamingProvider } from "./lib/noteNaming";
 import { summarizeSession } from "./lib/summarizeSession";
 import type { Stats, SessionSummary, Weights } from "./lib/stats";
+import type { SessionRawResult } from "./hooks/flows/types";
 import WelcomeView from "./components/views/WelcomeView";
 import ConfigView from "./components/views/ConfigView";
-import SessionView from "./components/views/SessionView";
 import SummaryView from "./components/views/SummaryView";
 import SettingsView from "./components/views/SettingsView";
 import DebugView from "./components/views/DebugView";
 import LearningView from "./components/views/LearningView";
 import ChordBuilderView from "./components/views/ChordBuilderView";
+import NoteSession from "./components/sessions/NoteSession";
+import ChordAutoSession from "./components/sessions/ChordAutoSession";
+import ChordRevealSession from "./components/sessions/ChordRevealSession";
+import QuizSession from "./components/sessions/QuizSession";
 import SavePresetModal from "./components/ui/SavePresetModal";
 import DeletePresetModal from "./components/ui/DeletePresetModal";
 
@@ -65,6 +67,7 @@ export default function GuitarPractice() {
   const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
   const [screen, setScreen] = useState<"welcome" | "config" | "settings">("welcome");
   const [mode, setMode] = useState<"notes" | "chords" | null>(null);
+  const [sessionActive, setSessionActive] = useState(false);
   const [preSessionStats, setPreSessionStats] = useState<Stats | null>(null);
   const [preSessionWeights, setPreSessionWeights] = useState<Weights>({});
   const [preferredVoicings, setPreferredVoicings] = useState<Record<string, number>>(loadPreferredVoicings);
@@ -76,28 +79,7 @@ export default function GuitarPractice() {
     : basePool;
   const activePool = buildActivePool(pool, weights, workingSetSize);
 
-  const session = useSession({
-    interval: intervalSecs,
-    pool: activePool,
-    fullPool: pool,
-    listening: mode === "notes" && listening,
-    tts,
-    spokenNaming,
-    voiceURI,
-    chordMode: mode === "chords" ? chordMode : "manual",
-    weights,
-    confusions,
-    onResult: recordResult,
-    onConfusion: recordConfusion,
-  });
-
-  const detectedNote = usePitchDetection(session.micActive, session.count);
-
-  useEffect(() => {
-    session.onDetectedNote(detectedNote);
-  }, [detectedNote]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useIntervalHotkeys(session.inSession, setIntervalSecs);
+  useIntervalHotkeys(sessionActive, setIntervalSecs);
 
   const setEnabledManual = (next: (prev: Record<string, boolean>) => Record<string, boolean>) => {
     setEnabled(next);
@@ -156,8 +138,7 @@ export default function GuitarPractice() {
     setDeletingPresetId(null);
   };
 
-  const stopSession = () => {
-    const raw = session.finish();
+  const handleSessionStop = (raw: SessionRawResult) => {
     const summary = summarizeSession({
       ...raw,
       wasListening: mode === "notes" && listening,
@@ -165,10 +146,10 @@ export default function GuitarPractice() {
     });
     setSessionSummary(summary);
     commitSession(summary);
+    setSessionActive(false);
   };
 
   const openBuilder = (prefill?: { rootId: string; qualityId: string }) => {
-    if (session.inSession && !session.paused) session.pauseToggle();
     setBuilder(prefill ?? { rootId: "mi", qualityId: "maj" });
   };
 
@@ -209,7 +190,7 @@ export default function GuitarPractice() {
   const startSession = () => {
     setPreSessionStats(stats);
     setPreSessionWeights(weights);
-    session.start();
+    setSessionActive(true);
   };
 
   const handleReplay = () => {
@@ -217,140 +198,162 @@ export default function GuitarPractice() {
     setScreen("config");
   };
 
-  const renderContent = () => {
-  if (import.meta.env.DEV && devScreen === "mic") {
-    return <DebugView onBack={() => setDevScreen(null)} />;
-  }
-
-  if (showLearning) {
+  const renderSession = () => {
+    const onShowLearning = () => setShowLearning(true);
+    if (mode === "notes") {
+      return (
+        <NoteSession
+          pool={activePool}
+          weights={weights}
+          interval={intervalSecs}
+          listening={listening}
+          tts={tts}
+          spokenNaming={spokenNaming}
+          voiceURI={voiceURI}
+          onResult={recordResult}
+          onStop={handleSessionStop}
+          onShowLearning={onShowLearning}
+        />
+      );
+    }
+    if (chordMode === "quiz") {
+      return (
+        <QuizSession
+          pool={activePool}
+          fullPool={pool}
+          weights={weights}
+          confusions={confusions}
+          tts={tts}
+          spokenNaming={spokenNaming}
+          voiceURI={voiceURI}
+          onResult={recordResult}
+          onConfusion={recordConfusion}
+          onStop={handleSessionStop}
+          onShowLearning={onShowLearning}
+          preferredVoicings={preferredVoicings}
+          showChordNotes={showChordNotes}
+        />
+      );
+    }
+    const ChordFlow = chordMode === "auto" ? ChordAutoSession : ChordRevealSession;
     return (
-      <LearningView
-        pool={pool}
-        activePool={activePool}
-        weights={weights}
-        workingSetSize={workingSetSize}
-        onBack={() => setShowLearning(false)}
-      />
-    );
-  }
-
-  if (session.inSession) {
-    const resolvedCurrent = session.current
-      ? pool.find((c) => c.id === session.current!.id) ?? session.current
-      : null;
-    return (
-      <SessionView
-        current={resolvedCurrent}
-        count={session.count}
-        streak={session.streak}
-        progress={session.progress}
-        paused={session.paused}
-        listening={mode === "notes" && listening}
-        detectedNote={detectedNote}
-        hitStatus={session.hitStatus}
-        practiceTime={session.practiceTime}
-        interval={intervalSecs}
-        chordMode={mode === "chords" ? chordMode : "manual"}
-        pendingReveal={session.pendingReveal}
-        choices={session.choices}
-        correctId={session.correctId}
-        selectedId={session.selectedId}
-        onPauseToggle={session.pauseToggle}
-        onForceAccept={session.forceAccept}
-        onManualNext={session.manualNext}
-        onChordGrade={session.manualGrade}
-        onQuizSelect={session.quizSelect}
-        onQuizNext={session.quizNext}
-        onStop={stopSession}
-        onShowLearning={() => setShowLearning(true)}
-        preferredVoicings={preferredVoicings}
-        onVoicingChange={handleVoicingChange}
-        onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
-        showChordNotes={showChordNotes}
-      />
-    );
-  }
-
-  if (sessionSummary !== null) {
-    return (
-      <SummaryView
-        summary={sessionSummary}
-        preSessionStats={preSessionStats}
-        weights={weights}
-        preWeights={preSessionWeights}
-        onDismiss={goWelcome}
-        onReplay={handleReplay}
-      />
-    );
-  }
-
-  if (screen === "settings") {
-    return (
-      <SettingsView
-        weights={weights}
-        onBack={goWelcome}
-        onResetWeights={resetAllWeights}
-        workingSetSize={workingSetSize}
-        setWorkingSetSize={setWorkingSetSize}
-        noteNaming={noteNaming}
-        setNoteNaming={setNoteNaming}
-        spokenNaming={spokenNaming}
-        setSpokenNaming={setSpokenNaming}
-        voiceURI={voiceURI}
-        setVoiceURI={setVoiceURI}
-        customVoicings={customVoicings}
-        preferredVoicings={preferredVoicings}
-        onVoicingChange={handleVoicingChange}
-        onCreateChord={() => openBuilder()}
-        onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
-        onRemoveVoicing={removeVoicing}
-        onShowDebug={() => setDevScreen("mic")}
-      />
-    );
-  }
-
-  if (screen === "config") {
-    return (
-      <ConfigView
-        mode={mode}
-        interval={intervalSecs}
-        setInterval={setIntervalSecs}
-        enabled={enabled}
-        setEnabled={setEnabledManual}
-        tts={tts}
-        setTts={setTts}
-        listening={listening}
-        setListening={setListening}
+      <ChordFlow
         pool={activePool}
-        chordPreset={chordPreset}
-        chordProgression={chordProgression}
-        onPreset={applyPreset}
-        onProgression={applyProgression}
-        customPresets={customPresets}
-        onCustomPreset={applyCustomPreset}
-        onRemoveCustomPreset={handleRemoveCustomPreset}
-        onSavePreset={() => setSavingPreset(true)}
-        chordMode={chordMode}
-        setChordMode={setChordMode}
-        showChordNotes={showChordNotes}
-        setShowChordNotes={setShowChordNotes}
         weights={weights}
-        onStart={startSession}
-        onBack={goWelcome}
+        interval={intervalSecs}
+        tts={tts}
+        spokenNaming={spokenNaming}
+        voiceURI={voiceURI}
+        onResult={recordResult}
+        onStop={handleSessionStop}
+        onShowLearning={onShowLearning}
+        preferredVoicings={preferredVoicings}
+        onVoicingChange={handleVoicingChange}
+        onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
+        showChordNotes={showChordNotes}
       />
     );
-  }
+  };
 
-  void resetAllStats;
+  const renderContent = () => {
+    if (import.meta.env.DEV && devScreen === "mic") {
+      return <DebugView onBack={() => setDevScreen(null)} />;
+    }
 
-  return (
-    <WelcomeView
-      stats={stats}
-      onPickNotes={() => pickMode("notes")}
-      onPickChords={() => pickMode("chords")}
-      onShowProgress={goSettings}
-    />
-  );
+    if (showLearning) {
+      return (
+        <LearningView
+          pool={pool}
+          activePool={activePool}
+          weights={weights}
+          workingSetSize={workingSetSize}
+          onBack={() => setShowLearning(false)}
+        />
+      );
+    }
+
+    if (sessionActive) return renderSession();
+
+    if (sessionSummary !== null) {
+      return (
+        <SummaryView
+          summary={sessionSummary}
+          preSessionStats={preSessionStats}
+          weights={weights}
+          preWeights={preSessionWeights}
+          onDismiss={goWelcome}
+          onReplay={handleReplay}
+        />
+      );
+    }
+
+    if (screen === "settings") {
+      return (
+        <SettingsView
+          weights={weights}
+          onBack={goWelcome}
+          onResetWeights={resetAllWeights}
+          workingSetSize={workingSetSize}
+          setWorkingSetSize={setWorkingSetSize}
+          noteNaming={noteNaming}
+          setNoteNaming={setNoteNaming}
+          spokenNaming={spokenNaming}
+          setSpokenNaming={setSpokenNaming}
+          voiceURI={voiceURI}
+          setVoiceURI={setVoiceURI}
+          customVoicings={customVoicings}
+          preferredVoicings={preferredVoicings}
+          onVoicingChange={handleVoicingChange}
+          onCreateChord={() => openBuilder()}
+          onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
+          onRemoveVoicing={removeVoicing}
+          onShowDebug={() => setDevScreen("mic")}
+        />
+      );
+    }
+
+    if (screen === "config") {
+      return (
+        <ConfigView
+          mode={mode}
+          interval={intervalSecs}
+          setInterval={setIntervalSecs}
+          enabled={enabled}
+          setEnabled={setEnabledManual}
+          tts={tts}
+          setTts={setTts}
+          listening={listening}
+          setListening={setListening}
+          pool={activePool}
+          chordPreset={chordPreset}
+          chordProgression={chordProgression}
+          onPreset={applyPreset}
+          onProgression={applyProgression}
+          customPresets={customPresets}
+          onCustomPreset={applyCustomPreset}
+          onRemoveCustomPreset={handleRemoveCustomPreset}
+          onSavePreset={() => setSavingPreset(true)}
+          chordMode={chordMode}
+          setChordMode={setChordMode}
+          showChordNotes={showChordNotes}
+          setShowChordNotes={setShowChordNotes}
+          weights={weights}
+          onStart={startSession}
+          onBack={goWelcome}
+        />
+      );
+    }
+
+    void resetAllStats;
+
+    return (
+      <WelcomeView
+        stats={stats}
+        onPickNotes={() => pickMode("notes")}
+        onPickChords={() => pickMode("chords")}
+        onShowProgress={goSettings}
+      />
+    );
   };
 
   return (

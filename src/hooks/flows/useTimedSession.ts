@@ -5,7 +5,7 @@ import { useCountdown } from "../primitives/useCountdown";
 import { useItemQueue } from "../primitives/useItemQueue";
 import { usePracticeClock } from "../primitives/usePracticeClock";
 import { useScore } from "../primitives/useScore";
-import type { SessionRawResult } from "../useSession";
+import type { SessionRawResult } from "./types";
 
 interface TimedSessionOptions {
   interval: number;
@@ -32,6 +32,8 @@ export interface TimedSession {
   finish: () => SessionRawResult;
   pauseToggle: () => void;
   forceAccept: () => void;
+  /** Advance to the next item without recording the outgoing one. Intended for the paused→Suivant control. */
+  skip: () => void;
   onDetectedNote: (noteId: string | null) => void;
 }
 
@@ -42,7 +44,7 @@ const ADVANCE_GAP_MS = 200;
  * A countdown drives each round; when it elapses the round advances (with
  * credit only in the listening variant when the note was hit in time). The
  * listening variant adds the mic-hit / late-hit / force-accept glue ported
- * from the legacy useSession timed loop, including its ~200ms inter-item gap.
+ * over from the legacy timed loop, including its ~200ms inter-item gap.
  */
 export function useTimedSession({
   interval,
@@ -159,6 +161,14 @@ export function useTimedSession({
 
   const forceAccept = useCallback(() => doAdvance(false), [doAdvance]);
 
+  const skip = useCallback(() => {
+    const next = queue.advance();
+    if (!next) return;
+    resetHit();
+    responseTimeRef.current = null;
+    startRef.current = performance.now();
+  }, [queue, resetHit]);
+
   const onDetectedNote = useCallback(
     (noteId: string | null) => {
       const f = flags.current;
@@ -192,6 +202,7 @@ export function useTimedSession({
     finish,
     pauseToggle,
     forceAccept,
+    skip,
     onDetectedNote,
   };
 }

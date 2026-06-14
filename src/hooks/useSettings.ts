@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ALL } from "../lib/constants";
 import type { NoteNaming } from "../lib/util";
-import type { ChordMode } from "./useSession";
+import type { ChordMode } from "./flows/types";
 
 const SETTINGS_KEY = "guitar-practice-settings";
 

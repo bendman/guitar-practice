@@ -2,7 +2,7 @@ import React from "react";
 import { CHORDS, NOTES, CHROMATIC_NOTES } from "../../../lib/constants";
 import type { PracticeItem, ChordProgression } from "../../../lib/constants";
 import type { Weights } from "../../../lib/stats";
-import type { ChordMode } from "../../../hooks/useSession";
+import type { ChordMode } from "../../../hooks/flows/types";
 import NotesPicker from "../../ui/NotesPicker";
 import Toggle from "../../ui/Toggle";
 import IntervalControl from "./IntervalControl";
