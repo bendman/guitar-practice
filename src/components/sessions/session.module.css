@@ -14,7 +14,9 @@
   left: 0;
   height: 4px;
   background: var(--accent);
-  transition: width 0.1s linear, opacity 0.3s ease;
+  transition:
+    width 0.1s linear,
+    opacity 0.3s ease;
   pointer-events: none;
   z-index: 2;
 }
@@ -210,7 +212,9 @@
   padding: 6px 14px;
 }
 
-.addVoicingBtn:active { opacity: 0.7; }
+.addVoicingBtn:active {
+  opacity: 0.7;
+}
 
 /* ── Control bar ────────────────────────────────────────────────────────────── */
 .controlBar {
@@ -235,11 +239,15 @@
   border-radius: var(--r-md);
   cursor: pointer;
   min-height: 64px;
-  transition: transform 0.1s var(--ease), opacity 0.15s ease;
+  transition:
+    transform 0.1s var(--ease),
+    opacity 0.15s ease;
   font-family: var(--mono);
 }
 
-.ctrlBtn:active { transform: scale(0.95); }
+.ctrlBtn:active {
+  transform: scale(0.95);
+}
 
 .ctrlBtn:disabled {
   cursor: not-allowed;
@@ -247,7 +255,9 @@
   filter: grayscale(0.4);
 }
 
-.ctrlBtn:disabled:active { transform: none; }
+.ctrlBtn:disabled:active {
+  transform: none;
+}
 
 .ctrlBtnPrimary {
   background: var(--accent);
@@ -313,26 +323,49 @@
 }
 
 @media (pointer: coarse), (max-width: 600px) {
-  .keyHints { display: none; }
+  .keyHints {
+    display: none;
+  }
 }
 
 /* ── Keyframes ──────────────────────────────────────────────────────────────── */
 @keyframes correctPop {
-  0%   { transform: scale(0.4); opacity: 0; }
-  55%  { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(1);   opacity: 1; }
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes correctGlow {
-  0%   { opacity: 0; }
-  25%  { opacity: 1; }
-  100% { opacity: 0.6; }
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
 }
 
 @keyframes correctFlash {
-  0%   { opacity: 0; }
-  20%  { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* ── Quiz (QCM / choix multiple) ─────────────────────────────────────────── */
@@ -355,7 +388,10 @@
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   cursor: pointer;
-  transition: transform 0.1s var(--ease), border-color 0.15s ease, opacity 0.15s ease;
+  transition:
+    transform 0.1s var(--ease),
+    border-color 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .quizCard:not(:disabled):hover {
@@ -375,7 +411,9 @@
 
 .quizCardCorrect {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent), 0 0 32px 4px rgba(212, 117, 63, 0.6);
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 32px 4px rgba(212, 117, 63, 0.6);
 }
 
 .quizCardWrong {

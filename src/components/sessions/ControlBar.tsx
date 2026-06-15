@@ -30,7 +30,9 @@ export default function ControlBar({ buttons }: { buttons: BtnSpec[] }) {
           disabled={disabled}
           className={`${s.ctrlBtn} ${VARIANT_CLASS[variant]}`}
         >
-          <span className={s.ctrlIcon}><Icon name={icon} size={20} /></span>
+          <span className={s.ctrlIcon}>
+            <Icon name={icon} size={20} />
+          </span>
           <span className={s.ctrlLabel}>{label}</span>
         </button>
       ))}

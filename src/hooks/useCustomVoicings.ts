@@ -1,6 +1,10 @@
 import { useState } from "react";
 import type { Voicing } from "../lib/constants";
-import { load as loadBlob, save as saveCustomVoicings, type CustomVoicings } from "../persistence/customVoicings";
+import {
+  load as loadBlob,
+  save as saveCustomVoicings,
+  type CustomVoicings,
+} from "../persistence/customVoicings";
 
 export type { CustomVoicings } from "../persistence/customVoicings";
 

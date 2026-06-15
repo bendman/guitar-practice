@@ -67,16 +67,40 @@ export default function NoteSession({
   const buttons: BtnSpec[] = (() => {
     if (session.paused) {
       return [
-        { key: "resume", icon: "play", label: "Reprendre", variant: "primary", onClick: session.pauseToggle },
-        { key: "next", icon: "next", label: "Suivant", variant: "secondary", onClick: session.skip },
+        {
+          key: "resume",
+          icon: "play",
+          label: "Reprendre",
+          variant: "primary",
+          onClick: session.pauseToggle,
+        },
+        {
+          key: "next",
+          icon: "next",
+          label: "Suivant",
+          variant: "secondary",
+          onClick: session.skip,
+        },
         { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
       ];
     }
     const out: BtnSpec[] = [
-      { key: "pause", icon: "pause", label: "Pause", variant: "accent-line", onClick: session.pauseToggle },
+      {
+        key: "pause",
+        icon: "pause",
+        label: "Pause",
+        variant: "accent-line",
+        onClick: session.pauseToggle,
+      },
     ];
     if (listening && !recognized) {
-      out.push({ key: "accept", icon: "check", label: "Accepter", variant: "primary", onClick: session.forceAccept });
+      out.push({
+        key: "accept",
+        icon: "check",
+        label: "Accepter",
+        variant: "primary",
+        onClick: session.forceAccept,
+      });
     }
     out.push({ key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop });
     return out;

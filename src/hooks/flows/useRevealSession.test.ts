@@ -4,7 +4,17 @@ import { useRevealSession } from "./useRevealSession";
 import type { ChordItem, PracticeItem } from "../../lib/constants";
 
 const chord = (id: string): PracticeItem =>
-  ({ id, label: id, labelShort: id, speak: id, type: "chord", defaultEnabled: true, rootId: id, qualityId: "maj", voicings: [] }) as ChordItem;
+  ({
+    id,
+    label: id,
+    labelShort: id,
+    speak: id,
+    type: "chord",
+    defaultEnabled: true,
+    rootId: id,
+    qualityId: "maj",
+    voicings: [],
+  }) as ChordItem;
 
 const pool = [chord("a"), chord("b"), chord("c")];
 
@@ -12,7 +22,14 @@ beforeEach(() => {
   vi.stubGlobal("speechSynthesis", { cancel: vi.fn(), speak: vi.fn(), getVoices: () => [] });
   vi.spyOn(Math, "random").mockReturnValue(0);
   vi.useFakeTimers({
-    toFake: ["requestAnimationFrame", "cancelAnimationFrame", "performance", "Date", "setTimeout", "clearTimeout"],
+    toFake: [
+      "requestAnimationFrame",
+      "cancelAnimationFrame",
+      "performance",
+      "Date",
+      "setTimeout",
+      "clearTimeout",
+    ],
   });
 });
 afterEach(() => {

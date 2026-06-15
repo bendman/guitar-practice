@@ -19,25 +19,30 @@ interface ConfigViewProps {
 
 export default function ConfigView({
   mode,
-  onRemoveCustomPreset, onSavePreset,
-  onStart, onBack,
+  onRemoveCustomPreset,
+  onSavePreset,
+  onStart,
+  onBack,
 }: ConfigViewProps) {
   const {
-    intervalSecs: interval, setIntervalSecs: setInterval,
+    intervalSecs: interval,
+    setIntervalSecs: setInterval,
     enabled,
-    tts, setTts,
-    listening, setListening,
-    chordMode, setChordMode,
-    showChordNotes, setShowChordNotes,
+    tts,
+    setTts,
+    listening,
+    setListening,
+    chordMode,
+    setChordMode,
+    showChordNotes,
+    setShowChordNotes,
   } = useSettings();
   const { setEnabledManual: setEnabled } = useChordConfig();
   const { activePool: pool } = usePracticePool(mode);
 
   const isNotesMode = mode !== "chords";
   const title = isNotesMode ? "Notes" : "Accords";
-  const subtitle = isNotesMode
-    ? "Configure ta session de notes"
-    : "Configure ta session d'accords";
+  const subtitle = isNotesMode ? "Configure ta session de notes" : "Configure ta session d'accords";
 
   const noteCount = [...NOTES, ...CHROMATIC_NOTES].filter((n) => enabled[n.id]).length;
   const chordCount = CHORDS.filter((c) => enabled[c.id]).length;
@@ -90,8 +95,8 @@ export default function ConfigView({
                     {chordMode === "auto"
                       ? "Auto · pratique la vitesse de transition"
                       : chordMode === "quiz"
-                      ? "QCM · reconnais l'accord parmi 4 diagrammes"
-                      : "Manuelle · mémorise, évalue Trouvé / Raté"}
+                        ? "QCM · reconnais l'accord parmi 4 diagrammes"
+                        : "Manuelle · mémorise, évalue Trouvé / Raté"}
                   </div>
                 </div>
                 <div className={s.segmented}>

@@ -1,7 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  applyCellTap, applyMarkerTap, applyDotTap, applyBarre,
-} from "./chordBuilderState";
+import { applyCellTap, applyMarkerTap, applyDotTap, applyBarre } from "./chordBuilderState";
 import type { BuilderState } from "./chordBuilderState";
 
 const open6 = (): BuilderState => ({ frets: [0, 0, 0, 0, 0, 0], barres: [] });

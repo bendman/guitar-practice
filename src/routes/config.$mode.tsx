@@ -29,7 +29,8 @@ function ConfigScreen() {
   const { saveCurrentAsPreset } = useChordConfig();
 
   const closeOverlay = () => navigate({ to: ".", params: { mode }, search: {} });
-  const openSavePreset = () => navigate({ to: ".", params: { mode }, search: { overlay: "savePreset" } });
+  const openSavePreset = () =>
+    navigate({ to: ".", params: { mode }, search: { overlay: "savePreset" } });
   const openDeletePreset = (id: string) =>
     navigate({ to: ".", params: { mode }, search: { overlay: "deletePreset", preset: id } });
 

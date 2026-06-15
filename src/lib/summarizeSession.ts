@@ -17,14 +17,21 @@ export interface SessionInput {
 }
 
 export function summarizeSession({
-  results, bestStreak, practiceTime, wasListening, wasManualChord,
+  results,
+  bestStreak,
+  practiceTime,
+  wasListening,
+  wasManualChord,
 }: SessionInput): SessionSummary {
   const noteResults = results.filter((r) => r.type === "note");
   const correctCount = noteResults.filter((r) => r.correct).length;
   const totalNotes = noteResults.length;
   const accuracy = totalNotes > 0 ? Math.round((correctCount / totalNotes) * 100) : 0;
 
-  const noteMap: Record<string, { id: string; label: string; attempts: number; misses: number; responseTimes: number[] }> = {};
+  const noteMap: Record<
+    string,
+    { id: string; label: string; attempts: number; misses: number; responseTimes: number[] }
+  > = {};
   for (const r of noteResults) {
     if (!noteMap[r.id]) {
       noteMap[r.id] = { id: r.id, label: r.label, attempts: 0, misses: 0, responseTimes: [] };
@@ -43,17 +50,21 @@ export function summarizeSession({
     })
     .sort((a, b) => b.missRate - a.missRate);
 
-  const allResponseTimes = noteResults.map((r) => r.responseTime).filter((t): t is number => t != null);
-  const avgResponseTime = allResponseTimes.length > 0
-    ? allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length
-    : null;
+  const allResponseTimes = noteResults
+    .map((r) => r.responseTime)
+    .filter((t): t is number => t != null);
+  const avgResponseTime =
+    allResponseTimes.length > 0
+      ? allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length
+      : null;
 
   const chordResults = wasManualChord ? results.filter((r) => r.type === "chord") : [];
   const chordCorrectCount = chordResults.filter((r) => r.correct).length;
   const totalChords = chordResults.length;
   const chordAccuracy = totalChords > 0 ? Math.round((chordCorrectCount / totalChords) * 100) : 0;
 
-  const chordMap: Record<string, { id: string; label: string; attempts: number; misses: number }> = {};
+  const chordMap: Record<string, { id: string; label: string; attempts: number; misses: number }> =
+    {};
   for (const r of chordResults) {
     if (!chordMap[r.id]) {
       chordMap[r.id] = { id: r.id, label: r.label, attempts: 0, misses: 0 };
@@ -67,8 +78,12 @@ export function summarizeSession({
     .map((c) => ({ ...c, missRate: Math.round((c.misses / c.attempts) * 100) }))
     .sort((a, b) => b.missRate - a.missRate);
 
-  const chordPracticedItems = Object.values(chordMap)
-    .map((c) => ({ id: c.id, label: c.label, attempts: c.attempts, misses: c.misses }));
+  const chordPracticedItems = Object.values(chordMap).map((c) => ({
+    id: c.id,
+    label: c.label,
+    attempts: c.attempts,
+    misses: c.misses,
+  }));
 
   return {
     totalCount: results.length,

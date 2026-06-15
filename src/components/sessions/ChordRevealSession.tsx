@@ -68,21 +68,51 @@ export default function ChordRevealSession({
 
   const buttons: BtnSpec[] = session.revealed
     ? [
-        { key: "miss", icon: "x", label: "Raté", variant: "danger-line", onClick: () => session.grade(false) },
-        { key: "hit", icon: "check", label: "Trouvé", variant: "primary", onClick: () => session.grade(true) },
+        {
+          key: "miss",
+          icon: "x",
+          label: "Raté",
+          variant: "danger-line",
+          onClick: () => session.grade(false),
+        },
+        {
+          key: "hit",
+          icon: "check",
+          label: "Trouvé",
+          variant: "primary",
+          onClick: () => session.grade(true),
+        },
         { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
       ]
     : session.paused
-    ? [
-        { key: "resume", icon: "play", label: "Reprendre", variant: "primary", onClick: session.pauseToggle },
-        { key: "next", icon: "next", label: "Suivant", variant: "secondary", onClick: session.skip },
-        { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
-      ]
-    : [
-        { key: "pause", icon: "pause", label: "Pause", variant: "accent-line", onClick: session.pauseToggle },
-        { key: "see", icon: "eye", label: "Voir", variant: "primary", onClick: session.reveal },
-        { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
-      ];
+      ? [
+          {
+            key: "resume",
+            icon: "play",
+            label: "Reprendre",
+            variant: "primary",
+            onClick: session.pauseToggle,
+          },
+          {
+            key: "next",
+            icon: "next",
+            label: "Suivant",
+            variant: "secondary",
+            onClick: session.skip,
+          },
+          { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
+        ]
+      : [
+          {
+            key: "pause",
+            icon: "pause",
+            label: "Pause",
+            variant: "accent-line",
+            onClick: session.pauseToggle,
+          },
+          { key: "see", icon: "eye", label: "Voir", variant: "primary", onClick: session.reveal },
+          { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
+        ];
 
   return (
     <SessionChrome
@@ -95,9 +125,7 @@ export default function ChordRevealSession({
       buttons={buttons}
     >
       {session.paused && !session.revealed && <div className={s.pauseBadge}>En pause</div>}
-      <div className={s.noteName}>
-        {resolved ? formatLabel(resolved.label) : "—"}
-      </div>
+      <div className={s.noteName}>{resolved ? formatLabel(resolved.label) : "—"}</div>
       {session.revealed && isChord && (
         <ChordReveal
           chord={resolved as ChordItem}

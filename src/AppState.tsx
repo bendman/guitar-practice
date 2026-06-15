@@ -4,7 +4,10 @@ import { useProgress as useProgressEngine } from "./hooks/useProgress";
 import { useCustomVoicings } from "./hooks/useCustomVoicings";
 import { useCustomPresets } from "./hooks/useCustomPresets";
 import type { Stats, SessionSummary, Weights } from "./lib/stats";
-import { load as loadPreferredVoicingsBlob, save as savePreferredVoicings } from "./persistence/preferredVoicings";
+import {
+  load as loadPreferredVoicingsBlob,
+  save as savePreferredVoicings,
+} from "./persistence/preferredVoicings";
 
 function loadPreferredVoicings(): Record<string, number> {
   return loadPreferredVoicingsBlob().data;
@@ -46,10 +49,11 @@ export function useProgress(): Progress {
 // ── Voicings & presets ────────────────────────────────────────────────────────
 type CustomVoicings = ReturnType<typeof useCustomVoicings>;
 type CustomPresets = ReturnType<typeof useCustomPresets>;
-export type Voicings = CustomVoicings & CustomPresets & {
-  preferredVoicings: Record<string, number>;
-  setPreferredVoicing: (chordId: string, idx: number) => void;
-};
+export type Voicings = CustomVoicings &
+  CustomPresets & {
+    preferredVoicings: Record<string, number>;
+    setPreferredVoicing: (chordId: string, idx: number) => void;
+  };
 const VoicingsContext = createContext<Voicings | null>(null);
 
 export function useVoicings(): Voicings {
@@ -83,7 +87,8 @@ export function useSessionHandoff(): SessionHandoff {
 function VoicingsProvider({ children }: { children: ReactNode }) {
   const voicings = useCustomVoicings();
   const presets = useCustomPresets();
-  const [preferredVoicings, setPreferredVoicings] = useState<Record<string, number>>(loadPreferredVoicings);
+  const [preferredVoicings, setPreferredVoicings] =
+    useState<Record<string, number>>(loadPreferredVoicings);
 
   const setPreferredVoicing = (chordId: string, idx: number) => {
     setPreferredVoicings((prev) => {
@@ -105,7 +110,10 @@ function SessionHandoffProvider({ children }: { children: ReactNode }) {
   const [chordPreset, setChordPreset] = useState<string | null>(null);
   const [chordProgression, setChordProgression] = useState<string | null>(null);
 
-  const setLastSummary = (summary: SessionSummary | null, mode: "notes" | "chords" | null = null) => {
+  const setLastSummary = (
+    summary: SessionSummary | null,
+    mode: "notes" | "chords" | null = null,
+  ) => {
     setLastSummaryRaw(summary);
     setLastSessionMode(summary ? mode : null);
   };
@@ -116,10 +124,16 @@ function SessionHandoffProvider({ children }: { children: ReactNode }) {
   };
 
   const value: SessionHandoff = {
-    lastSummary, lastSessionMode, setLastSummary,
-    preSessionStats, preSessionWeights, capturePreSession,
-    chordPreset, setChordPreset,
-    chordProgression, setChordProgression,
+    lastSummary,
+    lastSessionMode,
+    setLastSummary,
+    preSessionStats,
+    preSessionWeights,
+    capturePreSession,
+    chordPreset,
+    setChordPreset,
+    chordProgression,
+    setChordProgression,
   };
   return <SessionHandoffContext.Provider value={value}>{children}</SessionHandoffContext.Provider>;
 }

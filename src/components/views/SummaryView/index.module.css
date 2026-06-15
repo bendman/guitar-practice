@@ -216,7 +216,9 @@
   border-radius: var(--r-sm);
   background: var(--surface-2);
   box-shadow: inset 0 0 0 1px var(--line);
-  transition: box-shadow 0.3s ease, background 0.3s ease;
+  transition:
+    box-shadow 0.3s ease,
+    background 0.3s ease;
 }
 
 .chordProgStat {
@@ -228,7 +230,7 @@
 }
 
 .chordProgUp {
-  background: rgba(212, 117, 63, 0.10);
+  background: rgba(212, 117, 63, 0.1);
   box-shadow: inset 0 0 0 1px var(--accent-deep);
 }
 
@@ -246,8 +248,12 @@
   transition: color 0.3s ease;
 }
 
-.chordProgArrowUp { color: var(--accent); }
-.chordProgArrowDown { color: var(--error); }
+.chordProgArrowUp {
+  color: var(--accent);
+}
+.chordProgArrowDown {
+  color: var(--error);
+}
 
 /* ── Perfect note ────────────────────────────────────────────────────────────── */
 .perfectNote {

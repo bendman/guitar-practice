@@ -2,8 +2,7 @@ import { setWorldConstructor, World, type IWorldOptions } from "@cucumber/cucumb
 import type { Browser, BrowserContext, Page } from "playwright";
 
 // Base URL respects Vite's `base: '/guitar-practice/'`. Override with BASE_URL.
-export const BASE_URL =
-  process.env.BASE_URL ?? "http://localhost:4173/guitar-practice/";
+export const BASE_URL = process.env.BASE_URL ?? "http://localhost:4173/guitar-practice/";
 
 export const HEADLESS = process.env.HEADLESS !== "false";
 

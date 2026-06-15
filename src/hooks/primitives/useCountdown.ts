@@ -15,11 +15,10 @@ interface CountdownOptions {
  * resuming restarts the current cycle's clock — matching the per-item timer
  * behaviour the timed flows expect.
  */
-export function useCountdown({
-  durationMs,
-  running,
-  onElapsed,
-}: CountdownOptions): { progress: number; restart: () => void } {
+export function useCountdown({ durationMs, running, onElapsed }: CountdownOptions): {
+  progress: number;
+  restart: () => void;
+} {
   const [progress, setProgress] = useState(0);
   const [restartKey, setRestartKey] = useState(0);
   const firedRef = useRef(false);

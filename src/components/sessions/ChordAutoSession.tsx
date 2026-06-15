@@ -62,7 +62,9 @@ export default function ChordAutoSession({
   const [revealed, setRevealed] = useState(false);
   // Reset reveal when the underlying item changes (timer auto-advanced past).
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setRevealed(false); }, [session.current?.id]);
+  useEffect(() => {
+    setRevealed(false);
+  }, [session.current?.id]);
 
   const resolved = session.current
     ? (pool.find((c) => c.id === session.current!.id) ?? session.current)
@@ -81,21 +83,51 @@ export default function ChordAutoSession({
 
   const buttons: BtnSpec[] = revealed
     ? [
-        { key: "pause", icon: "pause", label: "Pause", variant: "accent-line", onClick: session.pauseToggle },
-        { key: "continue", icon: "next", label: "Continuer", variant: "primary", onClick: continueSession },
+        {
+          key: "pause",
+          icon: "pause",
+          label: "Pause",
+          variant: "accent-line",
+          onClick: session.pauseToggle,
+        },
+        {
+          key: "continue",
+          icon: "next",
+          label: "Continuer",
+          variant: "primary",
+          onClick: continueSession,
+        },
         { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
       ]
     : session.paused
-    ? [
-        { key: "resume", icon: "play", label: "Reprendre", variant: "primary", onClick: session.pauseToggle },
-        { key: "next", icon: "next", label: "Suivant", variant: "secondary", onClick: session.skip },
-        { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
-      ]
-    : [
-        { key: "pause", icon: "pause", label: "Pause", variant: "accent-line", onClick: session.pauseToggle },
-        { key: "see", icon: "eye", label: "Voir", variant: "primary", onClick: showChord },
-        { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
-      ];
+      ? [
+          {
+            key: "resume",
+            icon: "play",
+            label: "Reprendre",
+            variant: "primary",
+            onClick: session.pauseToggle,
+          },
+          {
+            key: "next",
+            icon: "next",
+            label: "Suivant",
+            variant: "secondary",
+            onClick: session.skip,
+          },
+          { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
+        ]
+      : [
+          {
+            key: "pause",
+            icon: "pause",
+            label: "Pause",
+            variant: "accent-line",
+            onClick: session.pauseToggle,
+          },
+          { key: "see", icon: "eye", label: "Voir", variant: "primary", onClick: showChord },
+          { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
+        ];
 
   return (
     <SessionChrome
@@ -108,9 +140,7 @@ export default function ChordAutoSession({
       buttons={buttons}
     >
       {session.paused && !revealed && <div className={s.pauseBadge}>En pause</div>}
-      <div className={s.noteName}>
-        {resolved ? formatLabel(resolved.label) : "—"}
-      </div>
+      <div className={s.noteName}>{resolved ? formatLabel(resolved.label) : "—"}</div>
       {revealed && isChord && (
         <ChordReveal
           chord={resolved as ChordItem}

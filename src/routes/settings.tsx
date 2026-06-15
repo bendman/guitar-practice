@@ -33,7 +33,7 @@ function SettingsScreen() {
     const pool = mergeCustomVoicings(CHORDS, customVoicings);
     const inPool = pool.find((c) => c.id === id);
     const builtInCount = CHORDS.find((c) => c.id === id)?.voicings?.length ?? 0;
-    const newIdx = inPool?.voicings?.length ?? (builtInCount + (customVoicings[id]?.length ?? 0));
+    const newIdx = inPool?.voicings?.length ?? builtInCount + (customVoicings[id]?.length ?? 0);
     addVoicing(id, voicing);
     setPreferredVoicing(id, newIdx);
     closeBuilder();

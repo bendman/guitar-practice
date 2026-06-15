@@ -52,12 +52,16 @@
   font-weight: 700;
   border-radius: var(--r-md);
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.1s var(--ease);
+  transition:
+    opacity 0.15s ease,
+    transform 0.1s var(--ease);
   min-height: 54px;
   font-family: var(--mono);
 }
 
-.footerBtn:active { transform: scale(0.96); }
+.footerBtn:active {
+  transform: scale(0.96);
+}
 
 .footerBtn:disabled {
   opacity: 0.3;
@@ -93,7 +97,9 @@
   margin: 6px 0 32px;
 }
 
-.section { margin-bottom: 28px; }
+.section {
+  margin-bottom: 28px;
+}
 
 .sectionHeader {
   display: flex;

@@ -38,9 +38,15 @@ export default function NotesPicker({ enabled, setEnabled, selectedNoteCount }: 
       <div className={s.sectionHeader}>
         <span className={shared.eyebrow}>Notes · {selectedNoteCount} choisies</span>
         <div className={s.segmented}>
-          <button className={s.seg} onClick={() => preset("none")}>Aucune</button>
-          <button className={s.seg} onClick={() => preset("naturals")}>Naturelles</button>
-          <button className={s.seg} onClick={() => preset("all")}>Toutes</button>
+          <button className={s.seg} onClick={() => preset("none")}>
+            Aucune
+          </button>
+          <button className={s.seg} onClick={() => preset("naturals")}>
+            Naturelles
+          </button>
+          <button className={s.seg} onClick={() => preset("all")}>
+            Toutes
+          </button>
         </div>
       </div>
 

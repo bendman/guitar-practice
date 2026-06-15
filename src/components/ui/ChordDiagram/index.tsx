@@ -20,7 +20,7 @@ const LINE_W = 1.5;
 //   triangle: (3√3/4)·R²    → R  = DOT_R·√(4π/(3√3))
 //   pentagon: (5/2)·R²·sin72° → R = DOT_R·√(2π/(5·sin72°))
 const _SIN72 = Math.sin((72 * Math.PI) / 180);
-const DIAMOND_R  = DOT_R * Math.sqrt(Math.PI / 2);
+const DIAMOND_R = DOT_R * Math.sqrt(Math.PI / 2);
 const TRIANGLE_R = DOT_R * Math.sqrt((4 * Math.PI) / (3 * Math.sqrt(3)));
 const PENTAGON_R = DOT_R * Math.sqrt((2 * Math.PI) / (5 * _SIN72));
 
@@ -93,7 +93,12 @@ export default function ChordDiagram({
   const dragStart = useRef<{ i: number; fret: number } | null>(null);
   // Live preview of the pending gesture (ghost dot or barre) shown while the
   // pointer is held, before release commits it.
-  const [preview, setPreview] = useState<{ startI: number; startFret: number; curI: number; curFret: number } | null>(null);
+  const [preview, setPreview] = useState<{
+    startI: number;
+    startFret: number;
+    curI: number;
+    curFret: number;
+  } | null>(null);
 
   if (!fingering) return null;
   const { frets = [], baseFret = 1, barres = [] } = fingering;
@@ -121,7 +126,9 @@ export default function ChordDiagram({
   // Map a pointer event to the cell under it (viewBox coordinates), so drag
   // works the same for mouse and touch (touch's implicit pointer capture means
   // pointerup reports the start element, so we hit-test by position instead).
-  const cellFromEvent = (e: React.PointerEvent): { i: number; fret: number; header: boolean } | null => {
+  const cellFromEvent = (
+    e: React.PointerEvent,
+  ): { i: number; fret: number; header: boolean } | null => {
     const svg = svgRef.current;
     const ctm = svg?.getScreenCTM();
     if (!svg || !ctm) return null;
@@ -235,7 +242,13 @@ export default function ChordDiagram({
           return (
             <g key={`m${i}`}>
               <circle className={s.noteCircle} cx={stringX(i)} cy={HEADER / 2} r={DOT_R} />
-              <text className={s.noteLabel} x={stringX(i)} y={HEADER / 2} textAnchor="middle" dominantBaseline="central">
+              <text
+                className={s.noteLabel}
+                x={stringX(i)}
+                y={HEADER / 2}
+                textAnchor="middle"
+                dominantBaseline="central"
+              >
                 {getStringNoteLabel(i, 0, "letters")}
               </text>
             </g>
@@ -273,21 +286,28 @@ export default function ChordDiagram({
               role={editable ? "img" : undefined}
               aria-label={editable ? `barré case ${b.fret}` : undefined}
             />
-            {(showNotes || noteRole) && Array.from({ length: z - a + 1 }, (_, k) => {
-              const si = a + k;
-              if (frets[si] != null && frets[si] > b.fret) return null;
-              const role = noteRole ? noteRole(si, b.fret) : "other";
-              return (
-                <g key={`bn${si}`}>
-                  <NoteShape role={role} cx={stringX(si)} cy={cellY(row)} r={DOT_R} />
-                  {showNotes && (
-                    <text className={s.noteLabel} x={stringX(si)} y={cellY(row)} textAnchor="middle" dominantBaseline="central">
-                      {getStringNoteLabel(si, b.fret, "letters")}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
+            {(showNotes || noteRole) &&
+              Array.from({ length: z - a + 1 }, (_, k) => {
+                const si = a + k;
+                if (frets[si] != null && frets[si] > b.fret) return null;
+                const role = noteRole ? noteRole(si, b.fret) : "other";
+                return (
+                  <g key={`bn${si}`}>
+                    <NoteShape role={role} cx={stringX(si)} cy={cellY(row)} r={DOT_R} />
+                    {showNotes && (
+                      <text
+                        className={s.noteLabel}
+                        x={stringX(si)}
+                        y={cellY(row)}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                      >
+                        {getStringNoteLabel(si, b.fret, "letters")}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
           </g>
         );
       })}
@@ -300,11 +320,24 @@ export default function ChordDiagram({
         const role = noteRole ? noteRole(i, f) : undefined;
         return (
           <g key={`d${i}`}>
-            {role != null
-              ? <NoteShape role={role} cx={stringX(i)} cy={cellY(row)} r={DOT_R} />
-              : <circle className={showNotes ? s.noteCircle : s.dot} cx={stringX(i)} cy={cellY(row)} r={DOT_R} />}
+            {role != null ? (
+              <NoteShape role={role} cx={stringX(i)} cy={cellY(row)} r={DOT_R} />
+            ) : (
+              <circle
+                className={showNotes ? s.noteCircle : s.dot}
+                cx={stringX(i)}
+                cy={cellY(row)}
+                r={DOT_R}
+              />
+            )}
             {showNotes && (
-              <text className={s.noteLabel} x={stringX(i)} y={cellY(row)} textAnchor="middle" dominantBaseline="central">
+              <text
+                className={s.noteLabel}
+                x={stringX(i)}
+                y={cellY(row)}
+                textAnchor="middle"
+                dominantBaseline="central"
+              >
                 {getStringNoteLabel(i, f, "letters")}
               </text>
             )}
@@ -312,34 +345,43 @@ export default function ChordDiagram({
         );
       })}
 
-      {editable && preview && (() => {
-        const { startI, startFret, curI, curFret } = preview;
-        // Dragged onto another string at the same fret → preview a barre.
-        if (curI !== startI && curFret === startFret) {
-          const row = startFret - baseFret + 1;
-          if (row < 1 || row > fretCount) return null;
-          const a = Math.min(startI, curI);
-          const z = Math.max(startI, curI);
-          return (
-            <line
-              className={`${s.barre} ${s.ghost}`}
-              x1={stringX(a)}
-              y1={cellY(row)}
-              x2={stringX(z)}
-              y2={cellY(row)}
-              strokeWidth={DOT_R * 2}
-              strokeLinecap="round"
-            />
-          );
-        }
-        // Held on a single cell → preview a finger there.
-        if (curI === startI && curFret === startFret) {
-          const row = curFret - baseFret + 1;
-          if (row < 1 || row > fretCount) return null;
-          return <circle className={`${s.dot} ${s.ghost}`} cx={stringX(curI)} cy={cellY(row)} r={DOT_R} />;
-        }
-        return null;
-      })()}
+      {editable &&
+        preview &&
+        (() => {
+          const { startI, startFret, curI, curFret } = preview;
+          // Dragged onto another string at the same fret → preview a barre.
+          if (curI !== startI && curFret === startFret) {
+            const row = startFret - baseFret + 1;
+            if (row < 1 || row > fretCount) return null;
+            const a = Math.min(startI, curI);
+            const z = Math.max(startI, curI);
+            return (
+              <line
+                className={`${s.barre} ${s.ghost}`}
+                x1={stringX(a)}
+                y1={cellY(row)}
+                x2={stringX(z)}
+                y2={cellY(row)}
+                strokeWidth={DOT_R * 2}
+                strokeLinecap="round"
+              />
+            );
+          }
+          // Held on a single cell → preview a finger there.
+          if (curI === startI && curFret === startFret) {
+            const row = curFret - baseFret + 1;
+            if (row < 1 || row > fretCount) return null;
+            return (
+              <circle
+                className={`${s.dot} ${s.ghost}`}
+                cx={stringX(curI)}
+                cy={cellY(row)}
+                r={DOT_R}
+              />
+            );
+          }
+          return null;
+        })()}
 
       {editable && (
         <>
@@ -358,7 +400,10 @@ export default function ChordDiagram({
                 height={HEADER}
                 onClick={onTap}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onTap(); }
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onTap();
+                  }
                 }}
               />
             );
@@ -375,14 +420,21 @@ export default function ChordDiagram({
                   className={s.hitZone}
                   role="button"
                   tabIndex={0}
-                  aria-label={isDot ? `retirer la note ${STRING_LABEL(i)}` : `${STRING_LABEL(i)} case ${absoluteFret}`}
+                  aria-label={
+                    isDot
+                      ? `retirer la note ${STRING_LABEL(i)}`
+                      : `${STRING_LABEL(i)} case ${absoluteFret}`
+                  }
                   x={stringX(i) - STRING_SPACING / 2}
                   y={fretLineY(row - 1)}
                   width={STRING_SPACING}
                   height={FRET_SPACING}
                   onClick={onTap}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onTap(); }
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onTap();
+                    }
                   }}
                 />
               );

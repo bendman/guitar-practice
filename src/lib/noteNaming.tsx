@@ -5,16 +5,13 @@ import type { NoteNaming } from "./util";
 export const NoteNamingContext = createContext<NoteNaming>("solfege");
 
 export function NoteNamingProvider({
-  naming, children,
+  naming,
+  children,
 }: {
   naming: NoteNaming;
   children: React.ReactNode;
 }) {
-  return (
-    <NoteNamingContext.Provider value={naming}>
-      {children}
-    </NoteNamingContext.Provider>
-  );
+  return <NoteNamingContext.Provider value={naming}>{children}</NoteNamingContext.Provider>;
 }
 
 /** Returns a formatter that translates labels into the active note naming. */

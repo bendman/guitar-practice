@@ -91,9 +91,7 @@ export default function QuizSession({
       onShowLearning={onShowLearning}
       buttons={buttons}
     >
-      <div className={s.noteName}>
-        {session.current ? formatLabel(session.current.label) : "—"}
-      </div>
+      <div className={s.noteName}>{session.current ? formatLabel(session.current.label) : "—"}</div>
       <QuizGrid
         choices={session.choices}
         correctId={session.correctId}

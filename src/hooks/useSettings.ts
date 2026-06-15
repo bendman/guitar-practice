@@ -8,7 +8,9 @@ function loadSettings() {
   return loadSettingsBlob().data;
 }
 
-const DEFAULT_ENABLED: Record<string, boolean> = Object.fromEntries(ALL.map((item) => [item.id, item.defaultEnabled !== false]));
+const DEFAULT_ENABLED: Record<string, boolean> = Object.fromEntries(
+  ALL.map((item) => [item.id, item.defaultEnabled !== false]),
+);
 
 function parseInitialSettings() {
   const s = loadSettings();
@@ -47,20 +49,50 @@ export function useSettings() {
 
   useEffect(() => {
     saveSettings({
-      interval: intervalSecs, enabled, tts, listening, chordMode, workingSetSize, noteNaming, spokenNaming, voiceURI, showChordNotes,
+      interval: intervalSecs,
+      enabled,
+      tts,
+      listening,
+      chordMode,
+      workingSetSize,
+      noteNaming,
+      spokenNaming,
+      voiceURI,
+      showChordNotes,
     });
-  }, [intervalSecs, enabled, tts, listening, chordMode, workingSetSize, noteNaming, spokenNaming, voiceURI, showChordNotes]);
+  }, [
+    intervalSecs,
+    enabled,
+    tts,
+    listening,
+    chordMode,
+    workingSetSize,
+    noteNaming,
+    spokenNaming,
+    voiceURI,
+    showChordNotes,
+  ]);
 
   return {
-    intervalSecs, setIntervalSecs,
-    enabled, setEnabled,
-    tts, setTts,
-    listening, setListening,
-    chordMode, setChordMode,
-    workingSetSize, setWorkingSetSize,
-    noteNaming, setNoteNaming,
-    spokenNaming, setSpokenNaming,
-    voiceURI, setVoiceURI,
-    showChordNotes, setShowChordNotes,
+    intervalSecs,
+    setIntervalSecs,
+    enabled,
+    setEnabled,
+    tts,
+    setTts,
+    listening,
+    setListening,
+    chordMode,
+    setChordMode,
+    workingSetSize,
+    setWorkingSetSize,
+    noteNaming,
+    setNoteNaming,
+    spokenNaming,
+    setSpokenNaming,
+    voiceURI,
+    setVoiceURI,
+    showChordNotes,
+    setShowChordNotes,
   };
 }

@@ -3,8 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useTimedSession } from "./useTimedSession";
 import type { NoteItem, PracticeItem } from "../../lib/constants";
 
-const note = (id: string): PracticeItem =>
-  ({ id, label: id, speak: id, type: "note" }) as NoteItem;
+const note = (id: string): PracticeItem => ({ id, label: id, speak: id, type: "note" }) as NoteItem;
 
 const pool = [note("do"), note("re"), note("mi")];
 
@@ -12,7 +11,14 @@ beforeEach(() => {
   vi.stubGlobal("speechSynthesis", { cancel: vi.fn(), speak: vi.fn(), getVoices: () => [] });
   vi.spyOn(Math, "random").mockReturnValue(0);
   vi.useFakeTimers({
-    toFake: ["requestAnimationFrame", "cancelAnimationFrame", "performance", "Date", "setTimeout", "clearTimeout"],
+    toFake: [
+      "requestAnimationFrame",
+      "cancelAnimationFrame",
+      "performance",
+      "Date",
+      "setTimeout",
+      "clearTimeout",
+    ],
   });
 });
 afterEach(() => {

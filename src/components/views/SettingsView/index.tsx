@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { ALL, CHORDS, isSupportedVoiceLang, formatLocaleName, mergeCustomVoicings } from "../../../lib/constants";
+import {
+  ALL,
+  CHORDS,
+  isSupportedVoiceLang,
+  formatLocaleName,
+  mergeCustomVoicings,
+} from "../../../lib/constants";
 import type { ChordItem } from "../../../lib/constants";
 import { weightToLevel, sayAloud, pickRandom } from "../../../lib/util";
 import type { NoteNaming } from "../../../lib/util";
@@ -11,9 +17,7 @@ import shared from "../../shared.module.css";
 import s from "./index.module.css";
 
 /** Group voices by their full locale (e.g. "fr-FR", "fr-CA"), locales sorted. */
-function groupVoicesByLocale(
-  voices: SpeechSynthesisVoice[],
-): [string, SpeechSynthesisVoice[]][] {
+function groupVoicesByLocale(voices: SpeechSynthesisVoice[]): [string, SpeechSynthesisVoice[]][] {
   const groups = new Map<string, SpeechSynthesisVoice[]>();
   for (const v of voices) {
     const list = groups.get(v.lang) ?? [];
@@ -31,13 +35,20 @@ interface SettingsViewProps {
 }
 
 export default function SettingsView({
-  onBack, onCreateChord, onAddVoicing, onShowDebug,
+  onBack,
+  onCreateChord,
+  onAddVoicing,
+  onShowDebug,
 }: SettingsViewProps) {
   const {
-    workingSetSize, setWorkingSetSize,
-    noteNaming, setNoteNaming,
-    spokenNaming, setSpokenNaming,
-    voiceURI, setVoiceURI,
+    workingSetSize,
+    setWorkingSetSize,
+    noteNaming,
+    setNoteNaming,
+    spokenNaming,
+    setSpokenNaming,
+    voiceURI,
+    setVoiceURI,
   } = useSettings();
   const { weights, resetAllWeights: onResetWeights } = useProgress();
   const {
@@ -53,7 +64,8 @@ export default function SettingsView({
 
   useEffect(() => {
     if (typeof speechSynthesis === "undefined") return;
-    const load = () => setVoices(speechSynthesis.getVoices().filter((v) => isSupportedVoiceLang(v.lang)));
+    const load = () =>
+      setVoices(speechSynthesis.getVoices().filter((v) => isSupportedVoiceLang(v.lang)));
     load();
     speechSynthesis.addEventListener("voiceschanged", load);
     return () => speechSynthesis.removeEventListener("voiceschanged", load);
@@ -73,11 +85,12 @@ export default function SettingsView({
     return formatLabel(a.label).localeCompare(formatLabel(b.label));
   });
 
-  const toggleChord = (id: string) => setOpenChordIds((prev) => {
-    const next = new Set(prev);
-    next.has(id) ? next.delete(id) : next.add(id);
-    return next;
-  });
+  const toggleChord = (id: string) =>
+    setOpenChordIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
   const setVoicingIdx = (chordId: string, idx: number) => {
     setVoicingIndices((prev) => ({ ...prev, [chordId]: idx }));
@@ -94,11 +107,7 @@ export default function SettingsView({
           <div className={s.settingsSection}>
             <span className={shared.eyebrow}>Réglages</span>
             {setNoteNaming && (
-              <NamingControl
-                label="Notes écrites"
-                value={noteNaming}
-                onChange={setNoteNaming}
-              />
+              <NamingControl label="Notes écrites" value={noteNaming} onChange={setNoteNaming} />
             )}
             {setSpokenNaming && (
               <NamingControl
@@ -143,9 +152,19 @@ export default function SettingsView({
               <div className={s.settingRow}>
                 <span className={s.settingLabel}>Éléments actifs à la fois</span>
                 <div className={s.stepper}>
-                  <button className={s.stepBtn} onClick={() => setWorkingSetSize(Math.max(2, workingSetSize - 1))}>−</button>
+                  <button
+                    className={s.stepBtn}
+                    onClick={() => setWorkingSetSize(Math.max(2, workingSetSize - 1))}
+                  >
+                    −
+                  </button>
                   <span className={s.stepValue}>{workingSetSize}</span>
-                  <button className={s.stepBtn} onClick={() => setWorkingSetSize(Math.min(15, workingSetSize + 1))}>+</button>
+                  <button
+                    className={s.stepBtn}
+                    onClick={() => setWorkingSetSize(Math.min(15, workingSetSize + 1))}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
             )}
@@ -181,7 +200,7 @@ export default function SettingsView({
                 const isOpen = openChordIds.has(chord.id);
                 const voicings = chord.voicings;
                 const voicingIdx = Math.min(
-                  voicingIndices[chord.id] ?? (preferredVoicings[chord.id] ?? 0),
+                  voicingIndices[chord.id] ?? preferredVoicings[chord.id] ?? 0,
                   Math.max(0, voicings.length - 1),
                 );
                 const customForChord = customVoicings[chord.id] ?? [];
@@ -201,15 +220,24 @@ export default function SettingsView({
                           <>
                             <ChordDiagram fingering={voicings[voicingIdx]} size={240} />
                             {voicings.length > 1 && (
-                              <div className={s.voicingSwitcher} role="group" aria-label="Positions">
+                              <div
+                                className={s.voicingSwitcher}
+                                role="group"
+                                aria-label="Positions"
+                              >
                                 <button
                                   className={s.cycleBtn}
                                   aria-label="Position précédente"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setVoicingIdx(chord.id, (voicingIdx - 1 + voicings.length) % voicings.length);
+                                    setVoicingIdx(
+                                      chord.id,
+                                      (voicingIdx - 1 + voicings.length) % voicings.length,
+                                    );
                                   }}
-                                >‹</button>
+                                >
+                                  ‹
+                                </button>
                                 <span
                                   className={s.voicingCount}
                                   role="status"
@@ -224,35 +252,41 @@ export default function SettingsView({
                                     e.stopPropagation();
                                     setVoicingIdx(chord.id, (voicingIdx + 1) % voicings.length);
                                   }}
-                                >›</button>
+                                >
+                                  ›
+                                </button>
                               </div>
                             )}
                           </>
                         ) : (
                           <p className={s.noVoicing}>Aucune position</p>
                         )}
-                        {customForChord.map((_v, customIdx) => (
-                          onRemoveVoicing && (
-                            <button
-                              key={customIdx}
-                              className={shared.resetLink}
-                              aria-label={`Supprimer la position ${customIdx + 1} ${formatLabel(chord.label)}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onRemoveVoicing(chord.id, customIdx);
-                              }}
-                            >
-                              Supprimer la position {customIdx + 1}
-                            </button>
-                          )
-                        ))}
+                        {customForChord.map(
+                          (_v, customIdx) =>
+                            onRemoveVoicing && (
+                              <button
+                                key={customIdx}
+                                className={shared.resetLink}
+                                aria-label={`Supprimer la position ${customIdx + 1} ${formatLabel(chord.label)}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onRemoveVoicing(chord.id, customIdx);
+                                }}
+                              >
+                                Supprimer la position {customIdx + 1}
+                              </button>
+                            ),
+                        )}
                         {onAddVoicing && (
                           <button
                             className={shared.resetLink}
                             aria-label={`Ajouter une position ${formatLabel(chord.label)}`}
                             onClick={(e) => {
                               e.stopPropagation();
-                              onAddVoicing((chord as ChordItem).rootId, (chord as ChordItem).qualityId);
+                              onAddVoicing(
+                                (chord as ChordItem).rootId,
+                                (chord as ChordItem).qualityId,
+                              );
                             }}
                           >
                             + Ajouter une position

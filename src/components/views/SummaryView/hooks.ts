@@ -23,7 +23,10 @@ export function useCountUp(target: number) {
       if (t < 1) frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
-    return () => { cancelAnimationFrame(raf); cancelAnimationFrame(frame); };
+    return () => {
+      cancelAnimationFrame(raf);
+      cancelAnimationFrame(frame);
+    };
   }, [target]);
 
   return { display, animated };
@@ -35,11 +38,7 @@ export function useCountUp(target: number) {
  * Used when the summary animates each chord's mastery gain.
  * The delay is keyed on `index` so rows fill in one after another.
  */
-export function useDelayedLevel(
-  before: 0 | 1 | 2 | 3,
-  after: 0 | 1 | 2 | 3,
-  index: number,
-) {
+export function useDelayedLevel(before: 0 | 1 | 2 | 3, after: 0 | 1 | 2 | 3, index: number) {
   const [shown, setShown] = useState<0 | 1 | 2 | 3>(before);
   const changed = after !== before;
 

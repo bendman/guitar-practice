@@ -78,7 +78,13 @@ export function useQuizSession({
     if (!target || !isChord(target)) return;
     const activeChords = latest.current.pool.filter(isChord);
     const fullChords = latest.current.fullPool.filter(isChord);
-    const distractors = pickDistractors(target, activeChords, fullChords, latest.current.confusions, 3);
+    const distractors = pickDistractors(
+      target,
+      activeChords,
+      fullChords,
+      latest.current.confusions,
+      3,
+    );
     setChoices(shuffle([target, ...distractors]));
     setCorrectId(target.id);
     setSelectedId(null);

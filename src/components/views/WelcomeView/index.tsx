@@ -23,11 +23,12 @@ export default function WelcomeView({
   return (
     <div className={shared.screen}>
       {onShowProgress && (
-        <button onClick={onShowProgress} className={s.settingsBtn}>Paramètres</button>
+        <button onClick={onShowProgress} className={s.settingsBtn}>
+          Paramètres
+        </button>
       )}
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
-
           <header className={s.appHeader}>
             <h1 className={s.appTitle}>Exercice Guitare</h1>
             <p className={s.appSubtitle}>Trouve les notes et accords sur le manche</p>
@@ -35,9 +36,7 @@ export default function WelcomeView({
 
           <div className={s.statHero}>
             <span className={shared.eyebrow}>Temps total d&apos;entraînement</span>
-            <div className={s.heroValue}>
-              {formatDuration(stats.totalPracticeTime || 0)}
-            </div>
+            <div className={s.heroValue}>{formatDuration(stats.totalPracticeTime || 0)}</div>
             <div className={s.statsGrid}>
               <div className={s.statCell}>
                 <div className={s.statValue}>{stats.bestStreak ?? "—"}</div>
@@ -57,7 +56,6 @@ export default function WelcomeView({
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -65,16 +63,24 @@ export default function WelcomeView({
         <span className={`${shared.eyebrow} ${s.modeLabel}`}>Choisis un mode</span>
         <div className={s.modeCards}>
           <button className={s.modeCard} onClick={onPickNotes}>
-            <span className={s.modeGlyph}><Icon name="note" size={22} /></span>
+            <span className={s.modeGlyph}>
+              <Icon name="note" size={22} />
+            </span>
             <span className={s.modeTitle}>Notes</span>
             <span className={s.modeDesc}>Reconnais les notes sur le manche</span>
-            <span className={s.modeArrow}><Icon name="arrow" size={18} /></span>
+            <span className={s.modeArrow}>
+              <Icon name="arrow" size={18} />
+            </span>
           </button>
           <button className={s.modeCard} onClick={onPickChords}>
-            <span className={s.modeGlyph}><Icon name="chord" size={22} /></span>
+            <span className={s.modeGlyph}>
+              <Icon name="chord" size={22} />
+            </span>
             <span className={s.modeTitle}>Accords</span>
             <span className={s.modeDesc}>Mémorise les positions d&apos;accords</span>
-            <span className={s.modeArrow}><Icon name="arrow" size={18} /></span>
+            <span className={s.modeArrow}>
+              <Icon name="arrow" size={18} />
+            </span>
           </button>
         </div>
       </div>

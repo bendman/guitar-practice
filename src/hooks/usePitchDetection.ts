@@ -19,9 +19,14 @@ export interface DebugPitchData {
   matchedNoteId: string | null;
 }
 
-function useMicLoop(active: boolean, onFrame: (buffer: Float32Array, sampleRate: number) => void): void {
+function useMicLoop(
+  active: boolean,
+  onFrame: (buffer: Float32Array, sampleRate: number) => void,
+): void {
   const onFrameRef = useRef(onFrame);
-  useEffect(() => { onFrameRef.current = onFrame; });
+  useEffect(() => {
+    onFrameRef.current = onFrame;
+  });
 
   useEffect(() => {
     if (!active) return;
@@ -34,7 +39,10 @@ function useMicLoop(active: boolean, onFrame: (buffer: Float32Array, sampleRate:
     (async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
         ctx = new AudioContext();
         const source = ctx.createMediaStreamSource(stream);
         const analyser = ctx.createAnalyser();
@@ -69,11 +77,22 @@ export const RELEASE_RMS = 0.0015;
 export const RELEASE_FRAMES = 4;
 
 const EMPTY_DEBUG: DebugPitchData = {
-  freq: null, rms: 0, corr: 0, noteInfo: null,
-  armed: false, releaseCount: 0, runCount: 0, matchedNoteId: null,
+  freq: null,
+  rms: 0,
+  corr: 0,
+  noteInfo: null,
+  armed: false,
+  releaseCount: 0,
+  runCount: 0,
+  matchedNoteId: null,
 };
 
-const initialState = (): PitchGateState => ({ lastSeen: null, runCount: 0, armed: false, releaseCount: 0 });
+const initialState = (): PitchGateState => ({
+  lastSeen: null,
+  runCount: 0,
+  armed: false,
+  releaseCount: 0,
+});
 
 function processFrame(st: PitchGateState, freq: number | null, rms: number): string | null {
   if (!st.armed) {
@@ -149,7 +168,9 @@ export function useDebugPitch(active: boolean): DebugPitchData {
     const matchedNoteId = processFrame(stateRef.current, freq, rms);
     const st = stateRef.current;
     setData({
-      freq, rms, corr,
+      freq,
+      rms,
+      corr,
       noteInfo: freq ? freqToNoteInfo(freq) : null,
       armed: st.armed,
       releaseCount: st.releaseCount,

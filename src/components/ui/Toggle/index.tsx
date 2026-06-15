@@ -8,7 +8,13 @@ interface ToggleProps {
   disabled?: boolean;
 }
 
-export default function Toggle({ label, sublabel, value, onChange, disabled = false }: ToggleProps) {
+export default function Toggle({
+  label,
+  sublabel,
+  value,
+  onChange,
+  disabled = false,
+}: ToggleProps) {
   const on = value && !disabled;
   return (
     <div className={`${s.row} ${disabled ? s.rowDisabled : ""}`}>

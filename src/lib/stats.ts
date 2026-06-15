@@ -1,4 +1,8 @@
-import { stats as statsBlob, weights as weightsBlob, confusions as confusionsBlob } from "../persistence/progress";
+import {
+  stats as statsBlob,
+  weights as weightsBlob,
+  confusions as confusionsBlob,
+} from "../persistence/progress";
 
 export interface Stats {
   bestStreak: number;

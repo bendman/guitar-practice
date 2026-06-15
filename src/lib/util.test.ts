@@ -129,7 +129,13 @@ describe("pickDistractors", () => {
   it("tops up from the full pool when the active pool is too small", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const target = item("t");
-    const result = pickDistractors(target, [target], [target, item("x"), item("y"), item("z")], {}, 3);
+    const result = pickDistractors(
+      target,
+      [target],
+      [target, item("x"), item("y"), item("z")],
+      {},
+      3,
+    );
     expect(result.map((i) => i.id).sort()).toEqual(["x", "y", "z"]);
   });
 });

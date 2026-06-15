@@ -46,10 +46,14 @@ export default function SessionChrome({
       {recognized && <div className={s.correctGlow} />}
 
       <div className={s.topBar}>
-        <button className={s.learningLink} onClick={onShowLearning}>Details</button>
+        <button className={s.learningLink} onClick={onShowLearning}>
+          Details
+        </button>
         <div className={s.timer}>{formatTime(practiceTime)}</div>
         <div className={s.countRow}>
-          <span className={s.count} role="status" aria-label={`Carte ${count}`}>#{count}</span>
+          <span className={s.count} role="status" aria-label={`Carte ${count}`}>
+            #{count}
+          </span>
           {showStreak && streak > 0 && <span className={s.streak}>{streak} 🔥</span>}
         </div>
       </div>
@@ -58,9 +62,7 @@ export default function SessionChrome({
 
       <ControlBar buttons={buttons} />
 
-      {interval != null && (
-        <div className={s.keyHints}>▲▼ intervalle ({interval.toFixed(1)}s)</div>
-      )}
+      {interval != null && <div className={s.keyHints}>▲▼ intervalle ({interval.toFixed(1)}s)</div>}
     </div>
   );
 }

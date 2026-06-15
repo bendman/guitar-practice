@@ -18,7 +18,9 @@ function schemaVersions(schemaDir: string): number[] {
 }
 
 function fixture(name: string, version: number): unknown | undefined {
-  const mod = FIXTURES[`./__fixtures__/${name}/v${version}.json`] as { default: unknown } | undefined;
+  const mod = FIXTURES[`./__fixtures__/${name}/v${version}.json`] as
+    | { default: unknown }
+    | undefined;
   return mod?.default;
 }
 
@@ -57,7 +59,9 @@ describe("persistence chain integrity", () => {
           expect(data, `missing fixture __fixtures__/${entry.name}/v${v}.json`).toBeDefined();
           const migrated = entry.blob.migrate(data, v);
           const result = entry.latestSchema.safeParse(migrated);
-          expect(result.success, `fixture ${entry.name}/v${v}.json failed latest schema`).toBe(true);
+          expect(result.success, `fixture ${entry.name}/v${v}.json failed latest schema`).toBe(
+            true,
+          );
         }
       });
     });

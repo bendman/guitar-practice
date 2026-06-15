@@ -109,7 +109,9 @@
   letter-spacing: 0.3px;
 }
 
-.pick:active { opacity: 0.7; }
+.pick:active {
+  opacity: 0.7;
+}
 
 .pickOn {
   background: var(--text);

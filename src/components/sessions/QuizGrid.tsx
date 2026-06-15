@@ -26,9 +26,10 @@ export default function QuizGrid({
       {choices.map((c) => {
         const isCorrectChoice = c.id === correctId;
         const isPicked = c.id === selectedId;
-        const cardClass = selectedId == null
-          ? s.quizCard
-          : `${s.quizCard} ${isCorrectChoice ? s.quizCardCorrect : isPicked ? s.quizCardWrong : s.quizCardDim}`;
+        const cardClass =
+          selectedId == null
+            ? s.quizCard
+            : `${s.quizCard} ${isCorrectChoice ? s.quizCardCorrect : isPicked ? s.quizCardWrong : s.quizCardDim}`;
         return (
           <button
             key={c.id}
@@ -38,7 +39,9 @@ export default function QuizGrid({
           >
             {c.voicings.length > 0 && (
               <ChordDiagram
-                fingering={c.voicings[Math.min(preferredVoicings[c.id] ?? 0, c.voicings.length - 1)]}
+                fingering={
+                  c.voicings[Math.min(preferredVoicings[c.id] ?? 0, c.voicings.length - 1)]
+                }
                 size={160}
                 showNotes={showChordNotes}
               />

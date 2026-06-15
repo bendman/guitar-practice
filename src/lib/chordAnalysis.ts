@@ -5,15 +5,25 @@ export type NoteRole = "root" | "third" | "fifth" | "other";
 
 /** Map from app root IDs (solfège) to tonal note names. */
 const ROOT_ID_TO_NOTE: Record<string, string> = {
-  do: "C", do_s: "C#", re: "D", re_s: "D#", mi: "E", fa: "F",
-  fa_s: "F#", sol: "G", sol_s: "G#", la: "A", la_s: "A#", si: "B",
+  do: "C",
+  do_s: "C#",
+  re: "D",
+  re_s: "D#",
+  mi: "E",
+  fa: "F",
+  fa_s: "F#",
+  sol: "G",
+  sol_s: "G#",
+  la: "A",
+  la_s: "A#",
+  si: "B",
 };
 
 /** Map from app quality IDs to tonal chord type names. */
 const QUALITY_ID_TO_TYPE: Record<string, string> = {
-  maj:  "major",
-  min:  "minor",
-  dim:  "diminished",
+  maj: "major",
+  min: "minor",
+  dim: "diminished",
   maj7: "major seventh",
   min7: "minor seventh",
   m7b5: "half-diminished",

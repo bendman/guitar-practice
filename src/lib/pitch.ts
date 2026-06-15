@@ -14,12 +14,22 @@ export interface PitchResult {
 
 /** Maps tonal pitch-class names (both sharp and flat spellings) to app note IDs. */
 const PC_TO_ID: Record<string, string> = {
-  C: "do",    "C#": "do_sharp", Db: "do_sharp",
-  D: "re",    "D#": "re_sharp", Eb: "re_sharp",
+  C: "do",
+  "C#": "do_sharp",
+  Db: "do_sharp",
+  D: "re",
+  "D#": "re_sharp",
+  Eb: "re_sharp",
   E: "mi",
-  F: "fa",    "F#": "fa_sharp", Gb: "fa_sharp",
-  G: "sol",   "G#": "sol_sharp", Ab: "sol_sharp",
-  A: "la",    "A#": "la_sharp", Bb: "la_sharp",
+  F: "fa",
+  "F#": "fa_sharp",
+  Gb: "fa_sharp",
+  G: "sol",
+  "G#": "sol_sharp",
+  Ab: "sol_sharp",
+  A: "la",
+  "A#": "la_sharp",
+  Bb: "la_sharp",
   B: "si",
 };
 

@@ -25,13 +25,17 @@ function AccuracyRing({ accuracy }: AccuracyRingProps) {
     <div className={s.ringWrap}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle
-          cx={size / 2} cy={size / 2} r={radius}
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
           fill="none"
           stroke="var(--surface-2)"
           strokeWidth={stroke}
         />
         <circle
-          cx={size / 2} cy={size / 2} r={radius}
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
           fill="none"
           stroke="var(--success)"
           strokeWidth={stroke}
@@ -43,7 +47,10 @@ function AccuracyRing({ accuracy }: AccuracyRingProps) {
         />
       </svg>
       <div className={s.ringCenter}>
-        <div className={s.ringValue}>{display}<span className={s.ringPct}>%</span></div>
+        <div className={s.ringValue}>
+          {display}
+          <span className={s.ringPct}>%</span>
+        </div>
         <span className={`${shared.eyebrow} ${s.ringLabel}`}>Précision</span>
       </div>
     </div>
@@ -69,7 +76,9 @@ function ImpactRow({ label, oldVal, newVal, improved }: ImpactRowProps) {
             <span className={s.impactArrow}>→</span>
           </>
         )}
-        <span className={`${s.impactNew} ${improved && changed ? s.impactImproved : ""}`}>{newVal}</span>
+        <span className={`${s.impactNew} ${improved && changed ? s.impactImproved : ""}`}>
+          {newVal}
+        </span>
       </div>
     </div>
   );
@@ -99,7 +108,14 @@ interface ChordProgressRowProps {
   index: number;
 }
 
-function ChordProgressRow({ label, before, after, attempts, misses, index }: ChordProgressRowProps) {
+function ChordProgressRow({
+  label,
+  before,
+  after,
+  attempts,
+  misses,
+  index,
+}: ChordProgressRowProps) {
   // Start the "after" dot at the old level, then animate up to the new level so
   // the user sees the gain fill in.
   const shown = useDelayedLevel(before, after, index);
@@ -118,7 +134,11 @@ function ChordProgressRow({ label, before, after, attempts, misses, index }: Cho
         {changed ? (
           <>
             <ProgressDot level={before} size={12} dim />
-            <span className={`${s.chordProgArrow} ${improved ? s.chordProgArrowUp : regressed ? s.chordProgArrowDown : ""}`}>→</span>
+            <span
+              className={`${s.chordProgArrow} ${improved ? s.chordProgArrowUp : regressed ? s.chordProgArrowDown : ""}`}
+            >
+              →
+            </span>
             <ProgressDot level={shown} size={14} />
           </>
         ) : (
@@ -129,15 +149,23 @@ function ChordProgressRow({ label, before, after, attempts, misses, index }: Cho
   );
 }
 
-export default function SummaryView({
-  summary, onDismiss, onReplay,
-}: SummaryViewProps) {
+export default function SummaryView({ summary, onDismiss, onReplay }: SummaryViewProps) {
   const { weights } = useProgress();
   const { preSessionStats, preSessionWeights: preWeights } = useSessionHandoff();
   const {
-    totalCount, correctCount, totalNotes, accuracy, bestStreak,
-    practiceTime, wasListening, missedItems,
-    wasManualChord, chordCorrectCount, totalChords, chordAccuracy, chordPracticedItems,
+    totalCount,
+    correctCount,
+    totalNotes,
+    accuracy,
+    bestStreak,
+    practiceTime,
+    wasListening,
+    missedItems,
+    wasManualChord,
+    chordCorrectCount,
+    totalChords,
+    chordAccuracy,
+    chordPracticedItems,
   } = summary;
   const formatLabel = useFormatLabel();
 
@@ -151,11 +179,9 @@ export default function SummaryView({
       before: weightToLevel(preWeights[c.id]),
       after: weightToLevel(weights[c.id]),
     }))
-    .sort((a, b) => (b.after - b.before) - (a.after - a.before) || b.after - a.after);
+    .sort((a, b) => b.after - b.before - (a.after - a.before) || b.after - a.after);
 
-  const postStats = preSessionStats
-    ? mergeSessionIntoStats(preSessionStats, summary)
-    : null;
+  const postStats = preSessionStats ? mergeSessionIntoStats(preSessionStats, summary) : null;
 
   const preAcc = preSessionStats ? accuracyPercent(preSessionStats) : null;
   const postAcc = postStats ? accuracyPercent(postStats) : null;
@@ -164,18 +190,21 @@ export default function SummaryView({
     <div className={shared.screen}>
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
-
           {wasListening ? (
             <>
               <AccuracyRing accuracy={accuracy} />
               <h2 className={s.headline}>{headline(accuracy)}</h2>
-              <p className={s.subCount}>{correctCount} / {totalNotes} corrects</p>
+              <p className={s.subCount}>
+                {correctCount} / {totalNotes} corrects
+              </p>
             </>
           ) : wasManualChord ? (
             <>
               <AccuracyRing accuracy={chordAccuracy} />
               <h2 className={s.headline}>{headline(chordAccuracy)}</h2>
-              <p className={s.subCount}>{chordCorrectCount} / {totalChords} trouvés</p>
+              <p className={s.subCount}>
+                {chordCorrectCount} / {totalChords} trouvés
+              </p>
             </>
           ) : (
             <div className={s.noMicHeader}>
@@ -249,9 +278,7 @@ export default function SummaryView({
           )}
 
           {wasListening && missedItems.length === 0 && totalNotes > 0 && (
-            <div className={s.perfectNote}>
-              Toutes les notes correctes — excellent !
-            </div>
+            <div className={s.perfectNote}>Toutes les notes correctes — excellent !</div>
           )}
 
           {wasManualChord && chordProgress.length > 0 && (
@@ -272,7 +299,6 @@ export default function SummaryView({
               </div>
             </div>
           )}
-
         </div>
       </div>
 

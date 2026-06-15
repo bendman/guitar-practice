@@ -35,11 +35,15 @@ lib/ (pure mechanism) → primitive hooks (headless) → flow hooks → screens 
 ```
 
 ### Layer 1 — Mechanism (pure TS, no React) — `src/lib/`
+
 Already pure (only `noteNaming.tsx` imports React, by design — it's the context provider). Keep DOM-free and unit-tested.
+
 - `util` (weighted selection, `weightToLevel`, formatting), `stats` (persistence), `constants` (chords generated from roots×qualities via `tonal`), `summarizeSession`, `chordAnalysis`, `noteNaming`.
 
 ### Layer 2 — Primitive hooks (headless, mode-agnostic) — `src/hooks/primitives/`
+
 Each does one thing; plain inputs, plain serializable outputs; no knowledge of consumer.
+
 - `usePracticeClock(active)` → `{ practiceTime, reset }` — wall-clock accumulator.
 - `useItemQueue({ pool, weights, tts, spokenNaming, voiceURI })` → `{ current, count, advance(), setTo(), reset() }` — weighted no-repeat selection + speak-on-set.
 - `useScore({ onResult })` → `{ streak, record(item, correct, responseTime?), breakStreak(), snapshot(): { results, bestStreak }, reset() }`.
@@ -47,6 +51,7 @@ Each does one thing; plain inputs, plain serializable outputs; no knowledge of c
 - `usePitchDetection` — existing mic engine, unchanged.
 
 ### Layer 3 — Flow hooks (compose primitives by interaction model) — `src/hooks/flows/`
+
 - `useTimedSession` — timed advance (**notes-auto, notes-listening, chord-auto**); listening variant adds mic-hit / force-accept / late-hit glue + ~200ms inter-item gap.
 - `useRevealSession` — reveal-and-grade (**chord-manual**); `reveal()` / `grade()` / `skip()` first-class; countdown auto-reveals (pauses) on elapse.
 - `useQuizSession` — multiple-choice (**chord-QCM**); distractors, `choices`/`correctId`/`selectedId`, `select()`/`next()`; owns `confusions`/`onConfusion`. No countdown.
@@ -55,6 +60,7 @@ Each does one thing; plain inputs, plain serializable outputs; no knowledge of c
 > **Mode→flow mapping (confirmed):** chord **auto** → `useTimedSession` (timed loop with manual Voir/Continuer); chord **manual** → `useRevealSession`; chord **quiz** → `useQuizSession`; notes (auto or listening) → `useTimedSession`.
 
 ### Layer 4 — Screens + shared chrome (policy)
+
 - Shared presentational components: `SessionChrome` (progress + top bar), `NoteDisplay`, `ChordReveal` (diagram + voicing switcher + add-voicing), `QuizGrid`, `ControlBar`.
 - `ControlBar` renders a **list of button specs** (data table per flow), not a JSX cascade. (Legacy reference: the `CtrlBtn` variants in `SessionView` — primary/secondary/accent-line/danger-line/danger.)
 - One thin component per flow (`NoteSession`, `ChordRevealSession`, `QuizSession`) composing its flow hook + chrome, rendering only its own controls — distinct programs, not one screen with a mode flag.
@@ -107,11 +113,13 @@ src/
 ```
 
 ## Data & persistence
+
 - Add a `version` field + `migrate()` step to each localStorage blob (settings, weights, stats, custom voicings/presets, preferred voicings) so formats evolve without breakage.
 - Keep folding knowledge into data: chords from roots×qualities; control bars from spec tables; overlays from search schemas.
 - Tests continue to select by accessible role (no `data-testid`); accessibility stays the test interface.
 
 ## Tooling setup
+
 - `vite.config`: plugin order `tanstackRouter()` → `react()` → `pwa()`; keep `base`.
 - `.gitignore` + ESLint/Prettier ignore `src/routeTree.gen.ts`.
 - `tsconfig`: ensure the generated route tree is included in typecheck.
@@ -132,6 +140,7 @@ src/
    **Why split:** 8a establishes the structural bottleneck that makes 8b's static checks actually airtight. Without the chokepoint, a contributor (or agent) can change the persisted shape by editing any consumer file, and no append-only/chain-integrity check can detect it because the persistence boundary isn't identifiable in the source tree.
 
 ## Guardrails (Parsimony / Diversity)
+
 No global state library; no router loaders (sync data); no abstraction beyond what the three flows share. TanStack Router is a deliberate trade — typed params, working back/refresh on the PWA, per-screen code-splitting — not adopted for novelty.
 
 ---
@@ -141,28 +150,32 @@ No global state library; no router loaders (sync data); no abstraction beyond wh
 This is the agreed operating mode. Follow it every phase.
 
 ### Per-phase loop
+
 1. **Sense** — read `.agent_scratchpad.md` ("Next Physical Step" + phase checklist) and this file.
 2. **Make the change** for exactly one phase. Keep `useSession.ts`/`App.tsx` working until the phase that explicitly retires them (Phase 4), so the app stays behaviorally identical and BDD stays green throughout.
 3. **Green gate (all must pass before commit):**
    - `npm run typecheck`
-   - `npm run test:unit`  (vitest; add isolation tests for any new primitive/flow hook)
-   - `npm run test:dev`   (Cucumber+Playwright BDD against the dev server)
-   - `npm run lint`       (only the 4 pre-existing `scripts/wait-for-deploy.js` `process` errors are allowed)
+   - `npm run test:unit` (vitest; add isolation tests for any new primitive/flow hook)
+   - `npm run test:dev` (Cucumber+Playwright BDD against the dev server)
+   - `npm run lint` (only the 4 pre-existing `scripts/wait-for-deploy.js` `process` errors are allowed)
    - Once, for mic/listening changes: `npm run test:audio`
 4. **Update `.agent_scratchpad.md`** — tick the phase, record what landed + any deviations, and write the next phase's "Next Physical Step".
 5. **Commit** the phase (the user pre-approved per-phase commits for this overhaul; the pre-commit hook re-runs typecheck + BDD). Conventional-commit subject; end the body with the `Co-Authored-By` trailer.
 6. **Continue** to the next phase.
 
 ### Environment / commands
+
 - **All node/npm calls need the Node 22 PATH prefix:** `PATH="/Users/bendman/.nvm/versions/node/v22.22.2/bin:$PATH" <cmd>`.
 - Dev server / BDD base URL: `http://localhost:5173/guitar-practice/` (`test:dev` starts the server itself).
 - A **pre-commit hook** runs the full typecheck + `test:dev` on every commit and prints the entire BDD report — expect a large output dump per commit.
 
 ### Testing conventions (hard rules)
+
 - **No `data-testid`.** Select by accessible role/name (French labels), then label/placeholder, then text. A missing selector means missing accessibility — fix the component (role/aria-label/`<label>`/semantic tag), don't add a testid.
 - Add or extend a `.feature` scenario in `tests/features/` (reuse steps in `tests/steps/practice.steps.ts`) for any behavioral change; the BDD suite is the canonical feedback loop. It drives the UI by clicks, so it is routing-implementation-agnostic — it should keep passing across the router migration.
 - Unit-test every new primitive and flow hook in isolation (jsdom + `@testing-library/react renderHook`; fake timers for RAF-driven clock/countdown; stub `speechSynthesis` and mock `sayAloud`).
 
 ### Router-phase specific verification (Phases 5–6)
+
 - `routeTree.gen.ts` regenerates on dev/build; ignored by git/lint; `npm run build` then confirm `dist/sw.js` precache includes the new lazy chunks.
 - Back returns to prior screen; refresh on `/settings`, `/config/notes` restores them (hash history); refresh on `/summary` redirects to `/`; `/debug` unreachable in a prod build.

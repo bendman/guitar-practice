@@ -71,10 +71,9 @@ describe("useItemQueue", () => {
   });
 
   it("speaks on set/advance only when tts is enabled", () => {
-    const { result, rerender } = renderHook(
-      ({ tts }) => useItemQueue({ pool: [note("a")], tts }),
-      { initialProps: { tts: false } },
-    );
+    const { result, rerender } = renderHook(({ tts }) => useItemQueue({ pool: [note("a")], tts }), {
+      initialProps: { tts: false },
+    });
     act(() => result.current.setTo(note("a")));
     expect(sayAloud).not.toHaveBeenCalled();
     rerender({ tts: true });

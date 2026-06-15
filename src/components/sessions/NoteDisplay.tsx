@@ -39,9 +39,7 @@ export default function NoteDisplay({
       </div>
       {recognized && <div className={s.correctMark}>✓</div>}
       {showListenHint && (
-        <div className={s.listenHint}>
-          Note · {detected ? formatLabel(detected) : "Écoute…"}
-        </div>
+        <div className={s.listenHint}>Note · {detected ? formatLabel(detected) : "Écoute…"}</div>
       )}
     </>
   );

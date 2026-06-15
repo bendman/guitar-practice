@@ -110,7 +110,10 @@ export function createVersionedBlob<T>(config: VersionedBlobConfig<T>): Versione
     try {
       migrated = migrate(data, version);
     } catch (err) {
-      console.warn(`[persistence] "${key}" migration failed; quarantining and using defaults.`, err);
+      console.warn(
+        `[persistence] "${key}" migration failed; quarantining and using defaults.`,
+        err,
+      );
       return { kind: "quarantined", data: makeDefaults() };
     }
 
@@ -135,5 +138,14 @@ export function createVersionedBlob<T>(config: VersionedBlobConfig<T>): Versione
     }
   }
 
-  return { load, save, KEY: key, LATEST_VERSION: latestVersion, migrations, schema, makeDefaults, migrate };
+  return {
+    load,
+    save,
+    KEY: key,
+    LATEST_VERSION: latestVersion,
+    migrations,
+    schema,
+    makeDefaults,
+    migrate,
+  };
 }

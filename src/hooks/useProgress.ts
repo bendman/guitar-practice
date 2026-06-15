@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { applyResult } from "../lib/util";
 import {
-  loadStats, saveStats, resetStats, mergeSessionIntoStats,
-  loadWeights, saveWeights, resetWeights,
-  loadConfusions, saveConfusions, resetConfusions,
+  loadStats,
+  saveStats,
+  resetStats,
+  mergeSessionIntoStats,
+  loadWeights,
+  saveWeights,
+  resetWeights,
+  loadConfusions,
+  saveConfusions,
+  resetConfusions,
 } from "../lib/stats";
 import type { Stats, SessionSummary, Weights, Confusions } from "../lib/stats";
 
@@ -52,8 +59,13 @@ export function useProgress() {
   };
 
   return {
-    stats, weights, confusions,
-    recordResult, recordConfusion, commitSession,
-    resetAllStats, resetAllWeights,
+    stats,
+    weights,
+    confusions,
+    recordResult,
+    recordConfusion,
+    commitSession,
+    resetAllStats,
+    resetAllWeights,
   };
 }

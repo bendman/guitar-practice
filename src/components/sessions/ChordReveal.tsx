@@ -56,12 +56,16 @@ export default function ChordReveal({
               setVoicingIdx(next);
               onVoicingChange(chord.id, next);
             }}
-          >‹</button>
+          >
+            ‹
+          </button>
           <span
             className={s.voicingCount}
             role="status"
             aria-label={`Position ${voicingIdx + 1} sur ${voicings.length}`}
-          >{voicingIdx + 1}/{voicings.length}</span>
+          >
+            {voicingIdx + 1}/{voicings.length}
+          </span>
           <button
             className={s.cycleBtn}
             aria-label="Position suivante"
@@ -70,14 +74,18 @@ export default function ChordReveal({
               setVoicingIdx(next);
               onVoicingChange(chord.id, next);
             }}
-          >›</button>
+          >
+            ›
+          </button>
         </div>
       )}
       <button
         className={s.addVoicingBtn}
         aria-label="Ajouter une position"
         onClick={() => onAddVoicing(chord.rootId, chord.qualityId)}
-      >+ Ajouter une position</button>
+      >
+        + Ajouter une position
+      </button>
     </div>
   );
 }

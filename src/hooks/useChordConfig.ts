@@ -1,5 +1,9 @@
 import {
-  ALL, CHORDS, CHORD_PRESETS, CHORD_PROGRESSIONS, mergeCustomVoicings,
+  ALL,
+  CHORDS,
+  CHORD_PRESETS,
+  CHORD_PROGRESSIONS,
+  mergeCustomVoicings,
 } from "../lib/constants";
 import type { ChordItem, PracticeItem } from "../lib/constants";
 import { buildActivePool } from "../lib/util";
@@ -19,9 +23,10 @@ export function usePracticePool(mode: Mode): { pool: PracticeItem[]; activePool:
 
   const targetType = mode === "chords" ? "chord" : "note";
   const basePool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
-  const pool = targetType === "chord"
-    ? mergeCustomVoicings(basePool as ChordItem[], customVoicings)
-    : basePool;
+  const pool =
+    targetType === "chord"
+      ? mergeCustomVoicings(basePool as ChordItem[], customVoicings)
+      : basePool;
   const activePool = buildActivePool(pool, weights, workingSetSize);
 
   return { pool, activePool };
@@ -37,13 +42,19 @@ export function useChordConfig() {
   const { addPreset, customPresets } = useVoicings();
   const { setChordPreset, setChordProgression } = useSessionHandoff();
 
-  const setEnabledManual = (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => {
+  const setEnabledManual = (
+    updater: (prev: Record<string, boolean>) => Record<string, boolean>,
+  ) => {
     setEnabled(updater);
     setChordPreset(null);
     setChordProgression(null);
   };
 
-  const applyChordCollection = (chordIds: string[], progId: string | null, presetId: string | null) => {
+  const applyChordCollection = (
+    chordIds: string[],
+    progId: string | null,
+    presetId: string | null,
+  ) => {
     const idSet = new Set(chordIds);
     setEnabled((prev) => {
       const next = { ...prev };
@@ -60,7 +71,8 @@ export function useChordConfig() {
     setEnabled((prev) => {
       const next = { ...prev };
       for (const chord of CHORDS) {
-        next[chord.id] = builtIn.qualityIds === null || builtIn.qualityIds.includes(chord.qualityId);
+        next[chord.id] =
+          builtIn.qualityIds === null || builtIn.qualityIds.includes(chord.qualityId);
       }
       return next;
     });
@@ -83,5 +95,11 @@ export function useChordConfig() {
     addPreset(name, chordIds);
   };
 
-  return { setEnabledManual, applyPreset, applyProgression, applyCustomPreset, saveCurrentAsPreset };
+  return {
+    setEnabledManual,
+    applyPreset,
+    applyProgression,
+    applyCustomPreset,
+    saveCurrentAsPreset,
+  };
 }

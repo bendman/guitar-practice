@@ -29,19 +29,18 @@ function SessionScreen() {
   const { flow, overlay, root, quality } = Route.useSearch();
   const navigate = useNavigate();
   const {
-    intervalSecs, setIntervalSecs,
-    tts, listening, spokenNaming, voiceURI,
+    intervalSecs,
+    setIntervalSecs,
+    tts,
+    listening,
+    spokenNaming,
+    voiceURI,
     showChordNotes,
     chordMode,
   } = useSettings();
-  const {
-    stats, weights, confusions,
-    recordResult, recordConfusion, commitSession,
-  } = useProgress();
-  const {
-    customVoicings, addVoicing,
-    preferredVoicings, setPreferredVoicing,
-  } = useVoicings();
+  const { stats, weights, confusions, recordResult, recordConfusion, commitSession } =
+    useProgress();
+  const { customVoicings, addVoicing, preferredVoicings, setPreferredVoicing } = useVoicings();
   const { capturePreSession, setLastSummary } = useSessionHandoff();
 
   useEffect(() => {
@@ -78,19 +77,14 @@ function SessionScreen() {
   const handleBuilderSave = (id: string, voicing: Voicing) => {
     const inPool = pool.find((c) => c.id === id) as ChordItem | undefined;
     const builtInCount = CHORDS.find((c) => c.id === id)?.voicings?.length ?? 0;
-    const newIdx = inPool?.voicings?.length ?? (builtInCount + (customVoicings[id]?.length ?? 0));
+    const newIdx = inPool?.voicings?.length ?? builtInCount + (customVoicings[id]?.length ?? 0);
     addVoicing(id, voicing);
     setPreferredVoicing(id, newIdx);
     closeOverlay();
   };
 
   if (overlay === "learning") {
-    return (
-      <LearningView
-        mode={mode}
-        onBack={closeOverlay}
-      />
-    );
+    return <LearningView mode={mode} onBack={closeOverlay} />;
   }
 
   const renderFlow = () => {
@@ -174,12 +168,12 @@ export const Route = createFileRoute("/session/$mode")({
   },
   validateSearch: (search: Record<string, unknown>): SessionSearch => {
     const rawFlow = search.flow;
-    const flow: SessionFlow = rawFlow === "timed" || rawFlow === "reveal" || rawFlow === "quiz"
-      ? rawFlow
-      : "timed";
-    const overlay = search.overlay === "chordBuilder" || search.overlay === "learning"
-      ? (search.overlay as SessionOverlay)
-      : undefined;
+    const flow: SessionFlow =
+      rawFlow === "timed" || rawFlow === "reveal" || rawFlow === "quiz" ? rawFlow : "timed";
+    const overlay =
+      search.overlay === "chordBuilder" || search.overlay === "learning"
+        ? (search.overlay as SessionOverlay)
+        : undefined;
     if (!overlay) return { flow };
     if (overlay === "learning") return { flow, overlay };
     return {

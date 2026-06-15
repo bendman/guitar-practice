@@ -27,7 +27,9 @@
   background: transparent;
   color: var(--text-faint);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
   font-family: var(--mono);
   letter-spacing: 0.3px;
   white-space: nowrap;
@@ -73,10 +75,17 @@
   cursor: pointer;
   font-family: var(--mono);
   font-weight: 600;
-  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.1s var(--ease);
+  transition:
+    background 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease,
+    transform 0.1s var(--ease);
 }
 
-.natKey:active, .accKey:active { transform: scale(0.94); }
+.natKey:active,
+.accKey:active {
+  transform: scale(0.94);
+}
 
 /* Natural keys — taller, full width of the slot */
 .natKey {

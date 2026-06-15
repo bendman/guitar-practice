@@ -97,14 +97,18 @@ export function pickDistractors<T extends HasId>(
   const chosen: T[] = [];
   while (chosen.length < count && remaining.length > 0) {
     const weights = remaining.map(
-      (c) => 1 + K * (confusions[target.id]?.[c.id] ?? 0) + K * (confusions[c.id]?.[target.id] ?? 0),
+      (c) =>
+        1 + K * (confusions[target.id]?.[c.id] ?? 0) + K * (confusions[c.id]?.[target.id] ?? 0),
     );
     const total = weights.reduce((a, b) => a + b, 0);
     let rand = Math.random() * total;
     let idx = remaining.length - 1;
     for (let i = 0; i < remaining.length; i++) {
       rand -= weights[i];
-      if (rand <= 0) { idx = i; break; }
+      if (rand <= 0) {
+        idx = i;
+        break;
+      }
     }
     chosen.push(remaining[idx]);
     remaining.splice(idx, 1);
@@ -137,7 +141,20 @@ export type NoteNaming = "solfege" | "letters";
 
 // Standard guitar tuning open-string semitone values (0 = C/Do), low to high.
 const OPEN_STRING_SEMITONES = [4, 9, 2, 7, 11, 4]; // E A D G B E
-const CHROMATIC_SOLFEGE = ["Do", "Do#", "Ré", "Ré#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si"];
+const CHROMATIC_SOLFEGE = [
+  "Do",
+  "Do#",
+  "Ré",
+  "Ré#",
+  "Mi",
+  "Fa",
+  "Fa#",
+  "Sol",
+  "Sol#",
+  "La",
+  "La#",
+  "Si",
+];
 const CHROMATIC_LETTERS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 export function getStringNoteLabel(stringIndex: number, fret: number, naming: NoteNaming): string {
@@ -146,7 +163,14 @@ export function getStringNoteLabel(stringIndex: number, fret: number, naming: No
 }
 
 const SOLFEGE_TO_LETTER: Record<string, string> = {
-  Do: "C", Ré: "D", Re: "D", Mi: "E", Fa: "F", Sol: "G", La: "A", Si: "B",
+  Do: "C",
+  Ré: "D",
+  Re: "D",
+  Mi: "E",
+  Fa: "F",
+  Sol: "G",
+  La: "A",
+  Si: "B",
 };
 // Longest syllables first so "Sol" is matched before shorter alternatives.
 const SOLFEGE_ROOT_RE = /^(Sol|Do|Ré|Re|Mi|Fa|La|Si)/;
