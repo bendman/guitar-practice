@@ -1,7 +1,8 @@
 import { formatTime, formatDuration, weightToLevel } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
 import { mergeSessionIntoStats, accuracyPercent } from "../../../lib/stats";
-import type { Stats, SessionSummary, Weights } from "../../../lib/stats";
+import type { SessionSummary } from "../../../lib/stats";
+import { useProgress, useSessionHandoff } from "../../../AppState";
 import ProgressDot from "../../ui/ProgressDot";
 import shared from "../../shared.module.css";
 import s from "./index.module.css";
@@ -85,9 +86,6 @@ function headline(accuracy: number): string {
 
 interface SummaryViewProps {
   summary: SessionSummary;
-  preSessionStats: Stats | null;
-  weights?: Weights;
-  preWeights?: Weights;
   onDismiss: () => void;
   onReplay: () => void;
 }
@@ -132,8 +130,10 @@ function ChordProgressRow({ label, before, after, attempts, misses, index }: Cho
 }
 
 export default function SummaryView({
-  summary, preSessionStats, weights = {}, preWeights = {}, onDismiss, onReplay,
+  summary, onDismiss, onReplay,
 }: SummaryViewProps) {
+  const { weights } = useProgress();
+  const { preSessionStats, preSessionWeights: preWeights } = useSessionHandoff();
   const {
     totalCount, correctCount, totalNotes, accuracy, bestStreak,
     practiceTime, wasListening, missedItems,

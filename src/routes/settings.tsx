@@ -3,7 +3,7 @@ import SettingsView from "../components/views/SettingsView";
 import ChordBuilderView from "../components/views/ChordBuilderView";
 import type { Voicing } from "../lib/constants";
 import { CHORDS, mergeCustomVoicings } from "../lib/constants";
-import { useAppState } from "../AppState";
+import { useVoicings } from "../AppState";
 
 type SettingsSearch = {
   overlay?: "chordBuilder";
@@ -12,15 +12,7 @@ type SettingsSearch = {
 };
 
 function SettingsScreen() {
-  const {
-    weights, resetAllWeights,
-    workingSetSize, setWorkingSetSize,
-    noteNaming, setNoteNaming,
-    spokenNaming, setSpokenNaming,
-    voiceURI, setVoiceURI,
-    customVoicings, addVoicing, removeVoicing,
-    preferredVoicings, setPreferredVoicing,
-  } = useAppState();
+  const { customVoicings, addVoicing, setPreferredVoicing } = useVoicings();
   const navigate = useNavigate();
   const { overlay, root, quality } = Route.useSearch();
 
@@ -50,23 +42,9 @@ function SettingsScreen() {
   return (
     <>
       <SettingsView
-        weights={weights}
         onBack={() => navigate({ to: "/" })}
-        onResetWeights={resetAllWeights}
-        workingSetSize={workingSetSize}
-        setWorkingSetSize={setWorkingSetSize}
-        noteNaming={noteNaming}
-        setNoteNaming={setNoteNaming}
-        spokenNaming={spokenNaming}
-        setSpokenNaming={setSpokenNaming}
-        voiceURI={voiceURI}
-        setVoiceURI={setVoiceURI}
-        customVoicings={customVoicings}
-        preferredVoicings={preferredVoicings}
-        onVoicingChange={setPreferredVoicing}
         onCreateChord={() => openBuilder()}
         onAddVoicing={(rootId, qualityId) => openBuilder({ rootId, qualityId })}
-        onRemoveVoicing={removeVoicing}
         onShowDebug={() => navigate({ to: "/debug" })}
       />
       {overlay === "chordBuilder" && (

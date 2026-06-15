@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import WelcomeView from "../components/views/WelcomeView";
-import { useAppState } from "../AppState";
+import { useProgress } from "../AppState";
 
 function HomeScreen() {
-  const { stats } = useAppState();
+  const { stats } = useProgress();
   const navigate = useNavigate();
   return (
     <WelcomeView

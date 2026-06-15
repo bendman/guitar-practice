@@ -1,32 +1,31 @@
 import React from "react";
 import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS } from "../../../lib/constants";
-import type { ChordProgression } from "../../../lib/constants";
 import { weightToLevel } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
-import type { Weights } from "../../../lib/stats";
+import { useSettings, useProgress, useVoicings, useSessionHandoff } from "../../../AppState";
+import { useChordConfig } from "../../../hooks/useChordConfig";
 import ProgressDot from "../../ui/ProgressDot";
 import shared from "../../shared.module.css";
 import s from "./index.module.css";
 
 interface ChordsBuilderProps {
-  enabled: Record<string, boolean>;
-  setEnabled: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void;
-  chordPreset: string | null;
-  chordProgression: string | null;
-  onPreset: (id: string) => void;
-  onProgression: (id: string) => void;
-  customPresets: ChordProgression[];
-  onCustomPreset: (id: string) => void;
   onRemoveCustomPreset: (id: string) => void;
   onSavePreset: () => void;
-  weights?: Weights;
 }
 
 export default function ChordsBuilder({
-  enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression,
-  customPresets, onCustomPreset, onRemoveCustomPreset, onSavePreset,
-  weights = {},
+  onRemoveCustomPreset, onSavePreset,
 }: ChordsBuilderProps) {
+  const { enabled } = useSettings();
+  const { weights } = useProgress();
+  const { customPresets } = useVoicings();
+  const { chordPreset, chordProgression } = useSessionHandoff();
+  const {
+    setEnabledManual: setEnabled,
+    applyPreset: onPreset,
+    applyProgression: onProgression,
+    applyCustomPreset: onCustomPreset,
+  } = useChordConfig();
   const formatLabel = useFormatLabel();
   const totalEnabled = CHORDS.filter((c) => enabled[c.id]).length;
 

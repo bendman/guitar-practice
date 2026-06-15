@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { ALL, CHORDS, isSupportedVoiceLang, formatLocaleName, mergeCustomVoicings } from "../../../lib/constants";
 import type { ChordItem } from "../../../lib/constants";
-import type { CustomVoicings } from "../../../hooks/useCustomVoicings";
 import { weightToLevel, sayAloud, pickRandom } from "../../../lib/util";
 import type { NoteNaming } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
-import type { Weights } from "../../../lib/stats";
+import { useSettings, useProgress, useVoicings } from "../../../AppState";
 import ProgressDot from "../../ui/ProgressDot";
 import ChordDiagram from "../../ui/ChordDiagram";
 import shared from "../../shared.module.css";
@@ -25,34 +24,28 @@ function groupVoicesByLocale(
 }
 
 interface SettingsViewProps {
-  weights?: Weights;
   onBack: () => void;
-  onResetWeights?: () => void;
-  workingSetSize: number;
-  setWorkingSetSize?: (size: number) => void;
-  noteNaming?: NoteNaming;
-  setNoteNaming?: (naming: NoteNaming) => void;
-  spokenNaming?: NoteNaming;
-  setSpokenNaming?: (naming: NoteNaming) => void;
-  voiceURI?: string | null;
-  setVoiceURI?: (uri: string | null) => void;
-  customVoicings?: CustomVoicings;
-  preferredVoicings?: Record<string, number>;
-  onVoicingChange?: (chordId: string, idx: number) => void;
-  onCreateChord?: () => void;
-  onAddVoicing?: (rootId: string, qualityId: string) => void;
-  onRemoveVoicing?: (chordId: string, index: number) => void;
-  onShowDebug?: () => void;
+  onCreateChord: () => void;
+  onAddVoicing: (rootId: string, qualityId: string) => void;
+  onShowDebug: () => void;
 }
 
 export default function SettingsView({
-  weights = {}, onBack, onResetWeights, workingSetSize, setWorkingSetSize,
-  noteNaming = "solfege", setNoteNaming,
-  spokenNaming = "solfege", setSpokenNaming,
-  voiceURI = null, setVoiceURI,
-  customVoicings = {}, preferredVoicings = {}, onVoicingChange,
-  onCreateChord, onAddVoicing, onRemoveVoicing, onShowDebug,
+  onBack, onCreateChord, onAddVoicing, onShowDebug,
 }: SettingsViewProps) {
+  const {
+    workingSetSize, setWorkingSetSize,
+    noteNaming, setNoteNaming,
+    spokenNaming, setSpokenNaming,
+    voiceURI, setVoiceURI,
+  } = useSettings();
+  const { weights, resetAllWeights: onResetWeights } = useProgress();
+  const {
+    customVoicings,
+    preferredVoicings,
+    setPreferredVoicing: onVoicingChange,
+    removeVoicing: onRemoveVoicing,
+  } = useVoicings();
   const [openChordIds, setOpenChordIds] = useState<Set<string>>(new Set());
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voicingIndices, setVoicingIndices] = useState<Record<string, number>>({});

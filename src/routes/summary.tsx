@@ -1,15 +1,11 @@
 import { useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import SummaryView from "../components/views/SummaryView";
-import { useAppState } from "../AppState";
+import { useSessionHandoff } from "../AppState";
 
 function SummaryScreen() {
   const navigate = useNavigate();
-  const {
-    lastSummary, lastSessionMode,
-    preSessionStats, preSessionWeights,
-    weights, setLastSummary,
-  } = useAppState();
+  const { lastSummary, lastSessionMode, setLastSummary } = useSessionHandoff();
 
   // Refresh on /summary lands here with no summary in memory — redirect home.
   useEffect(() => {
@@ -21,9 +17,6 @@ function SummaryScreen() {
   return (
     <SummaryView
       summary={lastSummary}
-      preSessionStats={preSessionStats}
-      weights={weights}
-      preWeights={preSessionWeights}
       onDismiss={() => {
         setLastSummary(null);
         navigate({ to: "/" });

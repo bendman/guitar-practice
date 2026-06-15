@@ -1,9 +1,9 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { NoteNamingProvider } from "../lib/noteNaming";
-import { useAppState } from "../AppState";
+import { useSettings } from "../AppState";
 
 function RootComponent() {
-  const { noteNaming } = useAppState();
+  const { noteNaming } = useSettings();
   return (
     <NoteNamingProvider naming={noteNaming}>
       <Outlet />

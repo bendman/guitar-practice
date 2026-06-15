@@ -1,17 +1,16 @@
 import { ALL } from "../../../lib/constants";
 import type { PracticeItem } from "../../../lib/constants";
+import type { Weights } from "../../../lib/stats";
 import { weightToLevel } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
-import type { Weights } from "../../../lib/stats";
+import { useSettings, useProgress } from "../../../AppState";
+import { usePracticePool } from "../../../hooks/useChordConfig";
 import ProgressDot from "../../ui/ProgressDot";
 import shared from "../../shared.module.css";
 import s from "./index.module.css";
 
 interface LearningViewProps {
-  pool: PracticeItem[];
-  activePool: PracticeItem[];
-  weights: Weights;
-  workingSetSize: number;
+  mode: "notes" | "chords";
   onBack: () => void;
 }
 
@@ -36,12 +35,12 @@ function weightBar(weight: number) {
 }
 
 export default function LearningView({
-  pool,
-  activePool,
-  weights,
-  workingSetSize,
+  mode,
   onBack,
 }: LearningViewProps) {
+  const { workingSetSize } = useSettings();
+  const { weights } = useProgress();
+  const { pool, activePool } = usePracticePool(mode);
   const activeIds = new Set(activePool.map((i) => i.id));
   const poolIds = new Set(pool.map((i) => i.id));
 

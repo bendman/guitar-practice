@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
-import { useAppState } from "../AppState";
-import { ALL, CHORDS, mergeCustomVoicings } from "../lib/constants";
+import { useSettings, useProgress, useVoicings, useSessionHandoff } from "../AppState";
+import { CHORDS } from "../lib/constants";
 import type { ChordItem, Voicing } from "../lib/constants";
-import { buildActivePool } from "../lib/util";
+import { usePracticePool } from "../hooks/useChordConfig";
 import { summarizeSession } from "../lib/summarizeSession";
 import type { SessionRawResult } from "../hooks/flows/types";
 import { useIntervalHotkeys } from "../hooks/useIntervalHotkeys";
@@ -32,14 +32,17 @@ function SessionScreen() {
     intervalSecs, setIntervalSecs,
     tts, listening, spokenNaming, voiceURI,
     showChordNotes,
+    chordMode,
+  } = useSettings();
+  const {
     stats, weights, confusions,
     recordResult, recordConfusion, commitSession,
+  } = useProgress();
+  const {
     customVoicings, addVoicing,
-    enabled, workingSetSize,
     preferredVoicings, setPreferredVoicing,
-    capturePreSession, setLastSummary,
-    chordMode,
-  } = useAppState();
+  } = useVoicings();
+  const { capturePreSession, setLastSummary } = useSessionHandoff();
 
   useEffect(() => {
     capturePreSession(stats, weights);
@@ -49,12 +52,7 @@ function SessionScreen() {
 
   useIntervalHotkeys(true, setIntervalSecs);
 
-  const targetType = mode === "chords" ? "chord" : "note";
-  const basePool = ALL.filter((item) => enabled[item.id] && item.type === targetType);
-  const pool = targetType === "chord"
-    ? mergeCustomVoicings(basePool as ChordItem[], customVoicings)
-    : basePool;
-  const activePool = buildActivePool(pool, weights, workingSetSize);
+  const { pool, activePool } = usePracticePool(mode);
 
   const closeOverlay = () => navigate({ to: ".", params: { mode }, search: { flow } });
   const openBuilder = (rootId: string, qualityId: string) =>
@@ -89,10 +87,7 @@ function SessionScreen() {
   if (overlay === "learning") {
     return (
       <LearningView
-        pool={pool}
-        activePool={activePool}
-        weights={weights}
-        workingSetSize={workingSetSize}
+        mode={mode}
         onBack={closeOverlay}
       />
     );
