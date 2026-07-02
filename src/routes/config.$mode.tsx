@@ -1,23 +1,17 @@
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
+import { z } from "zod";
 import ConfigView from "../components/views/ConfigView";
 import SavePresetModal from "../components/ui/SavePresetModal";
 import DeletePresetModal from "../components/ui/DeletePresetModal";
 import { useSettings, useVoicings, useSessionHandoff } from "../AppState";
 import { useChordConfig } from "../hooks/useChordConfig";
+import { flowForMode } from "../hooks/flows/types";
+import type { SessionMode } from "../hooks/flows/types";
 
-type ConfigMode = "notes" | "chords";
-
-type ConfigSearch = {
-  overlay?: "savePreset" | "deletePreset";
-  preset?: string;
-};
-
-function flowForMode(mode: ConfigMode, chordMode: string): "timed" | "reveal" | "quiz" {
-  if (mode === "notes") return "timed";
-  if (chordMode === "quiz") return "quiz";
-  if (chordMode === "manual") return "reveal";
-  return "timed";
-}
+const configSearchSchema = z.object({
+  overlay: z.enum(["savePreset", "deletePreset"]).optional().catch(undefined),
+  preset: z.string().optional().catch(undefined),
+});
 
 function ConfigScreen() {
   const { mode } = Route.useParams();
@@ -80,22 +74,12 @@ function ConfigScreen() {
 }
 
 export const Route = createFileRoute("/config/$mode")({
-  parseParams: (params): { mode: ConfigMode } => {
+  parseParams: (params): { mode: SessionMode } => {
     if (params.mode !== "notes" && params.mode !== "chords") {
       throw redirect({ to: "/" });
     }
     return { mode: params.mode };
   },
-  validateSearch: (search: Record<string, unknown>): ConfigSearch => {
-    const overlay = search.overlay;
-    if (overlay === "savePreset") return { overlay };
-    if (overlay === "deletePreset") {
-      return {
-        overlay,
-        preset: typeof search.preset === "string" ? search.preset : undefined,
-      };
-    }
-    return {};
-  },
+  validateSearch: configSearchSchema,
   component: ConfigScreen,
 });

@@ -1,28 +1,23 @@
 import { useEffect } from "react";
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
+import { z } from "zod";
 import { useSettings, useProgress, useVoicings, useSessionHandoff } from "../AppState";
-import { CHORDS } from "../lib/constants";
-import type { ChordItem, Voicing } from "../lib/constants";
-import { usePracticePool } from "../hooks/useChordConfig";
+import { usePracticePool, useSaveVoicing } from "../hooks/useChordConfig";
 import { summarizeSession } from "../lib/summarizeSession";
-import type { SessionRawResult } from "../hooks/flows/types";
+import type { SessionMode, SessionRawResult } from "../hooks/flows/types";
 import { useIntervalHotkeys } from "../hooks/useIntervalHotkeys";
 import NoteSession from "../components/sessions/NoteSession";
-import ChordAutoSession from "../components/sessions/ChordAutoSession";
-import ChordRevealSession from "../components/sessions/ChordRevealSession";
+import ChordSession from "../components/sessions/ChordSession";
 import QuizSession from "../components/sessions/QuizSession";
 import LearningView from "../components/views/LearningView";
 import ChordBuilderView from "../components/views/ChordBuilderView";
 
-type SessionMode = "notes" | "chords";
-type SessionFlow = "timed" | "reveal" | "quiz";
-type SessionOverlay = "chordBuilder" | "learning";
-type SessionSearch = {
-  flow: SessionFlow;
-  overlay?: SessionOverlay;
-  root?: string;
-  quality?: string;
-};
+const sessionSearchSchema = z.object({
+  flow: z.enum(["timed", "reveal", "quiz"]).catch("timed"),
+  overlay: z.enum(["chordBuilder", "learning"]).optional().catch(undefined),
+  root: z.string().optional().catch(undefined),
+  quality: z.string().optional().catch(undefined),
+});
 
 function SessionScreen() {
   const { mode } = Route.useParams();
@@ -40,7 +35,7 @@ function SessionScreen() {
   } = useSettings();
   const { stats, weights, confusions, recordResult, recordConfusion, commitSession } =
     useProgress();
-  const { customVoicings, addVoicing, preferredVoicings, setPreferredVoicing } = useVoicings();
+  const { customVoicings, preferredVoicings, setPreferredVoicing } = useVoicings();
   const { capturePreSession, setLastSummary } = useSessionHandoff();
 
   useEffect(() => {
@@ -74,14 +69,7 @@ function SessionScreen() {
     navigate({ to: "/summary" });
   };
 
-  const handleBuilderSave = (id: string, voicing: Voicing) => {
-    const inPool = pool.find((c) => c.id === id) as ChordItem | undefined;
-    const builtInCount = CHORDS.find((c) => c.id === id)?.voicings?.length ?? 0;
-    const newIdx = inPool?.voicings?.length ?? builtInCount + (customVoicings[id]?.length ?? 0);
-    addVoicing(id, voicing);
-    setPreferredVoicing(id, newIdx);
-    closeOverlay();
-  };
+  const handleBuilderSave = useSaveVoicing(closeOverlay);
 
   if (overlay === "learning") {
     return <LearningView mode={mode} onBack={closeOverlay} />;
@@ -123,9 +111,9 @@ function SessionScreen() {
         />
       );
     }
-    const ChordFlow = flow === "reveal" ? ChordRevealSession : ChordAutoSession;
     return (
-      <ChordFlow
+      <ChordSession
+        variant={flow === "reveal" ? "reveal" : "auto"}
         pool={activePool}
         weights={weights}
         interval={intervalSecs}
@@ -166,22 +154,6 @@ export const Route = createFileRoute("/session/$mode")({
     }
     return { mode: params.mode };
   },
-  validateSearch: (search: Record<string, unknown>): SessionSearch => {
-    const rawFlow = search.flow;
-    const flow: SessionFlow =
-      rawFlow === "timed" || rawFlow === "reveal" || rawFlow === "quiz" ? rawFlow : "timed";
-    const overlay =
-      search.overlay === "chordBuilder" || search.overlay === "learning"
-        ? (search.overlay as SessionOverlay)
-        : undefined;
-    if (!overlay) return { flow };
-    if (overlay === "learning") return { flow, overlay };
-    return {
-      flow,
-      overlay,
-      root: typeof search.root === "string" ? search.root : undefined,
-      quality: typeof search.quality === "string" ? search.quality : undefined,
-    };
-  },
+  validateSearch: sessionSearchSchema,
   component: SessionScreen,
 });

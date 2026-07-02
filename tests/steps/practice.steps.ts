@@ -47,6 +47,10 @@ When("I return to the home screen", async function (this: GuitarWorld) {
   await this.page.getByRole("button", { name: "Accueil" }).click();
 });
 
+When("I replay the session", async function (this: GuitarWorld) {
+  await this.page.getByRole("button", { name: "Rejouer" }).click();
+});
+
 When("I open my progress", async function (this: GuitarWorld) {
   await this.page.getByRole("button", { name: "Paramètres" }).click();
 });

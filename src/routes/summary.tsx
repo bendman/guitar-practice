@@ -22,9 +22,10 @@ function SummaryScreen() {
         navigate({ to: "/" });
       }}
       onReplay={() => {
-        const mode = lastSessionMode ?? "notes";
-        setLastSummary(null);
-        navigate({ to: "/config/$mode", params: { mode } });
+        // Don't clear the summary here: the guard effect above would see it go
+        // null while this screen is still mounted and its navigate home would
+        // stomp this navigation. The next session overwrites it anyway.
+        navigate({ to: "/config/$mode", params: { mode: lastSessionMode ?? "notes" } });
       }}
     />
   );

@@ -7,6 +7,7 @@ import type { SessionRawResult } from "../../hooks/flows/types";
 import NoteDisplay from "./NoteDisplay";
 import SessionChrome from "./SessionChrome";
 import type { BtnSpec } from "./ControlBar";
+import { btn, pausedButtons } from "./sessionButtons";
 import { useStartOnMount } from "./useSessionScaffold";
 
 interface NoteSessionProps {
@@ -57,47 +58,13 @@ export default function NoteSession({
 
   const recognized = listening && session.hitStatus === "correct" && !session.paused;
 
-  const buttons: BtnSpec[] = (() => {
-    if (session.paused) {
-      return [
-        {
-          key: "resume",
-          icon: "play",
-          label: "Reprendre",
-          variant: "primary",
-          onClick: session.pauseToggle,
-        },
-        {
-          key: "next",
-          icon: "next",
-          label: "Suivant",
-          variant: "secondary",
-          onClick: session.skip,
-        },
-        { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
+  const buttons: BtnSpec[] = session.paused
+    ? pausedButtons(session.pauseToggle, session.skip, stop)
+    : [
+        btn.pause(session.pauseToggle),
+        ...(listening && !recognized ? [btn.accept(session.forceAccept)] : []),
+        btn.stop(stop),
       ];
-    }
-    const out: BtnSpec[] = [
-      {
-        key: "pause",
-        icon: "pause",
-        label: "Pause",
-        variant: "accent-line",
-        onClick: session.pauseToggle,
-      },
-    ];
-    if (listening && !recognized) {
-      out.push({
-        key: "accept",
-        icon: "check",
-        label: "Accepter",
-        variant: "primary",
-        onClick: session.forceAccept,
-      });
-    }
-    out.push({ key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop });
-    return out;
-  })();
 
   return (
     <SessionChrome

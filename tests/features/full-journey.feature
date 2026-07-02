@@ -27,3 +27,14 @@ Feature: Full practice journey
     When I return to the home screen
     Then I should see the welcome screen
     And the sessions stat should be "1"
+
+  Scenario: Replay from the summary returns to the same mode's config screen
+    Given I open the app
+    When I choose the "Accords" mode
+    And I select the "Triades" preset
+    And I start the session
+    And I stop the session
+    Then I should see the summary screen
+
+    When I replay the session
+    Then I should see the config screen
