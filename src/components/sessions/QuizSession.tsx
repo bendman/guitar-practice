@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import type { PracticeItem } from "../../lib/constants";
 import { useFormatLabel } from "../../lib/noteNaming";
 import type { NoteNaming } from "../../lib/util";
@@ -8,6 +7,7 @@ import type { SessionRawResult } from "../../hooks/flows/types";
 import QuizGrid from "./QuizGrid";
 import SessionChrome from "./SessionChrome";
 import type { BtnSpec } from "./ControlBar";
+import { useStartOnMount } from "./useSessionScaffold";
 import s from "./session.module.css";
 
 interface QuizSessionProps {
@@ -54,13 +54,7 @@ export default function QuizSession({
     onConfusion,
   });
 
-  const startedRef = useRef(false);
-  useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-    session.start();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useStartOnMount(session.start);
 
   const stop = () => onStop(session.finish());
 

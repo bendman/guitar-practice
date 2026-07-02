@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { NoteNaming } from "../../lib/util";
 import type { PracticeItem } from "../../lib/constants";
 import { useTimedSession } from "../../hooks/flows/useTimedSession";
@@ -7,6 +7,7 @@ import type { SessionRawResult } from "../../hooks/flows/types";
 import NoteDisplay from "./NoteDisplay";
 import SessionChrome from "./SessionChrome";
 import type { BtnSpec } from "./ControlBar";
+import { useStartOnMount } from "./useSessionScaffold";
 
 interface NoteSessionProps {
   pool: PracticeItem[];
@@ -44,15 +45,7 @@ export default function NoteSession({
     onResult,
   });
 
-  // Drive the session through one full lifecycle: start on mount, do nothing on
-  // re-render, never auto-stop on unmount (the user's Arrêter handles that).
-  const startedRef = useRef(false);
-  useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-    session.start();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useStartOnMount(session.start);
 
   const detectedNote = usePitchDetection(session.micActive, session.count);
   useEffect(() => {

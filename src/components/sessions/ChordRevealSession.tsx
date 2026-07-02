@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import type { ChordItem, PracticeItem } from "../../lib/constants";
 import { useFormatLabel } from "../../lib/noteNaming";
 import type { NoteNaming } from "../../lib/util";
@@ -7,6 +6,7 @@ import type { SessionRawResult } from "../../hooks/flows/types";
 import ChordReveal from "./ChordReveal";
 import SessionChrome from "./SessionChrome";
 import type { BtnSpec } from "./ControlBar";
+import { resolveItem, useStartOnMount } from "./useSessionScaffold";
 import s from "./session.module.css";
 
 interface ChordRevealSessionProps {
@@ -51,17 +51,9 @@ export default function ChordRevealSession({
     onResult,
   });
 
-  const startedRef = useRef(false);
-  useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-    session.start();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useStartOnMount(session.start);
 
-  const resolved = session.current
-    ? (pool.find((c) => c.id === session.current!.id) ?? session.current)
-    : null;
+  const resolved = resolveItem(pool, session.current);
   const isChord = resolved?.type === "chord";
 
   const stop = () => onStop(session.finish());
