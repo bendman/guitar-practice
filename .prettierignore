@@ -1,0 +1,11 @@
+dist
+dev-dist
+node_modules
+coverage
+src/routeTree.gen.ts
+tests/report.html
+package-lock.json
+
+# Frozen, append-only persistence schemas — never reformat a committed vN.ts
+# (the pre-commit guard rejects any modification to these files).
+src/persistence/**/schemas/v*.ts

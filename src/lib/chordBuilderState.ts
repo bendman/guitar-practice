@@ -1,4 +1,8 @@
-export interface RelBarre { fret: number; from: number; to: number }
+export interface RelBarre {
+  fret: number;
+  from: number;
+  to: number;
+}
 
 export interface BuilderState {
   /** Relative fret per string (1…N = fretted, 0 = open, -1 = muted). */
@@ -42,7 +46,11 @@ function highestBarreBelow(barres: RelBarre[], i: number, relFret: number): RelB
  * - Below a barre → no-op (shadowed).
  * - Otherwise → places a dot at that relative fret.
  */
-export function applyCellTap(state: BuilderState, stringIndex: number, relFret: number): BuilderState {
+export function applyCellTap(
+  state: BuilderState,
+  stringIndex: number,
+  relFret: number,
+): BuilderState {
   const atBarre = coveringBarre(state.barres, stringIndex, relFret);
   if (atBarre) {
     return {
@@ -107,20 +115,21 @@ export function applyDotTap(state: BuilderState, stringIndex: number): BuilderSt
  * Raises all spanned strings at or below the barre fret to the barre fret;
  * higher individual fingers are left in place.
  */
-export function applyBarre(state: BuilderState, from: number, to: number, relFret: number): BuilderState {
+export function applyBarre(
+  state: BuilderState,
+  from: number,
+  to: number,
+  relFret: number,
+): BuilderState {
   // A barre can only be placed if at least one string in its range is at or
   // below the barre fret (i.e. it would actually hold something down).
   // If every string is already fretted higher, the barre is behind all notes
   // and would be invisible — reject it.
-  const hasEffect = state.frets.some(
-    (v, i) => i >= from && i <= to && v <= relFret && v !== -1,
-  );
+  const hasEffect = state.frets.some((v, i) => i >= from && i <= to && v <= relFret && v !== -1);
   if (!hasEffect) return state;
 
   return {
-    frets: state.frets.map((v, i) =>
-      i >= from && i <= to && v <= relFret ? relFret : v,
-    ),
+    frets: state.frets.map((v, i) => (i >= from && i <= to && v <= relFret ? relFret : v)),
     barres: [...state.barres.filter((b) => b.fret !== relFret), { fret: relFret, from, to }],
   };
 }

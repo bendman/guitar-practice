@@ -18,7 +18,9 @@
   letter-spacing: 1.5px;
 }
 
-.block { margin-bottom: 32px; }
+.block {
+  margin-bottom: 32px;
+}
 
 .blockLabel {
   font-size: 11px;
@@ -153,10 +155,18 @@
   line-height: 1;
 }
 
-.bigValueMuted { color: var(--dim); }
-.bigValueText { color: var(--text); }
-.bigValueGreen { color: var(--green); }
-.bigValueAccent { color: var(--accent); }
+.bigValueMuted {
+  color: var(--dim);
+}
+.bigValueText {
+  color: var(--text);
+}
+.bigValueGreen {
+  color: var(--green);
+}
+.bigValueAccent {
+  color: var(--accent);
+}
 
 .bigLabel {
   font-size: 11px;
@@ -177,8 +187,12 @@
   font-weight: 600;
 }
 
-.centsBadgeGreen { color: var(--green); }
-.centsBadgeAccent { color: var(--accent); }
+.centsBadgeGreen {
+  color: var(--green);
+}
+.centsBadgeAccent {
+  color: var(--accent);
+}
 
 .noteCaption {
   font-size: 11px;

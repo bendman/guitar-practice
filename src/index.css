@@ -1,6 +1,6 @@
 :root {
-  --mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
-  --display: 'Martian Mono', monospace;
+  --mono: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+  --display: "Martian Mono", monospace;
 
   --bg: #222325;
   --surface: #29292c;
@@ -10,7 +10,7 @@
   --text: #e1d4bb;
   --text-dim: #a89f8e;
   --text-faint: #6e6758;
-  --line: rgba(225,212,187,0.12);
+  --line: rgba(225, 212, 187, 0.12);
 
   --accent: #d4753f;
   --accent-soft: #dfad74;
@@ -24,7 +24,7 @@
   --r-sm: 10px;
   --r-md: 14px;
   --r-lg: 20px;
-  --ease: cubic-bezier(.22, 1, .36, 1);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* legacy aliases used in a few places during transition */
   --muted: var(--text-dim);
@@ -36,7 +36,11 @@
   --border-faint: var(--line);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 body {
   background: var(--bg);
   color: var(--text);

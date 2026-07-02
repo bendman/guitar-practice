@@ -1,11 +1,4 @@
-import {
-  AfterAll,
-  Before,
-  BeforeAll,
-  After,
-  Status,
-  setDefaultTimeout,
-} from "@cucumber/cucumber";
+import { AfterAll, Before, BeforeAll, After, Status, setDefaultTimeout } from "@cucumber/cucumber";
 import { chromium, type Browser } from "playwright";
 import { fileURLToPath } from "node:url";
 import path from "node:path";

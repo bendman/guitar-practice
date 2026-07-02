@@ -1,17 +1,16 @@
 import { ALL } from "../../../lib/constants";
 import type { PracticeItem } from "../../../lib/constants";
+import type { Weights } from "../../../lib/stats";
 import { weightToLevel } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
-import type { Weights } from "../../../lib/stats";
+import { useSettings, useProgress } from "../../../AppState";
+import { usePracticePool } from "../../../hooks/useChordConfig";
 import ProgressDot from "../../ui/ProgressDot";
 import shared from "../../shared.module.css";
 import s from "./index.module.css";
 
 interface LearningViewProps {
-  pool: PracticeItem[];
-  activePool: PracticeItem[];
-  weights: Weights;
-  workingSetSize: number;
+  mode: "notes" | "chords";
   onBack: () => void;
 }
 
@@ -35,13 +34,10 @@ function weightBar(weight: number) {
   return { pct, color: colors[level] };
 }
 
-export default function LearningView({
-  pool,
-  activePool,
-  weights,
-  workingSetSize,
-  onBack,
-}: LearningViewProps) {
+export default function LearningView({ mode, onBack }: LearningViewProps) {
+  const { workingSetSize } = useSettings();
+  const { weights } = useProgress();
+  const { pool, activePool } = usePracticePool(mode);
   const activeIds = new Set(activePool.map((i) => i.id));
   const poolIds = new Set(pool.map((i) => i.id));
 
@@ -57,7 +53,9 @@ export default function LearningView({
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
           <div className={s.header}>
-            <button onClick={onBack} className={s.backBtn}>← Back</button>
+            <button onClick={onBack} className={s.backBtn}>
+              ← Back
+            </button>
             <span className={s.headerLabel}>Learning details</span>
           </div>
 
@@ -142,7 +140,10 @@ function ItemSection({ title, items, weights, highlight, muted }: ItemSectionPro
           const level = weightToLevel(weights[item.id]);
           const bar = weightBar(w);
           return (
-            <div key={item.id} className={`${s.row} ${highlight ? s.rowHighlight : ""} ${muted ? s.rowMuted : ""}`}>
+            <div
+              key={item.id}
+              className={`${s.row} ${highlight ? s.rowHighlight : ""} ${muted ? s.rowMuted : ""}`}
+            >
               <ProgressDot level={level} size={10} />
               <span className={s.itemLabel}>{formatLabel(item.label)}</span>
               <span className={s.levelBadge}>{LEVEL_LABEL[level]}</span>

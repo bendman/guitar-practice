@@ -1,18 +1,15 @@
 import { useState } from "react";
 import type { Voicing } from "../lib/constants";
+import {
+  load as loadBlob,
+  save as saveCustomVoicings,
+  type CustomVoicings,
+} from "../persistence/customVoicings";
 
-const CUSTOM_VOICINGS_KEY = "guitar-practice-custom-voicings";
-
-export type CustomVoicings = Record<string, Voicing[]>;
+export type { CustomVoicings } from "../persistence/customVoicings";
 
 function loadCustomVoicings(): CustomVoicings {
-  try { return (JSON.parse(localStorage.getItem(CUSTOM_VOICINGS_KEY) ?? "null") as CustomVoicings | null) ?? {}; }
-  catch { return {}; }
-}
-
-function saveCustomVoicings(v: CustomVoicings) {
-  try { localStorage.setItem(CUSTOM_VOICINGS_KEY, JSON.stringify(v)); }
-  catch { /* ignore quota / disabled storage */ }
+  return loadBlob().data;
 }
 
 /**

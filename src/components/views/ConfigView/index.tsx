@@ -1,66 +1,48 @@
 import React from "react";
 import { CHORDS, NOTES, CHROMATIC_NOTES } from "../../../lib/constants";
-import type { PracticeItem, ChordProgression } from "../../../lib/constants";
-import type { Weights } from "../../../lib/stats";
-import type { ChordMode } from "../../../hooks/useSession";
 import NotesPicker from "../../ui/NotesPicker";
 import Toggle from "../../ui/Toggle";
 import IntervalControl from "./IntervalControl";
 import ChordsBuilder from "./ChordsBuilder";
+import { useSettings } from "../../../AppState";
+import { useChordConfig, usePracticePool } from "../../../hooks/useChordConfig";
 import shared from "../../shared.module.css";
 import s from "./index.module.css";
 
 interface ConfigViewProps {
-  mode: string | null;
-  interval: number;
-  setInterval: (v: number) => void;
-  enabled: Record<string, boolean>;
-  setEnabled: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void;
-  tts: boolean;
-  setTts: (v: boolean) => void;
-  listening: boolean;
-  setListening: (v: boolean) => void;
-  pool: PracticeItem[];
-  chordPreset: string | null;
-  chordProgression: string | null;
-  onPreset: (id: string) => void;
-  onProgression: (id: string) => void;
-  customPresets: ChordProgression[];
-  onCustomPreset: (id: string) => void;
+  mode: "notes" | "chords";
   onRemoveCustomPreset: (id: string) => void;
   onSavePreset: () => void;
-  chordMode: ChordMode;
-  setChordMode: (v: ChordMode) => void;
-  showChordNotes: boolean;
-  setShowChordNotes: (v: boolean) => void;
-  weights?: Weights;
   onStart: () => void;
   onBack: () => void;
-  showDebugLink: boolean;
-  onShowDebug: () => void;
 }
 
 export default function ConfigView({
   mode,
-  interval, setInterval,
-  enabled, setEnabled,
-  tts, setTts,
-  listening, setListening,
-  pool,
-  chordPreset, chordProgression,
-  onPreset, onProgression,
-  customPresets, onCustomPreset, onRemoveCustomPreset, onSavePreset,
-  chordMode, setChordMode,
-  showChordNotes, setShowChordNotes,
-  onStart, onBack,
-  weights = {},
-  showDebugLink, onShowDebug,
+  onRemoveCustomPreset,
+  onSavePreset,
+  onStart,
+  onBack,
 }: ConfigViewProps) {
+  const {
+    intervalSecs: interval,
+    setIntervalSecs: setInterval,
+    enabled,
+    tts,
+    setTts,
+    listening,
+    setListening,
+    chordMode,
+    setChordMode,
+    showChordNotes,
+    setShowChordNotes,
+  } = useSettings();
+  const { setEnabledManual: setEnabled } = useChordConfig();
+  const { activePool: pool } = usePracticePool(mode);
+
   const isNotesMode = mode !== "chords";
   const title = isNotesMode ? "Notes" : "Accords";
-  const subtitle = isNotesMode
-    ? "Configure ta session de notes"
-    : "Configure ta session d'accords";
+  const subtitle = isNotesMode ? "Configure ta session de notes" : "Configure ta session d'accords";
 
   const noteCount = [...NOTES, ...CHROMATIC_NOTES].filter((n) => enabled[n.id]).length;
   const chordCount = CHORDS.filter((c) => enabled[c.id]).length;
@@ -72,9 +54,6 @@ export default function ConfigView({
 
   return (
     <div className={shared.screen}>
-      {showDebugLink && (
-        <button onClick={onShowDebug} className={s.debugBtn}>debug</button>
-      )}
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
           <h1 className={shared.title}>{title}</h1>
@@ -105,17 +84,8 @@ export default function ConfigView({
           ) : (
             <>
               <ChordsBuilder
-                enabled={enabled}
-                setEnabled={setEnabled}
-                chordPreset={chordPreset}
-                chordProgression={chordProgression}
-                onPreset={onPreset}
-                onProgression={onProgression}
-                customPresets={customPresets}
-                onCustomPreset={onCustomPreset}
                 onRemoveCustomPreset={onRemoveCustomPreset}
                 onSavePreset={onSavePreset}
-                weights={weights}
               />
 
               <div className={s.toggleRow}>
@@ -125,8 +95,8 @@ export default function ConfigView({
                     {chordMode === "auto"
                       ? "Auto · pratique la vitesse de transition"
                       : chordMode === "quiz"
-                      ? "QCM · reconnais l'accord parmi 4 diagrammes"
-                      : "Manuelle · mémorise, évalue Trouvé / Raté"}
+                        ? "QCM · reconnais l'accord parmi 4 diagrammes"
+                        : "Manuelle · mémorise, évalue Trouvé / Raté"}
                   </div>
                 </div>
                 <div className={s.segmented}>

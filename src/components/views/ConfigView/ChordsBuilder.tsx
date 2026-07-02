@@ -1,32 +1,35 @@
 import React from "react";
-import { CHORDS, CHORD_ROOTS, CHORD_QUALITIES, CHORD_PRESETS, CHORD_PROGRESSIONS } from "../../../lib/constants";
-import type { ChordProgression } from "../../../lib/constants";
+import {
+  CHORDS,
+  CHORD_ROOTS,
+  CHORD_QUALITIES,
+  CHORD_PRESETS,
+  CHORD_PROGRESSIONS,
+} from "../../../lib/constants";
 import { weightToLevel } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
-import type { Weights } from "../../../lib/stats";
+import { useSettings, useProgress, useVoicings, useSessionHandoff } from "../../../AppState";
+import { useChordConfig } from "../../../hooks/useChordConfig";
 import ProgressDot from "../../ui/ProgressDot";
 import shared from "../../shared.module.css";
 import s from "./index.module.css";
 
 interface ChordsBuilderProps {
-  enabled: Record<string, boolean>;
-  setEnabled: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void;
-  chordPreset: string | null;
-  chordProgression: string | null;
-  onPreset: (id: string) => void;
-  onProgression: (id: string) => void;
-  customPresets: ChordProgression[];
-  onCustomPreset: (id: string) => void;
   onRemoveCustomPreset: (id: string) => void;
   onSavePreset: () => void;
-  weights?: Weights;
 }
 
-export default function ChordsBuilder({
-  enabled, setEnabled, chordPreset, chordProgression, onPreset, onProgression,
-  customPresets, onCustomPreset, onRemoveCustomPreset, onSavePreset,
-  weights = {},
-}: ChordsBuilderProps) {
+export default function ChordsBuilder({ onRemoveCustomPreset, onSavePreset }: ChordsBuilderProps) {
+  const { enabled } = useSettings();
+  const { weights } = useProgress();
+  const { customPresets } = useVoicings();
+  const { chordPreset, chordProgression } = useSessionHandoff();
+  const {
+    setEnabledManual: setEnabled,
+    applyPreset: onPreset,
+    applyProgression: onProgression,
+    applyCustomPreset: onCustomPreset,
+  } = useChordConfig();
   const formatLabel = useFormatLabel();
   const totalEnabled = CHORDS.filter((c) => enabled[c.id]).length;
 
@@ -42,7 +45,9 @@ export default function ChordsBuilder({
     setEnabled((prev) => {
       const next = { ...prev };
       const anyOn = CHORD_ROOTS.some((r) => prev[`${r.id}_${qualityId}`]);
-      CHORD_ROOTS.forEach((r) => { next[`${r.id}_${qualityId}`] = !anyOn; });
+      CHORD_ROOTS.forEach((r) => {
+        next[`${r.id}_${qualityId}`] = !anyOn;
+      });
       return next;
     });
   };
@@ -51,7 +56,9 @@ export default function ChordsBuilder({
     setEnabled((prev) => {
       const next = { ...prev };
       const anyOn = CHORD_QUALITIES.some((q) => prev[`${rootId}_${q.id}`]);
-      CHORD_QUALITIES.forEach((q) => { next[`${rootId}_${q.id}`] = !anyOn; });
+      CHORD_QUALITIES.forEach((q) => {
+        next[`${rootId}_${q.id}`] = !anyOn;
+      });
       return next;
     });
   };
@@ -74,7 +81,9 @@ export default function ChordsBuilder({
     } else if (kind === "naturals") {
       setEnabled((prev) => {
         const next = { ...prev };
-        CHORDS.forEach((c) => { next[c.id] = c.rootId === "mi" || c.rootId === "la"; });
+        CHORDS.forEach((c) => {
+          next[c.id] = c.rootId === "mi" || c.rootId === "la";
+        });
         return next;
       });
     } else if (kind === "all") {
@@ -91,9 +100,13 @@ export default function ChordsBuilder({
       <div className={s.chordHeader}>
         <span className={shared.eyebrow}>Sélection rapide</span>
         <div className={s.presetLinks}>
-          <button className={shared.resetLink} onClick={clearAll}>aucune</button>
+          <button className={shared.resetLink} onClick={clearAll}>
+            aucune
+          </button>
           <span className={s.presetSep}>|</span>
-          <button className={shared.resetLink} onClick={() => rootPreset("all")}>toutes</button>
+          <button className={shared.resetLink} onClick={() => rootPreset("all")}>
+            toutes
+          </button>
         </div>
       </div>
 
@@ -145,15 +158,28 @@ export default function ChordsBuilder({
       <div className={s.subsectionHeader}>
         <span className={shared.eyebrow}>Accords · {totalEnabled} au total</span>
         <div className={s.presetLinks}>
-          <button className={shared.resetLink} onClick={() => rootPreset("none")}>aucune</button>
+          <button className={shared.resetLink} onClick={() => rootPreset("none")}>
+            aucune
+          </button>
           <span className={s.presetSep}>|</span>
-          <button className={shared.resetLink} onClick={() => setEnabled((prev) => {
-            const next = { ...prev };
-            CHORDS.forEach((c) => { next[c.id] = weightToLevel(weights[c.id]) >= 1; });
-            return next;
-          })}>en cours</button>
+          <button
+            className={shared.resetLink}
+            onClick={() =>
+              setEnabled((prev) => {
+                const next = { ...prev };
+                CHORDS.forEach((c) => {
+                  next[c.id] = weightToLevel(weights[c.id]) >= 1;
+                });
+                return next;
+              })
+            }
+          >
+            en cours
+          </button>
           <span className={s.presetSep}>|</span>
-          <button className={shared.resetLink} onClick={() => rootPreset("all")}>toutes</button>
+          <button className={shared.resetLink} onClick={() => rootPreset("all")}>
+            toutes
+          </button>
         </div>
       </div>
       <div className={s.matrixScroll}>

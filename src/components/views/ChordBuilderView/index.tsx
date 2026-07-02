@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
-import {
-  CHORDS, chordId, voicingsEqual,
-} from "../../../lib/constants";
+import { CHORDS, chordId, voicingsEqual } from "../../../lib/constants";
 import type { Voicing, Barre } from "../../../lib/constants";
 import type { CustomVoicings } from "../../../hooks/useCustomVoicings";
 import { getNoteRole, filterPossibleChords } from "../../../lib/chordAnalysis";
 import {
-  applyCellTap, applyMarkerTap, applyDotTap, applyBarre,
+  applyCellTap,
+  applyMarkerTap,
+  applyDotTap,
+  applyBarre,
 } from "../../../lib/chordBuilderState";
 import ChordDiagram from "../../ui/ChordDiagram";
 import shared from "../../shared.module.css";
@@ -26,13 +27,21 @@ const FRET_COUNT = 5;
 const OPEN_STRING_SEMITONES = [4, 9, 2, 7, 11, 4];
 
 /** A barre held in the builder, with its fret relative to the first case. */
-interface RelBarre { fret: number; from: number; to: number }
+interface RelBarre {
+  fret: number;
+  from: number;
+  to: number;
+}
 
 export default function ChordBuilderView({
-  prefillRootId, prefillQualityId, customVoicings, onSave, onCancel,
+  prefillRootId,
+  prefillQualityId,
+  customVoicings,
+  onSave,
+  onCancel,
 }: ChordBuilderViewProps) {
-  const [selectedChordId, setSelectedChordId] = useState(
-    () => chordId(prefillRootId, prefillQualityId),
+  const [selectedChordId, setSelectedChordId] = useState(() =>
+    chordId(prefillRootId, prefillQualityId),
   );
   const [baseFret, setBaseFret] = useState(1);
   const [frets, setFrets] = useState<number[]>([0, 0, 0, 0, 0, 0]);
@@ -97,11 +106,9 @@ export default function ChordBuilderView({
   const handleCellTap = (i: number, absoluteFret: number) =>
     applyState(applyCellTap({ frets, barres }, i, absoluteFret - baseFret + 1));
 
-  const handleMarkerTap = (i: number) =>
-    applyState(applyMarkerTap({ frets, barres }, i));
+  const handleMarkerTap = (i: number) => applyState(applyMarkerTap({ frets, barres }, i));
 
-  const handleDotTap = (i: number) =>
-    applyState(applyDotTap({ frets, barres }, i));
+  const handleDotTap = (i: number) => applyState(applyDotTap({ frets, barres }, i));
 
   const handleBarre = (from: number, to: number, absoluteFret: number) =>
     applyState(applyBarre({ frets, barres }, from, to, absoluteFret - baseFret + 1));
@@ -141,7 +148,9 @@ export default function ChordBuilderView({
               onBarre={handleBarre}
             />
           </div>
-          <p className={s.hint}>Touche une case pour poser un doigt · glisse sur une frette pour un barré</p>
+          <p className={s.hint}>
+            Touche une case pour poser un doigt · glisse sur une frette pour un barré
+          </p>
 
           <div className={s.settingRow}>
             <span className={s.settingLabel}>Première case</span>
@@ -150,13 +159,19 @@ export default function ChordBuilderView({
                 className={s.pick}
                 aria-label="Diminuer la première case"
                 onClick={() => setBaseFret((b) => Math.max(1, b - 1))}
-              >−</button>
-              <span className={s.settingLabel} aria-live="polite">{baseFret}</span>
+              >
+                −
+              </button>
+              <span className={s.settingLabel} aria-live="polite">
+                {baseFret}
+              </span>
               <button
                 className={s.pick}
                 aria-label="Augmenter la première case"
                 onClick={() => setBaseFret((b) => Math.min(15, b + 1))}
-              >+</button>
+              >
+                +
+              </button>
             </div>
           </div>
 
@@ -186,7 +201,9 @@ export default function ChordBuilderView({
           </div>
 
           {isDuplicate && (
-            <p className={s.alert} role="alert">Cet accord existe déjà</p>
+            <p className={s.alert} role="alert">
+              Cet accord existe déjà
+            </p>
           )}
         </div>
 

@@ -26,7 +26,9 @@
   font-family: var(--mono);
 }
 
-.settingsBtn:hover { color: var(--text-dim); }
+.settingsBtn:hover {
+  color: var(--text-dim);
+}
 
 /* ── App header ─────────────────────────────────────────────────────────────── */
 .appHeader {
@@ -112,7 +114,9 @@
   border-radius: var(--r-md);
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s ease, transform 0.1s var(--ease);
+  transition:
+    background 0.15s ease,
+    transform 0.1s var(--ease);
   min-height: 130px;
   position: relative;
 }
@@ -153,7 +157,9 @@
   align-self: flex-end;
   margin-top: 4px;
   display: flex;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .modeCard:hover .modeArrow {

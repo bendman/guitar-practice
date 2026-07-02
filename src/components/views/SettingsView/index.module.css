@@ -1,8 +1,16 @@
-.empty {
+.buildDate {
+  font-size: 12px;
+  font-family: var(--mono);
   color: var(--text-faint);
-  font-size: 13px;
-  margin-top: 24px;
-  text-align: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: right;
+}
+
+.buildDate:disabled {
+  cursor: default;
 }
 
 .section {
@@ -34,7 +42,7 @@
   opacity: 0.7;
 }
 
-.diagramWrap {
+.accordionBody {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -43,24 +51,54 @@
   border-bottom: 1px solid var(--line);
 }
 
-.customVoicing {
+.voicingSwitcher {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 16px;
+}
+
+.cycleBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid var(--line);
+}
+
+.cycleBtn:active {
+  opacity: 0.7;
+}
+
+.voicingCount {
+  font-size: 13px;
+  font-family: var(--mono);
+  color: var(--text-faint);
+  min-width: 36px;
+  text-align: center;
+}
+
+.noVoicing {
+  font-size: 13px;
+  color: var(--text-faint);
+  margin: 0;
+}
+
+.chevron {
+  font-size: 10px;
+  color: var(--text-faint);
 }
 
 .label {
   flex: 1;
   font-size: 14px;
   color: var(--text);
-}
-
-.levelLabel {
-  font-size: 11px;
-  font-family: var(--mono);
-  color: var(--text-faint);
-  letter-spacing: 0.3px;
 }
 
 .settingsSection {

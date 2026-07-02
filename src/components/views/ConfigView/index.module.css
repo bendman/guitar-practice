@@ -13,8 +13,12 @@
 }
 
 /* ── Footer button widths ────────────────────────────────────────────────────── */
-.backBtn { flex: 0 0 90px; }
-.startBtn { flex: 1; }
+.backBtn {
+  flex: 0 0 90px;
+}
+.startBtn {
+  flex: 1;
+}
 
 /* ── Interval control ────────────────────────────────────────────────────────── */
 .intervalSection {
@@ -115,7 +119,9 @@
   padding-bottom: 2px;
 }
 
-.chipRow::-webkit-scrollbar { display: none; }
+.chipRow::-webkit-scrollbar {
+  display: none;
+}
 
 .chip {
   flex-shrink: 0;
@@ -128,12 +134,18 @@
   color: var(--text-dim);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.1s var(--ease);
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease,
+    transform 0.1s var(--ease);
   font-family: var(--mono);
   letter-spacing: 0.3px;
 }
 
-.chip:active { transform: scale(0.95); }
+.chip:active {
+  transform: scale(0.95);
+}
 
 .chipActive {
   background: rgba(226, 178, 136, 0.15);
@@ -149,8 +161,12 @@
 }
 
 /* Scale the whole group together on press — prevent the chip from scaling alone */
-.chipGroup:has(:active) { transform: scale(0.95); }
-.chipGroup .chip:active { transform: none; }
+.chipGroup:has(:active) {
+  transform: scale(0.95);
+}
+.chipGroup .chip:active {
+  transform: none;
+}
 
 .chipGroup .chip {
   border-radius: var(--r-sm) 0 0 var(--r-sm);
@@ -170,7 +186,10 @@
   cursor: pointer;
   line-height: 1;
   font-family: var(--mono);
-  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  transition:
+    color 0.12s ease,
+    background 0.12s ease,
+    border-color 0.12s ease;
 }
 
 /* Match the accent highlight when the paired chip is selected */
@@ -215,13 +234,17 @@
   background: transparent;
   color: var(--text-faint);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
   font-family: var(--mono);
   letter-spacing: 0.3px;
   white-space: nowrap;
 }
 
-.seg:hover { color: var(--text-dim); }
+.seg:hover {
+  color: var(--text-dim);
+}
 
 /* ── Preset links ────────────────────────────────────────────────────────────── */
 .presetLinks {
@@ -236,7 +259,6 @@
   font-family: var(--mono);
   user-select: none;
 }
-
 
 /* ── Segmented active state ──────────────────────────────────────────────────── */
 .segOn {
@@ -272,7 +294,9 @@
   padding: 6px 2px 16px;
   scrollbar-width: none;
 }
-.matrixScroll::-webkit-scrollbar { display: none; }
+.matrixScroll::-webkit-scrollbar {
+  display: none;
+}
 
 .matrix {
   display: grid;
@@ -295,7 +319,9 @@
   cursor: pointer;
   transition: color 0.12s ease;
 }
-.mxColBtn:hover { color: var(--text-dim); }
+.mxColBtn:hover {
+  color: var(--text-dim);
+}
 
 .mxRowBtn {
   font-family: var(--display);
@@ -309,8 +335,12 @@
   padding: 0;
   transition: color 0.12s ease;
 }
-.mxRowBtn:hover { color: var(--text); }
-.mxRowBtnOn { color: var(--accent); }
+.mxRowBtn:hover {
+  color: var(--text);
+}
+.mxRowBtnOn {
+  color: var(--accent);
+}
 
 .mxCell {
   height: 30px;
@@ -321,10 +351,15 @@
   box-shadow: inset 0 0 0 1px var(--line);
   display: grid;
   place-items: center;
-  transition: background 0.12s ease, box-shadow 0.12s ease, transform 0.1s var(--ease);
+  transition:
+    background 0.12s ease,
+    box-shadow 0.12s ease,
+    transform 0.1s var(--ease);
 }
 
-.mxCell:active { transform: scale(0.9); }
+.mxCell:active {
+  transform: scale(0.9);
+}
 
 .mxCellOn {
   background: rgba(226, 178, 136, 0.2);
@@ -337,7 +372,9 @@
   border-radius: 50%;
   background: transparent;
   box-shadow: inset 0 0 0 1.5px var(--text-faint);
-  transition: background 0.12s ease, box-shadow 0.12s ease;
+  transition:
+    background 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
 .mxCellOn .mxDot {

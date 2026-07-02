@@ -53,34 +53,71 @@ export function formatLocaleName(lang: string): string {
   try {
     const display = new Intl.DisplayNames(["fr"], { type: "language" }).of(lang);
     if (display) return display.charAt(0).toUpperCase() + display.slice(1);
-  } catch { /* Intl.DisplayNames unsupported */ }
+  } catch {
+    /* Intl.DisplayNames unsupported */
+  }
   return lang;
 }
 
 export const NOTES: NoteItem[] = [
-  { id: "do",  label: "Do",  type: "note" },
-  { id: "re",  label: "Ré",  type: "note" },
-  { id: "mi",  label: "Mi",  type: "note" },
-  { id: "fa",  label: "Fa",  type: "note" },
+  { id: "do", label: "Do", type: "note" },
+  { id: "re", label: "Ré", type: "note" },
+  { id: "mi", label: "Mi", type: "note" },
+  { id: "fa", label: "Fa", type: "note" },
   { id: "sol", label: "Sol", type: "note" },
-  { id: "la",  label: "La",  type: "note" },
-  { id: "si",  label: "Si",  type: "note" },
+  { id: "la", label: "La", type: "note" },
+  { id: "si", label: "Si", type: "note" },
 ];
 
 export const CHROMATIC_SHARPS: NoteItem[] = [
-  { id: "do_sharp",  label: "Do#",  speak: "Do dièse",  type: "note", defaultEnabled: false },
-  { id: "re_sharp",  label: "Ré#",  speak: "Ré dièse",  type: "note", defaultEnabled: false },
-  { id: "fa_sharp",  label: "Fa#",  speak: "Fa dièse",  type: "note", defaultEnabled: false },
+  { id: "do_sharp", label: "Do#", speak: "Do dièse", type: "note", defaultEnabled: false },
+  { id: "re_sharp", label: "Ré#", speak: "Ré dièse", type: "note", defaultEnabled: false },
+  { id: "fa_sharp", label: "Fa#", speak: "Fa dièse", type: "note", defaultEnabled: false },
   { id: "sol_sharp", label: "Sol#", speak: "Sol dièse", type: "note", defaultEnabled: false },
-  { id: "la_sharp",  label: "La#",  speak: "La dièse",  type: "note", defaultEnabled: false },
+  { id: "la_sharp", label: "La#", speak: "La dièse", type: "note", defaultEnabled: false },
 ];
 
 export const CHROMATIC_FLATS: NoteItem[] = [
-  { id: "re_flat",  label: "Ré♭",  speak: "Ré bémol",  type: "note", defaultEnabled: false, enharmonicId: "do_sharp"  },
-  { id: "mi_flat",  label: "Mi♭",  speak: "Mi bémol",  type: "note", defaultEnabled: false, enharmonicId: "re_sharp"  },
-  { id: "sol_flat", label: "Sol♭", speak: "Sol bémol", type: "note", defaultEnabled: false, enharmonicId: "fa_sharp"  },
-  { id: "la_flat",  label: "La♭",  speak: "La bémol",  type: "note", defaultEnabled: false, enharmonicId: "sol_sharp" },
-  { id: "si_flat",  label: "Si♭",  speak: "Si bémol",  type: "note", defaultEnabled: false, enharmonicId: "la_sharp"  },
+  {
+    id: "re_flat",
+    label: "Ré♭",
+    speak: "Ré bémol",
+    type: "note",
+    defaultEnabled: false,
+    enharmonicId: "do_sharp",
+  },
+  {
+    id: "mi_flat",
+    label: "Mi♭",
+    speak: "Mi bémol",
+    type: "note",
+    defaultEnabled: false,
+    enharmonicId: "re_sharp",
+  },
+  {
+    id: "sol_flat",
+    label: "Sol♭",
+    speak: "Sol bémol",
+    type: "note",
+    defaultEnabled: false,
+    enharmonicId: "fa_sharp",
+  },
+  {
+    id: "la_flat",
+    label: "La♭",
+    speak: "La bémol",
+    type: "note",
+    defaultEnabled: false,
+    enharmonicId: "sol_sharp",
+  },
+  {
+    id: "si_flat",
+    label: "Si♭",
+    speak: "Si bémol",
+    type: "note",
+    defaultEnabled: false,
+    enharmonicId: "la_sharp",
+  },
 ];
 
 export const CHROMATIC_NOTES: NoteItem[] = [...CHROMATIC_SHARPS, ...CHROMATIC_FLATS];
@@ -108,18 +145,18 @@ export interface ChordRoot {
 }
 
 export const CHORD_ROOTS: ChordRoot[] = [
-  { id: "do",    label: "Do",   speak: "«Do»" },
-  { id: "do_s",  label: "Do#",  speak: "«Do dièse»" },
-  { id: "re",    label: "Ré",   speak: "«Ré»" },
-  { id: "re_s",  label: "Ré#",  speak: "«Ré dièse»" },
-  { id: "mi",    label: "Mi",   speak: "«Mi»",        defaultEnabled: true },
-  { id: "fa",    label: "Fa",   speak: "«Fa»" },
-  { id: "fa_s",  label: "Fa#",  speak: "«Fa dièse»" },
-  { id: "sol",   label: "Sol",  speak: "«Sol»" },
+  { id: "do", label: "Do", speak: "«Do»" },
+  { id: "do_s", label: "Do#", speak: "«Do dièse»" },
+  { id: "re", label: "Ré", speak: "«Ré»" },
+  { id: "re_s", label: "Ré#", speak: "«Ré dièse»" },
+  { id: "mi", label: "Mi", speak: "«Mi»", defaultEnabled: true },
+  { id: "fa", label: "Fa", speak: "«Fa»" },
+  { id: "fa_s", label: "Fa#", speak: "«Fa dièse»" },
+  { id: "sol", label: "Sol", speak: "«Sol»" },
   { id: "sol_s", label: "Sol#", speak: "«Sol dièse»" },
-  { id: "la",    label: "La",   speak: "«La»",        defaultEnabled: true },
-  { id: "la_s",  label: "La#",  speak: "«La dièse»" },
-  { id: "si",    label: "Si",   speak: "«Si»" },
+  { id: "la", label: "La", speak: "«La»", defaultEnabled: true },
+  { id: "la_s", label: "La#", speak: "«La dièse»" },
+  { id: "si", label: "Si", speak: "«Si»" },
 ];
 
 export interface ChordQuality {
@@ -130,123 +167,297 @@ export interface ChordQuality {
 }
 
 export const CHORD_QUALITIES: ChordQuality[] = [
-  { id: "maj",  label: "Maj",   labelLong: "Majeur",       speak: "Majeur" },
-  { id: "min",  label: "Min",   labelLong: "Mineur",       speak: "Mineur" },
-  { id: "dim",  label: "Dim",   labelLong: "Diminué",      speak: "Diminué" },
-  { id: "maj7", label: "Maj 7", labelLong: "Maj 7",        speak: "Majeur 7" },
-  { id: "min7", label: "Min 7", labelLong: "Min 7",        speak: "Mineur 7" },
-  { id: "m7b5", label: "♭7",    labelLong: "Demi-diminué", speak: "Demi-diminué" },
-  { id: "dom7", label: "7",     labelLong: "7",            speak: "7" },
+  { id: "maj", label: "Maj", labelLong: "Majeur", speak: "Majeur" },
+  { id: "min", label: "Min", labelLong: "Mineur", speak: "Mineur" },
+  { id: "dim", label: "Dim", labelLong: "Diminué", speak: "Diminué" },
+  { id: "maj7", label: "Maj 7", labelLong: "Maj 7", speak: "Majeur 7" },
+  { id: "min7", label: "Min 7", labelLong: "Min 7", speak: "Mineur 7" },
+  { id: "m7b5", label: "♭7", labelLong: "Demi-diminué", speak: "Demi-diminué" },
+  { id: "dom7", label: "7", labelLong: "7", speak: "7" },
 ];
 
 const CHORD_VOICINGS: Record<string, Record<string, Voicing[]>> = {
   mi: {
-    maj:  [{ frets: [0, 2, 2, 1, 0, 0] }],
-    min:  [{ frets: [0, 2, 2, 0, 0, 0] }],
-    dim:  [{ frets: [0, 1, 2, 0, -1, -1] }],
+    maj: [{ frets: [0, 2, 2, 1, 0, 0] }],
+    min: [{ frets: [0, 2, 2, 0, 0, 0] }],
+    dim: [{ frets: [0, 1, 2, 0, -1, -1] }],
     maj7: [{ frets: [0, 2, 1, 1, 0, 0] }],
     min7: [{ frets: [0, 2, 0, 0, 0, 0] }, { frets: [0, 2, 0, 0, 3, 0] }],
     m7b5: [{ frets: [0, 1, 0, 0, -1, -1] }],
     dom7: [{ frets: [0, 2, 0, 1, 0, 0] }, { frets: [0, 2, 0, 1, 3, 0] }],
   },
   la: {
-    maj:  [{ frets: [-1, 0, 2, 2, 2, 0] }, { frets: [5, 7, 7, 6, 5, 5], baseFret: 5, barres: [{ fret: 5, fromString: 0, toString: 5 }] }],
-    min:  [{ frets: [-1, 0, 2, 2, 1, 0] }, { frets: [5, 7, 7, 5, 5, 5], baseFret: 5, barres: [{ fret: 5, fromString: 0, toString: 5 }] }],
-    dim:  [{ frets: [-1, 0, 1, 2, 1, -1] }],
+    maj: [
+      { frets: [-1, 0, 2, 2, 2, 0] },
+      { frets: [5, 7, 7, 6, 5, 5], baseFret: 5, barres: [{ fret: 5, fromString: 0, toString: 5 }] },
+    ],
+    min: [
+      { frets: [-1, 0, 2, 2, 1, 0] },
+      { frets: [5, 7, 7, 5, 5, 5], baseFret: 5, barres: [{ fret: 5, fromString: 0, toString: 5 }] },
+    ],
+    dim: [{ frets: [-1, 0, 1, 2, 1, -1] }],
     maj7: [{ frets: [-1, 0, 2, 1, 2, 0] }],
     min7: [{ frets: [-1, 0, 2, 0, 1, 0] }, { frets: [-1, 0, 2, 0, 1, 3] }],
     m7b5: [{ frets: [-1, 0, 1, 0, 1, -1] }],
     dom7: [{ frets: [-1, 0, 2, 0, 2, 0] }, { frets: [-1, 0, 2, 0, 2, 3] }],
   },
   do: {
-    maj:  [{ frets: [-1, 3, 2, 0, 1, 0] }, { frets: [-1, 3, 5, 5, 5, 3], baseFret: 3, barres: [{ fret: 3, fromString: 1, toString: 5 }] }],
-    min:  [{ frets: [-1, 3, 5, 5, 4, 3], baseFret: 3, barres: [{ fret: 3, fromString: 1, toString: 5 }] }],
-    dim:  [{ frets: [-1, 3, 4, 2, 4, -1], baseFret: 2 }],
+    maj: [
+      { frets: [-1, 3, 2, 0, 1, 0] },
+      {
+        frets: [-1, 3, 5, 5, 5, 3],
+        baseFret: 3,
+        barres: [{ fret: 3, fromString: 1, toString: 5 }],
+      },
+    ],
+    min: [
+      {
+        frets: [-1, 3, 5, 5, 4, 3],
+        baseFret: 3,
+        barres: [{ fret: 3, fromString: 1, toString: 5 }],
+      },
+    ],
+    dim: [{ frets: [-1, 3, 4, 2, 4, -1], baseFret: 2 }],
     maj7: [{ frets: [-1, 3, 2, 0, 0, 0] }],
     min7: [{ frets: [-1, 3, 1, 3, 1, -1] }],
     m7b5: [{ frets: [-1, 3, 4, 2, 3, -1], baseFret: 2 }],
     dom7: [{ frets: [-1, 3, 2, 3, 1, 0] }],
   },
   re: {
-    maj:  [{ frets: [-1, -1, 0, 2, 3, 2] }, { frets: [-1, 5, 7, 7, 7, 5], baseFret: 5, barres: [{ fret: 5, fromString: 1, toString: 5 }] }],
-    min:  [{ frets: [-1, -1, 0, 2, 3, 1] }, { frets: [-1, 5, 7, 7, 6, 5], baseFret: 5, barres: [{ fret: 5, fromString: 1, toString: 5 }] }],
-    dim:  [{ frets: [-1, -1, 0, 1, 3, 1] }],
+    maj: [
+      { frets: [-1, -1, 0, 2, 3, 2] },
+      {
+        frets: [-1, 5, 7, 7, 7, 5],
+        baseFret: 5,
+        barres: [{ fret: 5, fromString: 1, toString: 5 }],
+      },
+    ],
+    min: [
+      { frets: [-1, -1, 0, 2, 3, 1] },
+      {
+        frets: [-1, 5, 7, 7, 6, 5],
+        baseFret: 5,
+        barres: [{ fret: 5, fromString: 1, toString: 5 }],
+      },
+    ],
+    dim: [{ frets: [-1, -1, 0, 1, 3, 1] }],
     maj7: [{ frets: [-1, -1, 0, 2, 2, 2] }],
     min7: [{ frets: [-1, -1, 0, 2, 1, 1] }],
     m7b5: [{ frets: [-1, -1, 0, 1, 2, 1] }],
     dom7: [{ frets: [-1, -1, 0, 2, 1, 2] }],
   },
   fa: {
-    maj:  [{ frets: [1, 3, 3, 2, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] }],
-    min:  [{ frets: [1, 3, 3, 1, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] }],
-    dim:  [{ frets: [-1, -1, 3, 4, 3, 1] }],
+    maj: [
+      { frets: [1, 3, 3, 2, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] },
+    ],
+    min: [
+      { frets: [1, 3, 3, 1, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] },
+    ],
+    dim: [{ frets: [-1, -1, 3, 4, 3, 1] }],
     maj7: [{ frets: [-1, -1, 3, 2, 1, 0] }],
-    min7: [{ frets: [1, 3, 1, 1, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] }],
+    min7: [
+      { frets: [1, 3, 1, 1, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] },
+    ],
     m7b5: [{ frets: [-1, -1, 3, 4, 2, 4], baseFret: 2 }],
-    dom7: [{ frets: [1, 3, 1, 2, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] }],
+    dom7: [
+      { frets: [1, 3, 1, 2, 1, 1], baseFret: 1, barres: [{ fret: 1, fromString: 0, toString: 5 }] },
+    ],
   },
   sol: {
-    maj:  [{ frets: [3, 2, 0, 0, 0, 3] }, { frets: [3, 5, 5, 4, 3, 3], baseFret: 3, barres: [{ fret: 3, fromString: 0, toString: 5 }] }],
-    min:  [{ frets: [3, 5, 5, 3, 3, 3], baseFret: 3, barres: [{ fret: 3, fromString: 0, toString: 5 }] }],
-    dim:  [{ frets: [3, 4, 5, 3, -1, -1], baseFret: 3 }],
+    maj: [
+      { frets: [3, 2, 0, 0, 0, 3] },
+      { frets: [3, 5, 5, 4, 3, 3], baseFret: 3, barres: [{ fret: 3, fromString: 0, toString: 5 }] },
+    ],
+    min: [
+      { frets: [3, 5, 5, 3, 3, 3], baseFret: 3, barres: [{ fret: 3, fromString: 0, toString: 5 }] },
+    ],
+    dim: [{ frets: [3, 4, 5, 3, -1, -1], baseFret: 3 }],
     maj7: [{ frets: [3, 2, 0, 0, 0, 2] }],
     min7: [{ frets: [-1, -1, 5, 3, 3, 3], baseFret: 3 }],
     m7b5: [{ frets: [3, 4, 3, 3, -1, -1], baseFret: 3 }],
     dom7: [{ frets: [3, 2, 0, 0, 0, 1] }],
   },
   si: {
-    maj:  [{ frets: [-1, 2, 4, 4, 4, 2], baseFret: 2, barres: [{ fret: 2, fromString: 1, toString: 5 }] }],
-    min:  [{ frets: [-1, 2, 4, 4, 3, 2], baseFret: 2, barres: [{ fret: 2, fromString: 1, toString: 5 }] }],
-    dim:  [{ frets: [-1, 2, 3, 4, 3, -1], baseFret: 2 }],
+    maj: [
+      {
+        frets: [-1, 2, 4, 4, 4, 2],
+        baseFret: 2,
+        barres: [{ fret: 2, fromString: 1, toString: 5 }],
+      },
+    ],
+    min: [
+      {
+        frets: [-1, 2, 4, 4, 3, 2],
+        baseFret: 2,
+        barres: [{ fret: 2, fromString: 1, toString: 5 }],
+      },
+    ],
+    dim: [{ frets: [-1, 2, 3, 4, 3, -1], baseFret: 2 }],
     maj7: [{ frets: [-1, 2, 4, 3, 4, -1], baseFret: 2 }],
-    min7: [{ frets: [-1, 2, 4, 2, 3, 2], baseFret: 2, barres: [{ fret: 2, fromString: 1, toString: 5 }] }],
+    min7: [
+      {
+        frets: [-1, 2, 4, 2, 3, 2],
+        baseFret: 2,
+        barres: [{ fret: 2, fromString: 1, toString: 5 }],
+      },
+    ],
     m7b5: [{ frets: [-1, 2, 3, 2, 3, -1], baseFret: 2 }],
     dom7: [{ frets: [-1, 2, 4, 2, 3, -1], baseFret: 2 }],
   },
   fa_s: {
-    maj:  [{ frets: [2, 4, 4, 3, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] }],
-    min:  [{ frets: [2, 4, 4, 2, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] }],
-    dim:  [{ frets: [2, 3, 4, 2, -1, -1], baseFret: 2 }],
-    maj7: [{ frets: [2, 4, 3, 3, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] }],
-    min7: [{ frets: [2, 4, 2, 2, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] }],
+    maj: [
+      { frets: [2, 4, 4, 3, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] },
+    ],
+    min: [
+      { frets: [2, 4, 4, 2, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] },
+    ],
+    dim: [{ frets: [2, 3, 4, 2, -1, -1], baseFret: 2 }],
+    maj7: [
+      { frets: [2, 4, 3, 3, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] },
+    ],
+    min7: [
+      { frets: [2, 4, 2, 2, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] },
+    ],
     m7b5: [{ frets: [2, 3, 2, 2, -1, -1], baseFret: 2 }],
-    dom7: [{ frets: [2, 4, 2, 3, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] }],
+    dom7: [
+      { frets: [2, 4, 2, 3, 2, 2], baseFret: 2, barres: [{ fret: 2, fromString: 0, toString: 5 }] },
+    ],
   },
   sol_s: {
-    maj:  [{ frets: [4, 6, 6, 5, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] }],
-    min:  [{ frets: [4, 6, 6, 4, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] }],
-    dim:  [{ frets: [4, 5, 6, 4, -1, -1], baseFret: 4 }],
-    maj7: [{ frets: [4, 6, 5, 5, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] }],
-    min7: [{ frets: [4, 6, 4, 4, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] }],
+    maj: [
+      { frets: [4, 6, 6, 5, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] },
+    ],
+    min: [
+      { frets: [4, 6, 6, 4, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] },
+    ],
+    dim: [{ frets: [4, 5, 6, 4, -1, -1], baseFret: 4 }],
+    maj7: [
+      { frets: [4, 6, 5, 5, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] },
+    ],
+    min7: [
+      { frets: [4, 6, 4, 4, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] },
+    ],
     m7b5: [{ frets: [4, 5, 4, 4, -1, -1], baseFret: 4 }],
-    dom7: [{ frets: [4, 6, 4, 5, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] }],
+    dom7: [
+      { frets: [4, 6, 4, 5, 4, 4], baseFret: 4, barres: [{ fret: 4, fromString: 0, toString: 5 }] },
+    ],
   },
   la_s: {
-    maj:  [{ frets: [-1, 1, 3, 3, 3, 1], baseFret: 1, barres: [{ fret: 1, fromString: 1, toString: 5 }] }],
-    min:  [{ frets: [-1, 1, 3, 3, 2, 1], baseFret: 1, barres: [{ fret: 1, fromString: 1, toString: 5 }] }],
-    dim:  [{ frets: [-1, 1, 2, 3, 2, -1], baseFret: 1 }],
-    maj7: [{ frets: [-1, 1, 3, 2, 3, 1], baseFret: 1, barres: [{ fret: 1, fromString: 1, toString: 5 }] }],
-    min7: [{ frets: [-1, 1, 3, 1, 2, 1], baseFret: 1, barres: [{ fret: 1, fromString: 1, toString: 5 }] }],
+    maj: [
+      {
+        frets: [-1, 1, 3, 3, 3, 1],
+        baseFret: 1,
+        barres: [{ fret: 1, fromString: 1, toString: 5 }],
+      },
+    ],
+    min: [
+      {
+        frets: [-1, 1, 3, 3, 2, 1],
+        baseFret: 1,
+        barres: [{ fret: 1, fromString: 1, toString: 5 }],
+      },
+    ],
+    dim: [{ frets: [-1, 1, 2, 3, 2, -1], baseFret: 1 }],
+    maj7: [
+      {
+        frets: [-1, 1, 3, 2, 3, 1],
+        baseFret: 1,
+        barres: [{ fret: 1, fromString: 1, toString: 5 }],
+      },
+    ],
+    min7: [
+      {
+        frets: [-1, 1, 3, 1, 2, 1],
+        baseFret: 1,
+        barres: [{ fret: 1, fromString: 1, toString: 5 }],
+      },
+    ],
     m7b5: [{ frets: [-1, 1, 2, 1, 2, -1], baseFret: 1 }],
-    dom7: [{ frets: [-1, 1, 3, 1, 3, 1], baseFret: 1, barres: [{ fret: 1, fromString: 1, toString: 5 }] }],
+    dom7: [
+      {
+        frets: [-1, 1, 3, 1, 3, 1],
+        baseFret: 1,
+        barres: [{ fret: 1, fromString: 1, toString: 5 }],
+      },
+    ],
   },
   do_s: {
-    maj:  [{ frets: [-1, 4, 6, 6, 6, 4], baseFret: 4, barres: [{ fret: 4, fromString: 1, toString: 5 }] }],
-    min:  [{ frets: [-1, 4, 6, 6, 5, 4], baseFret: 4, barres: [{ fret: 4, fromString: 1, toString: 5 }] }],
-    dim:  [{ frets: [-1, 4, 5, 6, 5, -1], baseFret: 4 }],
-    maj7: [{ frets: [-1, 4, 6, 5, 6, 4], baseFret: 4, barres: [{ fret: 4, fromString: 1, toString: 5 }] }],
-    min7: [{ frets: [-1, 4, 6, 4, 5, 4], baseFret: 4, barres: [{ fret: 4, fromString: 1, toString: 5 }] }],
+    maj: [
+      {
+        frets: [-1, 4, 6, 6, 6, 4],
+        baseFret: 4,
+        barres: [{ fret: 4, fromString: 1, toString: 5 }],
+      },
+    ],
+    min: [
+      {
+        frets: [-1, 4, 6, 6, 5, 4],
+        baseFret: 4,
+        barres: [{ fret: 4, fromString: 1, toString: 5 }],
+      },
+    ],
+    dim: [{ frets: [-1, 4, 5, 6, 5, -1], baseFret: 4 }],
+    maj7: [
+      {
+        frets: [-1, 4, 6, 5, 6, 4],
+        baseFret: 4,
+        barres: [{ fret: 4, fromString: 1, toString: 5 }],
+      },
+    ],
+    min7: [
+      {
+        frets: [-1, 4, 6, 4, 5, 4],
+        baseFret: 4,
+        barres: [{ fret: 4, fromString: 1, toString: 5 }],
+      },
+    ],
     m7b5: [{ frets: [-1, 4, 5, 4, 5, -1], baseFret: 4 }],
-    dom7: [{ frets: [-1, 4, 6, 4, 6, 4], baseFret: 4, barres: [{ fret: 4, fromString: 1, toString: 5 }] }],
+    dom7: [
+      {
+        frets: [-1, 4, 6, 4, 6, 4],
+        baseFret: 4,
+        barres: [{ fret: 4, fromString: 1, toString: 5 }],
+      },
+    ],
   },
   re_s: {
-    maj:  [{ frets: [-1, 6, 8, 8, 8, 6], baseFret: 6, barres: [{ fret: 6, fromString: 1, toString: 5 }] }],
-    min:  [{ frets: [-1, 6, 8, 8, 7, 6], baseFret: 6, barres: [{ fret: 6, fromString: 1, toString: 5 }] }],
-    dim:  [{ frets: [-1, 6, 7, 8, 7, -1], baseFret: 6 }],
-    maj7: [{ frets: [-1, 6, 8, 7, 8, 6], baseFret: 6, barres: [{ fret: 6, fromString: 1, toString: 5 }] }],
-    min7: [{ frets: [-1, 6, 8, 6, 7, 6], baseFret: 6, barres: [{ fret: 6, fromString: 1, toString: 5 }] }],
+    maj: [
+      {
+        frets: [-1, 6, 8, 8, 8, 6],
+        baseFret: 6,
+        barres: [{ fret: 6, fromString: 1, toString: 5 }],
+      },
+    ],
+    min: [
+      {
+        frets: [-1, 6, 8, 8, 7, 6],
+        baseFret: 6,
+        barres: [{ fret: 6, fromString: 1, toString: 5 }],
+      },
+    ],
+    dim: [{ frets: [-1, 6, 7, 8, 7, -1], baseFret: 6 }],
+    maj7: [
+      {
+        frets: [-1, 6, 8, 7, 8, 6],
+        baseFret: 6,
+        barres: [{ fret: 6, fromString: 1, toString: 5 }],
+      },
+    ],
+    min7: [
+      {
+        frets: [-1, 6, 8, 6, 7, 6],
+        baseFret: 6,
+        barres: [{ fret: 6, fromString: 1, toString: 5 }],
+      },
+    ],
     m7b5: [{ frets: [-1, 6, 7, 6, 7, -1], baseFret: 6 }],
-    dom7: [{ frets: [-1, 6, 8, 6, 8, 6], baseFret: 6, barres: [{ fret: 6, fromString: 1, toString: 5 }] }],
+    dom7: [
+      {
+        frets: [-1, 6, 8, 6, 8, 6],
+        baseFret: 6,
+        barres: [{ fret: 6, fromString: 1, toString: 5 }],
+      },
+    ],
   },
 };
 
@@ -264,7 +475,7 @@ export const CHORDS: ChordItem[] = CHORD_ROOTS.flatMap((root) =>
       defaultEnabled: root.defaultEnabled === true,
       voicings: CHORD_VOICINGS[root.id]?.[q.id] ?? [],
     };
-  })
+  }),
 );
 
 export const ALL: PracticeItem[] = [...NOTES, ...CHROMATIC_NOTES, ...CHORDS];
@@ -303,7 +514,7 @@ export interface ChordPreset {
 
 export const CHORD_PRESETS: ChordPreset[] = [
   { id: "triads", label: "Triades", qualityIds: ["maj", "min", "dim"] },
-  { id: "7s",     label: "7èmes",   qualityIds: ["maj7", "min7", "dom7", "m7b5"] },
+  { id: "7s", label: "7èmes", qualityIds: ["maj7", "min7", "dom7", "m7b5"] },
 ];
 
 export interface ChordProgression {
@@ -313,24 +524,32 @@ export interface ChordProgression {
 }
 
 export const CHORD_PROGRESSIONS: ChordProgression[] = [
-  { id: "key_c",   label: "Tonalité de Do",  chordIds: ["do_maj", "re_min", "mi_min", "fa_maj", "sol_maj", "la_min", "si_dim"] },
-  { id: "key_g",   label: "Tonalité de Sol", chordIds: ["sol_maj", "la_min", "si_min", "do_maj", "re_maj", "mi_min"] },
-  { id: "irish",   label: "Irlandais",        chordIds: ["re_maj", "sol_maj", "la_maj", "mi_min"] },
-  { id: "pop",     label: "Pop I–V–vi–IV",   chordIds: ["do_maj", "sol_maj", "la_min", "fa_maj"] },
-  { id: "blues_a", label: "Blues en La",     chordIds: ["la_dom7", "re_dom7", "mi_dom7"] },
+  {
+    id: "key_c",
+    label: "Tonalité de Do",
+    chordIds: ["do_maj", "re_min", "mi_min", "fa_maj", "sol_maj", "la_min", "si_dim"],
+  },
+  {
+    id: "key_g",
+    label: "Tonalité de Sol",
+    chordIds: ["sol_maj", "la_min", "si_min", "do_maj", "re_maj", "mi_min"],
+  },
+  { id: "irish", label: "Irlandais", chordIds: ["re_maj", "sol_maj", "la_maj", "mi_min"] },
+  { id: "pop", label: "Pop I–V–vi–IV", chordIds: ["do_maj", "sol_maj", "la_min", "fa_maj"] },
+  { id: "blues_a", label: "Blues en La", chordIds: ["la_dom7", "re_dom7", "mi_dom7"] },
 ];
 
 export const NOTE_FREQS: Record<string, number[]> = {
-  do:        [65.41,  130.81, 261.63, 523.25,  1046.50],
-  do_sharp:  [69.30,  138.59, 277.18, 554.37,  1108.73],
-  re:        [73.42,  146.83, 293.66, 587.33,  1174.66],
-  re_sharp:  [77.78,  155.56, 311.13, 622.25,  1244.51],
-  mi:        [82.41,  164.81, 329.63, 659.26,  1318.51],
-  fa:        [87.31,  174.61, 349.23, 698.46,  1396.91],
-  fa_sharp:  [92.50,  185.00, 369.99, 739.99,  1479.98],
-  sol:       [98.00,  196.00, 392.00, 783.99,  1567.98],
-  sol_sharp: [103.83, 207.65, 415.30, 830.61,  1661.22],
-  la:        [110.00, 220.00, 440.00, 880.00,  1760.00],
-  la_sharp:  [116.54, 233.08, 466.16, 932.33,  1864.66],
-  si:        [123.47, 246.94, 493.88, 987.77,  1975.53],
+  do: [65.41, 130.81, 261.63, 523.25, 1046.5],
+  do_sharp: [69.3, 138.59, 277.18, 554.37, 1108.73],
+  re: [73.42, 146.83, 293.66, 587.33, 1174.66],
+  re_sharp: [77.78, 155.56, 311.13, 622.25, 1244.51],
+  mi: [82.41, 164.81, 329.63, 659.26, 1318.51],
+  fa: [87.31, 174.61, 349.23, 698.46, 1396.91],
+  fa_sharp: [92.5, 185.0, 369.99, 739.99, 1479.98],
+  sol: [98.0, 196.0, 392.0, 783.99, 1567.98],
+  sol_sharp: [103.83, 207.65, 415.3, 830.61, 1661.22],
+  la: [110.0, 220.0, 440.0, 880.0, 1760.0],
+  la_sharp: [116.54, 233.08, 466.16, 932.33, 1864.66],
+  si: [123.47, 246.94, 493.88, 987.77, 1975.53],
 };

@@ -1,30 +1,16 @@
 import { useEffect, useState } from "react";
 import { ALL } from "../lib/constants";
 import type { NoteNaming } from "../lib/util";
-import type { ChordMode } from "./useSession";
+import type { ChordMode } from "./flows/types";
+import { load as loadSettingsBlob, save as saveSettings } from "../persistence/settings";
 
-const SETTINGS_KEY = "guitar-practice-settings";
-
-interface StoredSettings {
-  interval?: number;
-  enabled?: Record<string, boolean>;
-  tts?: boolean;
-  listening?: boolean;
-  chordAuto?: boolean;
-  chordMode?: ChordMode;
-  workingSetSize?: number;
-  noteNaming?: NoteNaming;
-  spokenNaming?: NoteNaming;
-  voiceURI?: string | null;
-  showChordNotes?: boolean;
+function loadSettings() {
+  return loadSettingsBlob().data;
 }
 
-function loadSettings(): StoredSettings {
-  try { return (JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "null") as StoredSettings | null) ?? {}; }
-  catch { return {}; }
-}
-
-const DEFAULT_ENABLED: Record<string, boolean> = Object.fromEntries(ALL.map((item) => [item.id, item.defaultEnabled !== false]));
+const DEFAULT_ENABLED: Record<string, boolean> = Object.fromEntries(
+  ALL.map((item) => [item.id, item.defaultEnabled !== false]),
+);
 
 function parseInitialSettings() {
   const s = loadSettings();
@@ -62,23 +48,51 @@ export function useSettings() {
   const [showChordNotes, setShowChordNotes] = useState<boolean>(initialSettings.showChordNotes);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-        interval: intervalSecs, enabled, tts, listening, chordMode, workingSetSize, noteNaming, spokenNaming, voiceURI, showChordNotes,
-      }));
-    } catch { /* ignore quota / disabled storage */ }
-  }, [intervalSecs, enabled, tts, listening, chordMode, workingSetSize, noteNaming, spokenNaming, voiceURI, showChordNotes]);
+    saveSettings({
+      interval: intervalSecs,
+      enabled,
+      tts,
+      listening,
+      chordMode,
+      workingSetSize,
+      noteNaming,
+      spokenNaming,
+      voiceURI,
+      showChordNotes,
+    });
+  }, [
+    intervalSecs,
+    enabled,
+    tts,
+    listening,
+    chordMode,
+    workingSetSize,
+    noteNaming,
+    spokenNaming,
+    voiceURI,
+    showChordNotes,
+  ]);
 
   return {
-    intervalSecs, setIntervalSecs,
-    enabled, setEnabled,
-    tts, setTts,
-    listening, setListening,
-    chordMode, setChordMode,
-    workingSetSize, setWorkingSetSize,
-    noteNaming, setNoteNaming,
-    spokenNaming, setSpokenNaming,
-    voiceURI, setVoiceURI,
-    showChordNotes, setShowChordNotes,
+    intervalSecs,
+    setIntervalSecs,
+    enabled,
+    setEnabled,
+    tts,
+    setTts,
+    listening,
+    setListening,
+    chordMode,
+    setChordMode,
+    workingSetSize,
+    setWorkingSetSize,
+    noteNaming,
+    setNoteNaming,
+    spokenNaming,
+    setSpokenNaming,
+    voiceURI,
+    setVoiceURI,
+    showChordNotes,
+    setShowChordNotes,
   };
 }

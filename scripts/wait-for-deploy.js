@@ -1,14 +1,14 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
+import { readFileSync } from "node:fs";
 
-const URL = 'https://bendman.github.io/guitar-practice/';
+const URL = "https://bendman.github.io/guitar-practice/";
 const TIMEOUT_MS = 10 * 60 * 1000;
 const INTERVAL_MS = 5000;
 
-const html = readFileSync('dist/index.html', 'utf8');
+const html = readFileSync("dist/index.html", "utf8");
 const match = html.match(/assets\/index-[^"']+\.js/);
 if (!match) {
-  console.error('Could not find hashed JS asset in dist/index.html');
+  console.error("Could not find hashed JS asset in dist/index.html");
   process.exit(1);
 }
 const expected = match[0];
@@ -19,7 +19,7 @@ let attempt = 0;
 while (Date.now() - start < TIMEOUT_MS) {
   attempt++;
   try {
-    const res = await fetch(`${URL}?cb=${Date.now()}`, { cache: 'no-store' });
+    const res = await fetch(`${URL}?cb=${Date.now()}`, { cache: "no-store" });
     const body = await res.text();
     if (body.includes(expected)) {
       const secs = ((Date.now() - start) / 1000).toFixed(1);
@@ -29,7 +29,7 @@ while (Date.now() - start < TIMEOUT_MS) {
   } catch (err) {
     console.log(`  attempt ${attempt}: ${err.message}`);
   }
-  process.stdout.write('.');
+  process.stdout.write(".");
   await new Promise((r) => setTimeout(r, INTERVAL_MS));
 }
 

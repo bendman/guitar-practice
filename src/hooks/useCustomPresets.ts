@@ -1,16 +1,9 @@
 import { useState } from "react";
 import type { ChordProgression } from "../lib/constants";
-
-const CUSTOM_PRESETS_KEY = "guitar-practice-custom-presets";
+import { load as loadBlob, save as saveCustomPresets } from "../persistence/customPresets";
 
 function loadCustomPresets(): ChordProgression[] {
-  try { return (JSON.parse(localStorage.getItem(CUSTOM_PRESETS_KEY) ?? "null") as ChordProgression[] | null) ?? []; }
-  catch { return []; }
-}
-
-function saveCustomPresets(v: ChordProgression[]) {
-  try { localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(v)); }
-  catch { /* ignore quota / disabled storage */ }
+  return loadBlob().data;
 }
 
 export function useCustomPresets() {

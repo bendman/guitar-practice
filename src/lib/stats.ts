@@ -1,6 +1,8 @@
-const STATS_KEY = "guitar-practice-stats";
-const WEIGHTS_KEY = "guitar-practice-weights";
-const CONFUSIONS_KEY = "guitar-practice-confusions";
+import {
+  stats as statsBlob,
+  weights as weightsBlob,
+  confusions as confusionsBlob,
+} from "../persistence/progress";
 
 export interface Stats {
   bestStreak: number;
@@ -65,18 +67,11 @@ const EMPTY: Stats = {
 };
 
 export function loadStats(): Stats {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(STATS_KEY) ?? "null") as Partial<Stats> | null;
-    return parsed ? { ...EMPTY, ...parsed } : { ...EMPTY };
-  } catch {
-    return { ...EMPTY };
-  }
+  return { ...EMPTY, ...statsBlob.load().data };
 }
 
 export function saveStats(stats: Stats): void {
-  try {
-    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
-  } catch { /* ignore quota / disabled storage */ }
+  statsBlob.save(stats);
 }
 
 export function resetStats(): Stats {
@@ -100,13 +95,11 @@ export function mergeSessionIntoStats(stats: Stats, summary: SessionSummary): St
 }
 
 export function loadWeights(): Weights {
-  try { return (JSON.parse(localStorage.getItem(WEIGHTS_KEY) ?? "null") as Weights | null) ?? {}; }
-  catch { return {}; }
+  return weightsBlob.load().data;
 }
 
 export function saveWeights(weights: Weights): void {
-  try { localStorage.setItem(WEIGHTS_KEY, JSON.stringify(weights)); }
-  catch { /* ignore quota / disabled storage */ }
+  weightsBlob.save(weights);
 }
 
 export function resetWeights(): Weights {
@@ -115,13 +108,11 @@ export function resetWeights(): Weights {
 }
 
 export function loadConfusions(): Confusions {
-  try { return (JSON.parse(localStorage.getItem(CONFUSIONS_KEY) ?? "null") as Confusions | null) ?? {}; }
-  catch { return {}; }
+  return confusionsBlob.load().data;
 }
 
 export function saveConfusions(confusions: Confusions): void {
-  try { localStorage.setItem(CONFUSIONS_KEY, JSON.stringify(confusions)); }
-  catch { /* ignore quota / disabled storage */ }
+  confusionsBlob.save(confusions);
 }
 
 export function resetConfusions(): Confusions {
