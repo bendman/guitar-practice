@@ -18,7 +18,7 @@ function screenAnchor(page: Page, screen: string) {
     case "builder":
       return page.getByRole("dialog", { name: "Créer un accord" });
     case "learning":
-      return page.getByText("Learning details");
+      return page.getByText("Détails d'apprentissage");
     default:
       throw new Error(`Unknown screen: ${screen}`);
   }
@@ -231,7 +231,7 @@ When("I stop the session", async function (this: GuitarWorld) {
 });
 
 When("I open the learning details", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Details" }).click();
+  await this.page.getByRole("button", { name: "Détails" }).click();
 });
 
 Then("the detected note should be {string}", async function (this: GuitarWorld, label: string) {

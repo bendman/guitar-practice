@@ -58,15 +58,15 @@
   border: none;
   padding: 4px 8px;
   font-size: 11px;
-  color: var(--dim);
+  color: var(--text-faint);
   cursor: pointer;
   letter-spacing: 0.5px;
   border-radius: 4px;
 }
 
 .learningLink:hover {
-  color: var(--muted);
-  background: var(--surface-soft);
+  color: var(--text-dim);
+  background: var(--surface-2);
 }
 
 .timer {

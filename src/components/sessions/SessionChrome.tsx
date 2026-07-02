@@ -47,7 +47,7 @@ export default function SessionChrome({
 
       <div className={s.topBar}>
         <button className={s.learningLink} onClick={onShowLearning}>
-          Details
+          Détails
         </button>
         <div className={s.timer}>{formatTime(practiceTime)}</div>
         <div className={s.countRow}>

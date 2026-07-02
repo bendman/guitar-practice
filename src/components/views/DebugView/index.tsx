@@ -51,15 +51,15 @@ const SPECTRUM_NOTES: SpectrumNote[] = (() => {
 })();
 
 function rmsColor(rms: number): string {
-  if (rms < RELEASE_RMS) return "var(--dim)";
+  if (rms < RELEASE_RMS) return "var(--text-faint)";
   if (rms < ATTACK_RMS) return "var(--accent)";
-  return "var(--green)";
+  return "var(--success)";
 }
 
 function corrColor(corr: number): string {
-  if (corr < 0.1) return "var(--dim)";
+  if (corr < 0.1) return "var(--text-faint)";
   if (corr < 0.3) return "var(--accent)";
-  return "var(--green)";
+  return "var(--success)";
 }
 
 interface DebugViewProps {
@@ -127,7 +127,7 @@ export default function DebugView({ onBack }: DebugViewProps) {
                 className={s.barFill}
                 style={{
                   width: `${Math.min(runCount / REQUIRED_FRAMES, 1) * 100}%`,
-                  background: runCount >= REQUIRED_FRAMES ? "var(--green)" : "var(--accent)",
+                  background: runCount >= REQUIRED_FRAMES ? "var(--success)" : "var(--accent)",
                 }}
               />
             </div>

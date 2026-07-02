@@ -15,10 +15,10 @@ interface LearningViewProps {
 }
 
 const LEVEL_LABEL: Record<0 | 1 | 2 | 3, string> = {
-  0: "New",
-  1: "Easy",
-  2: "Medium",
-  3: "Mastered",
+  0: "Nouveau",
+  1: "Facile",
+  2: "Moyen",
+  3: "Maîtrisé",
 };
 
 function weightBar(weight: number) {
@@ -26,8 +26,8 @@ function weightBar(weight: number) {
   const pct = (clamped / 5) * 100;
   const level = weightToLevel(weight);
   const colors: Record<0 | 1 | 2 | 3, string> = {
-    0: "var(--dim)",
-    1: "var(--green)",
+    0: "var(--text-faint)",
+    1: "var(--success)",
     2: "var(--accent)",
     3: "var(--accent)",
   };
@@ -54,21 +54,21 @@ export default function LearningView({ mode, onBack }: LearningViewProps) {
         <div className={shared.screenBodyInner}>
           <div className={s.header}>
             <button onClick={onBack} className={s.backBtn}>
-              ← Back
+              ← Retour
             </button>
-            <span className={s.headerLabel}>Learning details</span>
+            <span className={s.headerLabel}>Détails d'apprentissage</span>
           </div>
 
           <div className={s.poolSummary}>
-            <Stat label="Pool size" value={pool.length} />
-            <Stat label="Active" value={activePool.length} />
-            <Stat label="Mastered" value={masteredInPool.length} />
-            <Stat label="Working set" value={workingSetSize} dim />
+            <Stat label="Sélection" value={pool.length} />
+            <Stat label="Actifs" value={activePool.length} />
+            <Stat label="Maîtrisés" value={masteredInPool.length} />
+            <Stat label="Simultanés" value={workingSetSize} dim />
           </div>
 
           {activeUnmastered.length > 0 && (
             <ItemSection
-              title={`Active (${activeUnmastered.length})`}
+              title={`Actifs (${activeUnmastered.length})`}
               items={activeUnmastered}
               weights={weights}
               highlight
@@ -77,7 +77,7 @@ export default function LearningView({ mode, onBack }: LearningViewProps) {
 
           {masteredInPool.length > 0 && (
             <ItemSection
-              title={`Mastered (${masteredInPool.length})`}
+              title={`Maîtrisés (${masteredInPool.length})`}
               items={masteredInPool}
               weights={weights}
             />
@@ -85,7 +85,7 @@ export default function LearningView({ mode, onBack }: LearningViewProps) {
 
           {waitingUnmastered.length > 0 && (
             <ItemSection
-              title={`Waiting (${waitingUnmastered.length})`}
+              title={`En attente (${waitingUnmastered.length})`}
               items={waitingUnmastered}
               weights={weights}
               muted
@@ -94,7 +94,7 @@ export default function LearningView({ mode, onBack }: LearningViewProps) {
 
           {outsidePool.length > 0 && (
             <ItemSection
-              title={`Disabled (${outsidePool.length})`}
+              title={`Désactivés (${outsidePool.length})`}
               items={outsidePool}
               weights={weights}
               muted
@@ -105,7 +105,7 @@ export default function LearningView({ mode, onBack }: LearningViewProps) {
 
       <div className={shared.screenFooter}>
         <button onClick={onBack} className={shared.footerBtnSecondary}>
-          Back
+          Retour
         </button>
       </div>
     </div>
