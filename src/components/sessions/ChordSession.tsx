@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { ChordItem, PracticeItem } from "../../lib/constants";
 import { useFormatLabel } from "../../lib/noteNaming";
 import type { NoteNaming } from "../../lib/util";
@@ -8,7 +9,7 @@ import type { SessionRawResult } from "../../hooks/flows/types";
 import ChordReveal from "./ChordReveal";
 import SessionChrome from "./SessionChrome";
 import type { BtnSpec } from "./ControlBar";
-import { btn, pausedButtons } from "./sessionButtons";
+import { makeSessionButtons, pausedButtons } from "./sessionButtons";
 import { resolveItem, useStartOnMount } from "./useSessionScaffold";
 import s from "./session.module.css";
 
@@ -55,6 +56,8 @@ export default function ChordSession(props: ChordSessionProps) {
 /** Manual flow: the hook owns `revealed`; the user grades each chord. */
 function RevealAdapter(props: ChordSessionProps) {
   const { pool, weights, interval, tts, spokenNaming, voiceURI, onResult, onStop } = props;
+  const { t } = useTranslation();
+  const btn = useMemo(() => makeSessionButtons(t), [t]);
   const session = useRevealSession({
     interval,
     pool,
@@ -84,7 +87,7 @@ function RevealAdapter(props: ChordSessionProps) {
             btn.hit(() => session.grade(true)),
             btn.stop(stop),
           ],
-          paused: pausedButtons(session.pauseToggle, session.skip, stop),
+          paused: pausedButtons(btn, session.pauseToggle, session.skip, stop),
           active: [btn.pause(session.pauseToggle), btn.see(session.reveal), btn.stop(stop)],
         },
       }}
@@ -95,6 +98,8 @@ function RevealAdapter(props: ChordSessionProps) {
 /** Timer-advanced flow: reveal is local UI state that pauses the timer. */
 function AutoAdapter(props: ChordSessionProps) {
   const { pool, weights, interval, tts, spokenNaming, voiceURI, onResult, onStop } = props;
+  const { t } = useTranslation();
+  const btn = useMemo(() => makeSessionButtons(t), [t]);
   const session = useTimedSession({
     interval,
     pool,
@@ -136,7 +141,7 @@ function AutoAdapter(props: ChordSessionProps) {
         resetSignal: revealed,
         buttons: {
           revealed: [btn.pause(session.pauseToggle), btn.continue(continueSession), btn.stop(stop)],
-          paused: pausedButtons(session.pauseToggle, session.skip, stop),
+          paused: pausedButtons(btn, session.pauseToggle, session.skip, stop),
           active: [btn.pause(session.pauseToggle), btn.see(showChord), btn.stop(stop)],
         },
       }}
@@ -154,6 +159,7 @@ function ChordStage({
   onAddVoicing,
   showChordNotes,
 }: ChordSessionProps & { stage: StageState }) {
+  const { t } = useTranslation();
   const formatLabel = useFormatLabel();
   const resolved = resolveItem(pool, stage.current);
   const isChord = resolved?.type === "chord";
@@ -170,7 +176,7 @@ function ChordStage({
       onShowLearning={onShowLearning}
       buttons={stage.buttons[phase]}
     >
-      {phase === "paused" && <div className={s.pauseBadge}>En pause</div>}
+      {phase === "paused" && <div className={s.pauseBadge}>{t("session.paused")}</div>}
       <div className={s.noteName}>{resolved ? formatLabel(resolved.label) : "—"}</div>
       {stage.revealed && isChord && (
         <ChordReveal

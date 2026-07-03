@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import s from "./index.module.css";
 
 interface SavePresetModalProps {
@@ -8,6 +9,7 @@ interface SavePresetModalProps {
 }
 
 export default function SavePresetModal({ open, onSave, onCancel }: SavePresetModalProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -38,14 +40,14 @@ export default function SavePresetModal({ open, onSave, onCancel }: SavePresetMo
       }}
     >
       <h2 id="save-preset-title" className={s.title}>
-        Enregistrer le préréglage
+        {t("modals.savePresetTitle")}
       </h2>
       <input
         ref={inputRef}
         type="text"
         className={s.input}
-        aria-label="Nom du préréglage"
-        placeholder="Nom…"
+        aria-label={t("modals.presetNameLabel")}
+        placeholder={t("modals.presetNamePlaceholder")}
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => {
@@ -57,7 +59,7 @@ export default function SavePresetModal({ open, onSave, onCancel }: SavePresetMo
       />
       <div className={s.actions}>
         <button type="button" className={s.btnSecondary} onClick={onCancel}>
-          Annuler
+          {t("common.cancel")}
         </button>
         <button
           type="button"
@@ -65,7 +67,7 @@ export default function SavePresetModal({ open, onSave, onCancel }: SavePresetMo
           onClick={handleSubmit}
           disabled={!name.trim()}
         >
-          Enregistrer
+          {t("common.save")}
         </button>
       </div>
     </dialog>

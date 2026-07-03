@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { formatTime } from "../../lib/util";
 import ControlBar, { type BtnSpec } from "./ControlBar";
 import s from "./session.module.css";
@@ -33,6 +34,7 @@ export default function SessionChrome({
   buttons,
   children,
 }: SessionChromeProps) {
+  const { t } = useTranslation();
   return (
     <div className={s.root}>
       {progress != null && (
@@ -47,11 +49,11 @@ export default function SessionChrome({
 
       <div className={s.topBar}>
         <button className={s.learningLink} onClick={onShowLearning}>
-          Détails
+          {t("session.details")}
         </button>
         <div className={s.timer}>{formatTime(practiceTime)}</div>
         <div className={s.countRow}>
-          <span className={s.count} role="status" aria-label={`Carte ${count}`}>
+          <span className={s.count} role="status" aria-label={t("session.card", { n: count })}>
             #{count}
           </span>
           {showStreak && streak > 0 && <span className={s.streak}>{streak} 🔥</span>}
@@ -62,7 +64,9 @@ export default function SessionChrome({
 
       <ControlBar buttons={buttons} />
 
-      {interval != null && <div className={s.keyHints}>▲▼ intervalle ({interval.toFixed(1)}s)</div>}
+      {interval != null && (
+        <div className={s.keyHints}>{t("session.intervalHint", { secs: interval.toFixed(1) })}</div>
+      )}
     </div>
   );
 }

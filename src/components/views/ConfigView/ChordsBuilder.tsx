@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   CHORDS,
   CHORD_ROOTS,
@@ -30,7 +31,12 @@ export default function ChordsBuilder({ onRemoveCustomPreset, onSavePreset }: Ch
     applyProgression: onProgression,
     applyCustomPreset: onCustomPreset,
   } = useChordConfig();
+  const { t } = useTranslation();
   const formatLabel = useFormatLabel();
+  // Built-in preset/progression labels are translated by id; the French
+  // constants.ts label is the fallback for any id without a locale entry.
+  const groupLabel = (id: string, fallback: string) =>
+    t(`chordsBuilder.groups.${id}` as never, { defaultValue: fallback }) as string;
   const totalEnabled = CHORDS.filter((c) => enabled[c.id]).length;
 
   const clearAll = () => {
@@ -98,14 +104,14 @@ export default function ChordsBuilder({ onRemoveCustomPreset, onSavePreset }: Ch
   return (
     <>
       <div className={s.chordHeader}>
-        <span className={shared.eyebrow}>Sélection rapide</span>
+        <span className={shared.eyebrow}>{t("chordsBuilder.quickSelect")}</span>
         <div className={s.presetLinks}>
           <button className={shared.resetLink} onClick={clearAll}>
-            aucune
+            {t("chordsBuilder.none")}
           </button>
           <span className={s.presetSep}>|</span>
           <button className={shared.resetLink} onClick={() => rootPreset("all")}>
-            toutes
+            {t("chordsBuilder.all")}
           </button>
         </div>
       </div>
@@ -117,7 +123,7 @@ export default function ChordsBuilder({ onRemoveCustomPreset, onSavePreset }: Ch
             onClick={() => onPreset(p.id)}
             className={`${s.chip} ${chordPreset === p.id ? s.chipActive : ""}`}
           >
-            {p.label}
+            {groupLabel(p.id, p.label)}
           </button>
         ))}
         {CHORD_PROGRESSIONS.map((p) => (
@@ -126,7 +132,7 @@ export default function ChordsBuilder({ onRemoveCustomPreset, onSavePreset }: Ch
             onClick={() => onProgression(p.id)}
             className={`${s.chip} ${chordProgression === p.id ? s.chipActive : ""}`}
           >
-            {p.label}
+            {groupLabel(p.id, p.label)}
           </button>
         ))}
         {customPresets.map((p) => (
@@ -140,7 +146,7 @@ export default function ChordsBuilder({ onRemoveCustomPreset, onSavePreset }: Ch
             <button
               onClick={() => onRemoveCustomPreset(p.id)}
               className={s.chipDelete}
-              aria-label={`Supprimer le préréglage ${p.label}`}
+              aria-label={t("chordsBuilder.deletePresetAria", { label: p.label })}
             >
               ✕
             </button>
@@ -149,17 +155,19 @@ export default function ChordsBuilder({ onRemoveCustomPreset, onSavePreset }: Ch
         <button
           onClick={onSavePreset}
           className={`${s.chip} ${s.chipSave}`}
-          aria-label="Enregistrer le préréglage actuel"
+          aria-label={t("chordsBuilder.savePresetAria")}
         >
-          + Enregistrer
+          {t("chordsBuilder.saveChip")}
         </button>
       </div>
 
       <div className={s.subsectionHeader}>
-        <span className={shared.eyebrow}>Accords · {totalEnabled} au total</span>
+        <span className={shared.eyebrow}>
+          {t("chordsBuilder.chordsTotal", { n: totalEnabled })}
+        </span>
         <div className={s.presetLinks}>
           <button className={shared.resetLink} onClick={() => rootPreset("none")}>
-            aucune
+            {t("chordsBuilder.none")}
           </button>
           <span className={s.presetSep}>|</span>
           <button
@@ -174,11 +182,11 @@ export default function ChordsBuilder({ onRemoveCustomPreset, onSavePreset }: Ch
               })
             }
           >
-            en cours
+            {t("chordsBuilder.inProgress")}
           </button>
           <span className={s.presetSep}>|</span>
           <button className={shared.resetLink} onClick={() => rootPreset("all")}>
-            toutes
+            {t("chordsBuilder.all")}
           </button>
         </div>
       </div>

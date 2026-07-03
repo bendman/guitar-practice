@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { ChordItem } from "../../lib/constants";
 import ChordDiagram from "../ui/ChordDiagram";
 import s from "./session.module.css";
@@ -21,6 +22,7 @@ export default function ChordReveal({
   showChordNotes = false,
   resetSignal,
 }: ChordRevealProps) {
+  const { t } = useTranslation();
   const voicings = chord.voicings;
   const [voicingIdx, setVoicingIdx] = useState(0);
 
@@ -47,10 +49,10 @@ export default function ChordReveal({
         <ChordDiagram fingering={voicings[voicingIdx]} size={320} showNotes={showChordNotes} />
       )}
       {voicings.length > 1 && (
-        <div className={s.voicingSwitcher} role="group" aria-label="Positions">
+        <div className={s.voicingSwitcher} role="group" aria-label={t("common.positions")}>
           <button
             className={s.cycleBtn}
-            aria-label="Position précédente"
+            aria-label={t("common.prevPosition")}
             onClick={() => {
               const next = (voicingIdx - 1 + voicings.length) % voicings.length;
               setVoicingIdx(next);
@@ -62,13 +64,13 @@ export default function ChordReveal({
           <span
             className={s.voicingCount}
             role="status"
-            aria-label={`Position ${voicingIdx + 1} sur ${voicings.length}`}
+            aria-label={t("common.positionOf", { n: voicingIdx + 1, total: voicings.length })}
           >
             {voicingIdx + 1}/{voicings.length}
           </span>
           <button
             className={s.cycleBtn}
-            aria-label="Position suivante"
+            aria-label={t("common.nextPosition")}
             onClick={() => {
               const next = (voicingIdx + 1) % voicings.length;
               setVoicingIdx(next);
@@ -81,10 +83,10 @@ export default function ChordReveal({
       )}
       <button
         className={s.addVoicingBtn}
-        aria-label="Ajouter une position"
+        aria-label={t("common.addVoicingAria")}
         onClick={() => onAddVoicing(chord.rootId, chord.qualityId)}
       >
-        + Ajouter une position
+        {t("common.addVoicing")}
       </button>
     </div>
   );

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { formatTime, formatDuration, weightToLevel } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
 import { mergeSessionIntoStats, accuracyPercent } from "../../../lib/stats";
@@ -13,6 +15,7 @@ interface AccuracyRingProps {
 }
 
 function AccuracyRing({ accuracy }: AccuracyRingProps) {
+  const { t } = useTranslation();
   const { display, animated } = useCountUp(accuracy);
   const radius = 64;
   const stroke = 7;
@@ -51,7 +54,7 @@ function AccuracyRing({ accuracy }: AccuracyRingProps) {
           {display}
           <span className={s.ringPct}>%</span>
         </div>
-        <span className={`${shared.eyebrow} ${s.ringLabel}`}>Précision</span>
+        <span className={`${shared.eyebrow} ${s.ringLabel}`}>{t("summary.accuracy")}</span>
       </div>
     </div>
   );
@@ -84,13 +87,13 @@ function ImpactRow({ label, oldVal, newVal, improved }: ImpactRowProps) {
   );
 }
 
-function headline(accuracy: number): string {
-  if (accuracy >= 100) return "Sans-faute, parfait !";
-  if (accuracy >= 93) return "Sans-faute ou presque !";
-  if (accuracy >= 80) return "Très bonne session !";
-  if (accuracy >= 65) return "Bonne session !";
-  if (accuracy >= 50) return "Continue comme ça !";
-  return "On progresse !";
+function headline(t: TFunction, accuracy: number): string {
+  if (accuracy >= 100) return t("summary.headlinePerfect");
+  if (accuracy >= 93) return t("summary.headlineNearPerfect");
+  if (accuracy >= 80) return t("summary.headlineGreat");
+  if (accuracy >= 65) return t("summary.headlineGood");
+  if (accuracy >= 50) return t("summary.headlineKeepGoing");
+  return t("summary.headlineProgressing");
 }
 
 interface SummaryViewProps {
@@ -150,6 +153,7 @@ function ChordProgressRow({
 }
 
 export default function SummaryView({ summary, onDismiss, onReplay }: SummaryViewProps) {
+  const { t } = useTranslation();
   const { weights } = useProgress();
   const { preSessionStats, preSessionWeights: preWeights } = useSessionHandoff();
   const {
@@ -193,67 +197,69 @@ export default function SummaryView({ summary, onDismiss, onReplay }: SummaryVie
           {wasListening ? (
             <>
               <AccuracyRing accuracy={accuracy} />
-              <h2 className={s.headline}>{headline(accuracy)}</h2>
+              <h2 className={s.headline}>{headline(t, accuracy)}</h2>
               <p className={s.subCount}>
-                {correctCount} / {totalNotes} corrects
+                {t("summary.correctCount", { correct: correctCount, total: totalNotes })}
               </p>
             </>
           ) : wasManualChord ? (
             <>
               <AccuracyRing accuracy={chordAccuracy} />
-              <h2 className={s.headline}>{headline(chordAccuracy)}</h2>
+              <h2 className={s.headline}>{headline(t, chordAccuracy)}</h2>
               <p className={s.subCount}>
-                {chordCorrectCount} / {totalChords} trouvés
+                {t("summary.foundCount", { correct: chordCorrectCount, total: totalChords })}
               </p>
             </>
           ) : (
             <div className={s.noMicHeader}>
               <div className={s.sessionDoneIcon}>✓</div>
-              <h2 className={s.headline}>Session terminée</h2>
+              <h2 className={s.headline}>{t("summary.sessionDone")}</h2>
             </div>
           )}
 
           <div className={s.strip}>
             <div className={s.stripCell}>
               <div className={s.stripValue}>{formatTime(practiceTime)}</div>
-              <span className={shared.eyebrow}>Durée</span>
+              <span className={shared.eyebrow}>{t("summary.duration")}</span>
             </div>
             <div className={s.stripCell}>
               <div className={s.stripValue}>{totalCount}</div>
-              <span className={shared.eyebrow}>Cartes</span>
+              <span className={shared.eyebrow}>{t("summary.cards")}</span>
             </div>
             <div className={s.stripCell}>
               <div className={s.stripValue}>{bestStreak}</div>
-              <span className={shared.eyebrow}>Série</span>
+              <span className={shared.eyebrow}>{t("summary.streak")}</span>
             </div>
           </div>
 
           {postStats && preSessionStats && (
             <div className={s.progressionSection}>
-              <span className={`${shared.eyebrow} ${s.sectionTitle}`}>Ta progression globale</span>
+              <span className={`${shared.eyebrow} ${s.sectionTitle}`}>
+                {t("summary.globalProgress")}
+              </span>
               <div className={s.impactList}>
                 <ImpactRow
-                  label="Temps total"
+                  label={t("summary.totalTime")}
                   oldVal={formatDuration(preSessionStats.totalPracticeTime)}
                   newVal={formatDuration(postStats.totalPracticeTime)}
                   improved={postStats.totalPracticeTime > preSessionStats.totalPracticeTime}
                 />
                 <ImpactRow
-                  label="Sessions"
+                  label={t("summary.sessions")}
                   oldVal={preSessionStats.totalSessions}
                   newVal={postStats.totalSessions}
                   improved={postStats.totalSessions > preSessionStats.totalSessions}
                 />
                 {postAcc != null && (
                   <ImpactRow
-                    label="Précision moyenne"
+                    label={t("summary.avgAccuracy")}
                     oldVal={preAcc != null ? `${preAcc}%` : "—"}
                     newVal={`${postAcc}%`}
                     improved={preAcc != null && postAcc > preAcc}
                   />
                 )}
                 <ImpactRow
-                  label="Meilleure série"
+                  label={t("summary.bestStreak")}
                   oldVal={preSessionStats.bestStreak}
                   newVal={postStats.bestStreak}
                   improved={postStats.bestStreak > preSessionStats.bestStreak}
@@ -264,7 +270,7 @@ export default function SummaryView({ summary, onDismiss, onReplay }: SummaryVie
 
           {wasListening && missedItems.length > 0 && (
             <div className={s.workonSection}>
-              <span className={`${shared.eyebrow} ${s.sectionTitle}`}>À retravailler</span>
+              <span className={`${shared.eyebrow} ${s.sectionTitle}`}>{t("summary.toRework")}</span>
               <div className={s.workonList}>
                 {missedItems.map((item) => (
                   <div key={item.id} className={s.workonRow}>
@@ -278,12 +284,14 @@ export default function SummaryView({ summary, onDismiss, onReplay }: SummaryVie
           )}
 
           {wasListening && missedItems.length === 0 && totalNotes > 0 && (
-            <div className={s.perfectNote}>Toutes les notes correctes — excellent !</div>
+            <div className={s.perfectNote}>{t("summary.allCorrect")}</div>
           )}
 
           {wasManualChord && chordProgress.length > 0 && (
             <div className={s.workonSection}>
-              <span className={`${shared.eyebrow} ${s.sectionTitle}`}>Accords travaillés</span>
+              <span className={`${shared.eyebrow} ${s.sectionTitle}`}>
+                {t("summary.workedChords")}
+              </span>
               <div className={s.chordProgList}>
                 {chordProgress.map((c, i) => (
                   <ChordProgressRow
@@ -304,10 +312,10 @@ export default function SummaryView({ summary, onDismiss, onReplay }: SummaryVie
 
       <div className={shared.screenFooter}>
         <button onClick={onDismiss} className={shared.footerBtnSecondary}>
-          Accueil
+          {t("common.home")}
         </button>
         <button onClick={onReplay} className={shared.footerBtnPrimary}>
-          Rejouer
+          {t("summary.replay")}
         </button>
       </div>
     </div>

@@ -199,7 +199,11 @@ export function formatSpeak(speak: string, naming: NoteNaming): string {
     .trimStart()
     .replace(SOLFEGE_ROOT_RE, (m) => SOLFEGE_TO_LETTER[m] ?? m)
     .replace(/dièse/g, "sharp")
-    .replace(/bémol/g, "flat");
+    .replace(/bémol/g, "flat")
+    .replace(/Demi-diminué/gi, "half-diminished")
+    .replace(/Diminué/gi, "diminished")
+    .replace(/Majeur/gi, "major")
+    .replace(/Mineur/gi, "minor");
 }
 
 export function formatTime(secs: number): string {

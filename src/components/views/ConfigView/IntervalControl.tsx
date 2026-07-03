@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import shared from "../../shared.module.css";
 import s from "./index.module.css";
 
@@ -7,16 +8,17 @@ interface IntervalControlProps {
 }
 
 export default function IntervalControl({ interval, setInterval }: IntervalControlProps) {
+  const { t } = useTranslation();
   return (
     <div className={s.intervalSection}>
       <div className={s.intervalHeader}>
-        <span className={shared.eyebrow}>Intervalle</span>
+        <span className={shared.eyebrow}>{t("config.interval")}</span>
         <span className={s.intervalValue}>{interval.toFixed(1)}s</span>
       </div>
       <div className={s.sliderWrap}>
         <input
           type="range"
-          aria-label="Intervalle"
+          aria-label={t("config.interval")}
           min="0.5"
           max="10"
           step="0.1"

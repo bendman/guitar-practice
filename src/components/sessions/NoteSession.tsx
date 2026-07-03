@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { NoteNaming } from "../../lib/util";
 import type { PracticeItem } from "../../lib/constants";
 import { useTimedSession } from "../../hooks/flows/useTimedSession";
@@ -7,7 +8,7 @@ import type { SessionRawResult } from "../../hooks/flows/types";
 import NoteDisplay from "./NoteDisplay";
 import SessionChrome from "./SessionChrome";
 import type { BtnSpec } from "./ControlBar";
-import { btn, pausedButtons } from "./sessionButtons";
+import { makeSessionButtons, pausedButtons } from "./sessionButtons";
 import { useStartOnMount } from "./useSessionScaffold";
 
 interface NoteSessionProps {
@@ -35,6 +36,8 @@ export default function NoteSession({
   onStop,
   onShowLearning,
 }: NoteSessionProps) {
+  const { t } = useTranslation();
+  const btn = useMemo(() => makeSessionButtons(t), [t]);
   const session = useTimedSession({
     interval,
     pool,
@@ -59,7 +62,7 @@ export default function NoteSession({
   const recognized = listening && session.hitStatus === "correct" && !session.paused;
 
   const buttons: BtnSpec[] = session.paused
-    ? pausedButtons(session.pauseToggle, session.skip, stop)
+    ? pausedButtons(btn, session.pauseToggle, session.skip, stop)
     : [
         btn.pause(session.pauseToggle),
         ...(listening && !recognized ? [btn.accept(session.forceAccept)] : []),

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { CHORDS, chordId, voicingsEqual } from "../../../lib/constants";
 import type { Voicing, Barre } from "../../../lib/constants";
 import type { CustomVoicings } from "../../../hooks/useCustomVoicings";
@@ -40,6 +41,7 @@ export default function ChordBuilderView({
   onSave,
   onCancel,
 }: ChordBuilderViewProps) {
+  const { t } = useTranslation();
   const [selectedChordId, setSelectedChordId] = useState(() =>
     chordId(prefillRootId, prefillQualityId),
   );
@@ -129,10 +131,10 @@ export default function ChordBuilderView({
   const isDuplicate = existing.some((v) => voicingsEqual(v, voicing));
 
   return (
-    <div className={s.scrim} role="dialog" aria-modal="true" aria-label="Créer un accord">
+    <div className={s.scrim} role="dialog" aria-modal="true" aria-label={t("chordBuilder.title")}>
       <div className={s.sheet}>
         <div className={s.body}>
-          <h1 className={shared.title}>Créer un accord</h1>
+          <h1 className={shared.title}>{t("chordBuilder.title")}</h1>
 
           <div className={s.diagramWrap}>
             <ChordDiagram
@@ -148,16 +150,14 @@ export default function ChordBuilderView({
               onBarre={handleBarre}
             />
           </div>
-          <p className={s.hint}>
-            Touche une case pour poser un doigt · glisse sur une frette pour un barré
-          </p>
+          <p className={s.hint}>{t("chordBuilder.hint")}</p>
 
           <div className={s.settingRow}>
-            <span className={s.settingLabel}>Première case</span>
+            <span className={s.settingLabel}>{t("chordBuilder.firstFret")}</span>
             <div className={s.pickerRow}>
               <button
                 className={s.pick}
-                aria-label="Diminuer la première case"
+                aria-label={t("chordBuilder.decreaseFret")}
                 onClick={() => setBaseFret((b) => Math.max(1, b - 1))}
               >
                 −
@@ -167,7 +167,7 @@ export default function ChordBuilderView({
               </span>
               <button
                 className={s.pick}
-                aria-label="Augmenter la première case"
+                aria-label={t("chordBuilder.increaseFret")}
                 onClick={() => setBaseFret((b) => Math.min(15, b + 1))}
               >
                 +
@@ -177,12 +177,16 @@ export default function ChordBuilderView({
 
           <div className={s.field}>
             <span className={shared.eyebrow}>
-              Accord possible
+              {t("chordBuilder.possibleChord")}
               {possibleChords.length < CHORDS.length && (
                 <span className={s.chordCount}> · {possibleChords.length}</span>
               )}
             </span>
-            <div className={s.scrollRow} role="radiogroup" aria-label="Accord">
+            <div
+              className={s.scrollRow}
+              role="radiogroup"
+              aria-label={t("chordBuilder.chordGroup")}
+            >
               {possibleChords.map((c) => (
                 <button
                   key={c.id}
@@ -195,28 +199,28 @@ export default function ChordBuilderView({
                 </button>
               ))}
               {possibleChords.length === 0 && (
-                <span className={s.settingLabel}>Aucun accord correspondant</span>
+                <span className={s.settingLabel}>{t("chordBuilder.noMatch")}</span>
               )}
             </div>
           </div>
 
           {isDuplicate && (
             <p className={s.alert} role="alert">
-              Cet accord existe déjà
+              {t("chordBuilder.duplicate")}
             </p>
           )}
         </div>
 
         <div className={s.footer}>
           <button onClick={onCancel} className={shared.footerBtnSecondary}>
-            Annuler
+            {t("common.cancel")}
           </button>
           <button
             onClick={() => onSave(id, voicing)}
             disabled={isDuplicate}
             className={shared.footerBtnPrimary}
           >
-            Enregistrer
+            {t("common.save")}
           </button>
         </div>
       </div>

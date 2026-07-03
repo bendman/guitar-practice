@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { PracticeItem } from "../../lib/constants";
 import { useFormatLabel } from "../../lib/noteNaming";
 import type { NoteNaming } from "../../lib/util";
@@ -7,7 +9,7 @@ import type { SessionRawResult } from "../../hooks/flows/types";
 import QuizGrid from "./QuizGrid";
 import SessionChrome from "./SessionChrome";
 import type { BtnSpec } from "./ControlBar";
-import { btn } from "./sessionButtons";
+import { makeSessionButtons } from "./sessionButtons";
 import { useStartOnMount } from "./useSessionScaffold";
 import s from "./session.module.css";
 
@@ -43,6 +45,8 @@ export default function QuizSession({
   showChordNotes,
 }: QuizSessionProps) {
   const formatLabel = useFormatLabel();
+  const { t } = useTranslation();
+  const btn = useMemo(() => makeSessionButtons(t), [t]);
   const session = useQuizSession({
     pool,
     fullPool,

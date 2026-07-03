@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { ChordItem } from "../../lib/constants";
 import { useFormatLabel } from "../../lib/noteNaming";
 import ChordDiagram from "../ui/ChordDiagram";
@@ -20,9 +21,10 @@ export default function QuizGrid({
   showChordNotes = false,
   onSelect,
 }: QuizGridProps) {
+  const { t } = useTranslation();
   const formatLabel = useFormatLabel();
   return (
-    <div className={s.quizGrid} role="group" aria-label="Choix d'accord">
+    <div className={s.quizGrid} role="group" aria-label={t("session.quizChoices")}>
       {choices.map((c) => {
         const isCorrectChoice = c.id === correctId;
         const isPicked = c.id === selectedId;

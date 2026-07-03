@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import s from "./index.module.css";
 
 interface DeletePresetModalProps {
@@ -14,6 +15,7 @@ export default function DeletePresetModal({
   onConfirm,
   onCancel,
 }: DeletePresetModalProps) {
+  const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -32,15 +34,15 @@ export default function DeletePresetModal({
       }}
     >
       <h2 id="delete-preset-title" className={s.title}>
-        Supprimer le préréglage
+        {t("modals.deletePresetTitle")}
       </h2>
-      <p className={s.body}>Supprimer « {presetLabel} » ?</p>
+      <p className={s.body}>{t("modals.deleteConfirm", { label: presetLabel })}</p>
       <div className={s.actions}>
         <button className={s.btnSecondary} onClick={onCancel}>
-          Annuler
+          {t("common.cancel")}
         </button>
         <button className={s.btnDanger} onClick={onConfirm}>
-          Supprimer
+          {t("common.delete")}
         </button>
       </div>
     </dialog>

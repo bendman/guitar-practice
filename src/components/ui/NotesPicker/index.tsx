@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { NOTES, CHROMATIC_NOTES, NOTES_DISPLAY_ORDER } from "../../../lib/constants";
 import { useFormatLabel } from "../../../lib/noteNaming";
 import shared from "../../shared.module.css";
@@ -10,6 +11,7 @@ interface NotesPickerProps {
 }
 
 export default function NotesPicker({ enabled, setEnabled, selectedNoteCount }: NotesPickerProps) {
+  const { t } = useTranslation();
   const formatLabel = useFormatLabel();
   const toggle = (id: string) => setEnabled((p) => ({ ...p, [id]: !p[id] }));
 
@@ -36,16 +38,16 @@ export default function NotesPicker({ enabled, setEnabled, selectedNoteCount }: 
   return (
     <div className={s.wrapper}>
       <div className={s.sectionHeader}>
-        <span className={shared.eyebrow}>Notes · {selectedNoteCount} choisies</span>
+        <span className={shared.eyebrow}>{t("notesPicker.header", { n: selectedNoteCount })}</span>
         <div className={s.segmented}>
           <button className={s.seg} onClick={() => preset("none")}>
-            Aucune
+            {t("notesPicker.none")}
           </button>
           <button className={s.seg} onClick={() => preset("naturals")}>
-            Naturelles
+            {t("notesPicker.naturals")}
           </button>
           <button className={s.seg} onClick={() => preset("all")}>
-            Toutes
+            {t("notesPicker.all")}
           </button>
         </div>
       </div>

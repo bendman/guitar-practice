@@ -2,23 +2,26 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import { expect } from "playwright/test";
 import type { Page } from "playwright/test";
 import { BASE_URL, type GuitarWorld } from "../support/world";
+import { t } from "../support/i18n";
+
+const stringLabel = (n: number) => t("diagram.string", { n });
 
 function screenAnchor(page: Page, screen: string) {
   switch (screen) {
     case "welcome":
-      return page.getByText("Choisis un mode");
+      return page.getByText(t("welcome.chooseMode"));
     case "config":
-      return page.getByRole("button", { name: "Commencer" });
+      return page.getByRole("button", { name: t("common.start") });
     case "session":
-      return page.getByRole("button", { name: "Arrêter" });
+      return page.getByRole("button", { name: t("session.buttons.stop") });
     case "summary":
       return page.getByRole("heading");
     case "settings":
-      return page.getByRole("heading", { name: "Paramètres" });
+      return page.getByRole("heading", { name: t("settings.title") });
     case "builder":
-      return page.getByRole("dialog", { name: "Créer un accord" });
+      return page.getByRole("dialog", { name: t("chordBuilder.title") });
     case "learning":
-      return page.getByText("Détails d'apprentissage");
+      return page.getByText(t("learning.title"));
     default:
       throw new Error(`Unknown screen: ${screen}`);
   }
@@ -44,19 +47,19 @@ Then("I should see the {word} screen", async function (this: GuitarWorld, screen
 });
 
 When("I return to the home screen", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Accueil" }).click();
+  await this.page.getByRole("button", { name: t("common.home") }).click();
 });
 
 When("I replay the session", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Rejouer" }).click();
+  await this.page.getByRole("button", { name: t("summary.replay") }).click();
 });
 
 When("I open my progress", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Paramètres" }).click();
+  await this.page.getByRole("button", { name: t("common.settings") }).click();
 });
 
 When("I leave my progress", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Retour" }).click();
+  await this.page.getByRole("button", { name: t("common.back") }).click();
 });
 
 When("I reload the app", async function (this: GuitarWorld) {
@@ -73,7 +76,7 @@ const NAMING_LABEL: Record<string, string> = {
 
 When("I set the note naming to {string}", async function (this: GuitarWorld, naming: string) {
   await this.page
-    .getByRole("radiogroup", { name: "Notes écrites" })
+    .getByRole("radiogroup", { name: t("settings.writtenNotes") })
     .getByRole("radio", { name: NAMING_LABEL[naming] })
     .click();
 });
@@ -93,12 +96,12 @@ Then(
 );
 
 Then("I should see the voice picker", async function (this: GuitarWorld) {
-  await expect(this.page.getByRole("combobox", { name: "Voix" })).toBeVisible();
-  await expect(this.page.getByRole("button", { name: "Écouter un aperçu" })).toBeVisible();
+  await expect(this.page.getByRole("combobox", { name: t("settings.voice") })).toBeVisible();
+  await expect(this.page.getByRole("button", { name: t("settings.previewVoice") })).toBeVisible();
 });
 
 Then("previewing the voice does not error", async function (this: GuitarWorld) {
-  const preview = this.page.getByRole("button", { name: "Écouter un aperçu" });
+  const preview = this.page.getByRole("button", { name: t("settings.previewVoice") });
   await preview.click();
   // The button stays interactive (no crash / navigation away from settings).
   await expect(preview).toBeEnabled();
@@ -108,7 +111,7 @@ When(
   "I set the spoken note naming to {string}",
   async function (this: GuitarWorld, naming: string) {
     await this.page
-      .getByRole("radiogroup", { name: "Notes parlées" })
+      .getByRole("radiogroup", { name: t("settings.spokenNotes") })
       .getByRole("radio", { name: NAMING_LABEL[naming] })
       .click();
   },
@@ -133,11 +136,11 @@ When("I select the {string} progression", async function (this: GuitarWorld, lab
 });
 
 Then("the chord total should be {string}", async function (this: GuitarWorld, total: string) {
-  await expect(this.page.getByText(`${total} au total`)).toBeVisible();
+  await expect(this.page.getByText(t("chordsBuilder.chordsTotal", { n: total }))).toBeVisible();
 });
 
 When("I select the QCM progression mode", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "QCM", exact: true }).click();
+  await this.page.getByRole("button", { name: t("config.modeQuiz"), exact: true }).click();
 });
 
 When("I select the {string} progression mode", async function (this: GuitarWorld, label: string) {
@@ -149,11 +152,13 @@ Then("the practice should advance past the first card", async function (this: Gu
 });
 
 Then("the QCM mode should be disabled", async function (this: GuitarWorld) {
-  await expect(this.page.getByRole("button", { name: "QCM", exact: true })).toBeDisabled();
+  await expect(
+    this.page.getByRole("button", { name: t("config.modeQuiz"), exact: true }),
+  ).toBeDisabled();
 });
 
 function quizChoices(page: Page) {
-  return page.getByRole("group", { name: "Choix d'accord" }).getByRole("button");
+  return page.getByRole("group", { name: t("session.quizChoices") }).getByRole("button");
 }
 
 Then("the quiz should show 4 choices", async function (this: GuitarWorld) {
@@ -173,15 +178,15 @@ Then("the quiz choice names should be revealed", async function (this: GuitarWor
 });
 
 Then("the Next button should be disabled", async function (this: GuitarWorld) {
-  await expect(this.page.getByRole("button", { name: "Suivant" })).toBeDisabled();
+  await expect(this.page.getByRole("button", { name: t("session.buttons.next") })).toBeDisabled();
 });
 
 Then("the Next button should be enabled", async function (this: GuitarWorld) {
-  await expect(this.page.getByRole("button", { name: "Suivant" })).toBeEnabled();
+  await expect(this.page.getByRole("button", { name: t("session.buttons.next") })).toBeEnabled();
 });
 
 When("I advance to the next quiz round", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Suivant" }).click();
+  await this.page.getByRole("button", { name: t("session.buttons.next") }).click();
 });
 
 Then("the pause button should show {string}", async function (this: GuitarWorld, label: string) {
@@ -190,9 +195,9 @@ Then("the pause button should show {string}", async function (this: GuitarWorld,
 
 When("I click the pause button", async function (this: GuitarWorld) {
   const btn =
-    (await this.page.getByRole("button", { name: "Pause" }).count()) > 0
-      ? this.page.getByRole("button", { name: "Pause" })
-      : this.page.getByRole("button", { name: "Reprendre" });
+    (await this.page.getByRole("button", { name: t("session.buttons.pause") }).count()) > 0
+      ? this.page.getByRole("button", { name: t("session.buttons.pause") })
+      : this.page.getByRole("button", { name: t("session.buttons.resume") });
   await btn.click();
 });
 
@@ -203,7 +208,7 @@ When("I wait {int} seconds", async function (this: GuitarWorld, seconds: number)
 Then(
   "the session duration should be at least {int} second",
   async function (this: GuitarWorld, minSeconds: number) {
-    const durationCell = this.page.getByText("Durée", { exact: true }).locator("..");
+    const durationCell = this.page.getByText(t("summary.duration"), { exact: true }).locator("..");
     const valueText = await durationCell.getByText(/\d/).first().textContent();
     // formatTime produces "0:SS" or "M:SS"; parse total seconds
     const parts = (valueText ?? "0:00").split(":").map(Number);
@@ -213,17 +218,17 @@ Then(
 );
 
 When("I enable microphone detection", async function (this: GuitarWorld) {
-  await this.page.getByRole("switch", { name: "Détecter les notes (micro)" }).click();
+  await this.page.getByRole("switch", { name: t("config.micLabel") }).click();
 });
 
 When("I start the session", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Commencer" }).click();
+  await this.page.getByRole("button", { name: t("common.start") }).click();
 });
 
 // ---- Session ------------------------------------------------------------
 
 When("I reveal the chord", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Voir" }).click();
+  await this.page.getByRole("button", { name: t("session.buttons.see") }).click();
 });
 
 When("I grade the chord as {string}", async function (this: GuitarWorld, grade: string) {
@@ -231,40 +236,42 @@ When("I grade the chord as {string}", async function (this: GuitarWorld, grade: 
 });
 
 When("I stop the session", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Arrêter" }).click();
+  await this.page.getByRole("button", { name: t("session.buttons.stop") }).click();
 });
 
 When("I open the learning details", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Détails" }).click();
+  await this.page.getByRole("button", { name: t("session.details") }).click();
 });
 
 Then("the detected note should be {string}", async function (this: GuitarWorld, label: string) {
-  await expect(this.page.getByText(`Note · ${label}`)).toBeVisible({ timeout: 15_000 });
+  await expect(this.page.getByText(t("session.listenHint", { label }))).toBeVisible({
+    timeout: 15_000,
+  });
 });
 
 // ---- Stats / persistence ------------------------------------------------
 
 Then("the sessions stat should be {string}", async function (this: GuitarWorld, value: string) {
-  const sessionsLabel = this.page.getByText("Sessions", { exact: true });
+  const sessionsLabel = this.page.getByText(t("welcome.sessions"), { exact: true });
   await expect(sessionsLabel.locator("..").getByText(value, { exact: true })).toBeVisible();
 });
 
 When("I set the interval to {string}", async function (this: GuitarWorld, seconds: string) {
-  await this.page.getByRole("slider", { name: "Intervalle" }).fill(seconds);
+  await this.page.getByRole("slider", { name: t("config.interval") }).fill(seconds);
 });
 
 // ---- Chord builder ------------------------------------------------------
 
 When("I open the chord builder", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Créer un accord" }).click();
+  await this.page.getByRole("button", { name: t("chordBuilder.title") }).click();
 });
 
 Then("I should see the chord builder", async function (this: GuitarWorld) {
-  await expect(this.page.getByRole("dialog", { name: "Créer un accord" })).toBeVisible();
+  await expect(this.page.getByRole("dialog", { name: t("chordBuilder.title") })).toBeVisible();
 });
 
 function builder(page: Page) {
-  return page.getByRole("dialog", { name: "Créer un accord" });
+  return page.getByRole("dialog", { name: t("chordBuilder.title") });
 }
 
 // Maps the French long quality names used in feature files to the short labels
@@ -288,7 +295,7 @@ When("I select the chord family {string}", async function (this: GuitarWorld, fa
   const short = QUALITY_SHORT[family] ?? family;
   const label = `${this.pendingChordRoot} ${short}`;
   await builder(this.page)
-    .getByRole("radiogroup", { name: "Accord" })
+    .getByRole("radiogroup", { name: t("chordBuilder.chordGroup") })
     .getByRole("radio", { name: label, exact: true })
     .click();
 });
@@ -297,21 +304,21 @@ When(
   "I tap string {int} at fret {int}",
   async function (this: GuitarWorld, str: number, fret: number) {
     await builder(this.page)
-      .getByRole("button", { name: `corde ${str} case ${fret}` })
+      .getByRole("button", { name: t("diagram.stringFret", { string: stringLabel(str), fret }) })
       .click();
   },
 );
 
 When("I save the chord", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Enregistrer" }).click();
+  await this.page.getByRole("button", { name: t("common.save") }).click();
 });
 
 Then("the save chord button should be disabled", async function (this: GuitarWorld) {
-  await expect(this.page.getByRole("button", { name: "Enregistrer" })).toBeDisabled();
+  await expect(this.page.getByRole("button", { name: t("common.save") })).toBeDisabled();
 });
 
 Then("I should see the duplicate warning", async function (this: GuitarWorld) {
-  await expect(this.page.getByText("Cet accord existe déjà")).toBeVisible();
+  await expect(this.page.getByText(t("chordBuilder.duplicate"))).toBeVisible();
 });
 
 When("I expand the chord {string}", async function (this: GuitarWorld, label: string) {
@@ -322,20 +329,22 @@ Then(
   "I should see a custom voicing for {string}",
   async function (this: GuitarWorld, label: string) {
     await expect(
-      this.page.getByRole("button", { name: `Supprimer la position 1 ${label}` }),
+      this.page.getByRole("button", { name: t("settings.deleteVoicingAria", { n: 1, label }) }),
     ).toBeVisible();
   },
 );
 
 When("I delete the custom voicing for {string}", async function (this: GuitarWorld, label: string) {
-  await this.page.getByRole("button", { name: `Supprimer la position 1 ${label}` }).click();
+  await this.page
+    .getByRole("button", { name: t("settings.deleteVoicingAria", { n: 1, label }) })
+    .click();
 });
 
 Then(
   "there should be no custom voicing for {string}",
   async function (this: GuitarWorld, label: string) {
     await expect(
-      this.page.getByRole("button", { name: `Supprimer la position 1 ${label}` }),
+      this.page.getByRole("button", { name: t("settings.deleteVoicingAria", { n: 1, label }) }),
     ).toHaveCount(0);
   },
 );
@@ -372,7 +381,7 @@ async function firstVoicing(
 }
 
 When("I raise the first case to {int}", async function (this: GuitarWorld, target: number) {
-  const plus = this.page.getByRole("button", { name: "Augmenter la première case" });
+  const plus = this.page.getByRole("button", { name: t("chordBuilder.increaseFret") });
   for (let i = 1; i < target; i++) await plus.click();
 });
 
@@ -380,10 +389,10 @@ When(
   "I drag a barre from string {int} fret {int} to string {int} fret {int}",
   async function (this: GuitarWorld, s1: number, f1: number, s2: number, f2: number) {
     const src = await this.page
-      .getByRole("button", { name: `corde ${s1} case ${f1}` })
+      .getByRole("button", { name: t("diagram.stringFret", { string: stringLabel(s1), fret: f1 }) })
       .boundingBox();
     const dst = await this.page
-      .getByRole("button", { name: `corde ${s2} case ${f2}` })
+      .getByRole("button", { name: t("diagram.stringFret", { string: stringLabel(s2), fret: f2 }) })
       .boundingBox();
     if (!src || !dst) throw new Error("barre drag endpoints not found");
     await this.page.mouse.move(src.x + src.width / 2, src.y + src.height / 2);
@@ -398,19 +407,21 @@ Then(
   async function (this: GuitarWorld, fret: number) {
     // The barre is an SVG <line>; a horizontal line has zero bbox height, which
     // Playwright reports as "hidden", so assert it is present rather than visible.
-    await expect(this.page.getByRole("img", { name: `barré case ${fret}` })).toBeAttached();
+    await expect(this.page.getByRole("img", { name: t("diagram.barre", { fret }) })).toBeAttached();
   },
 );
 
 Then(
   "the builder diagram should not show a barre at fret {int}",
   async function (this: GuitarWorld, fret: number) {
-    await expect(this.page.getByRole("img", { name: `barré case ${fret}` })).toHaveCount(0);
+    await expect(this.page.getByRole("img", { name: t("diagram.barre", { fret }) })).toHaveCount(0);
   },
 );
 
 When("I tap to remove string {int}", async function (this: GuitarWorld, str: number) {
-  await this.page.getByRole("button", { name: `retirer la note corde ${str}` }).click();
+  await this.page
+    .getByRole("button", { name: t("diagram.removeNote", { string: stringLabel(str) }) })
+    .click();
 });
 
 Then(
@@ -444,17 +455,17 @@ Then("the custom voicings store should be empty", async function (this: GuitarWo
 });
 
 When("I add a voicing from the session", async function (this: GuitarWorld) {
-  await this.page.getByRole("button", { name: "Ajouter une position", exact: true }).click();
+  await this.page.getByRole("button", { name: t("common.addVoicingAria"), exact: true }).click();
 });
 
 Then("I should be back at the revealed chord", async function (this: GuitarWorld) {
   // The "+" lives in the revealed state, which pauses the timer; returning
   // lands the user on the same revealed card with its grading controls.
-  await expect(this.page.getByRole("button", { name: "Trouvé" })).toBeVisible();
+  await expect(this.page.getByRole("button", { name: t("session.buttons.hit") })).toBeVisible();
 });
 
 Then("I should see a voicings picker", async function (this: GuitarWorld) {
-  await expect(this.page.getByRole("group", { name: "Positions" })).toBeVisible();
+  await expect(this.page.getByRole("group", { name: t("common.positions") })).toBeVisible();
 });
 
 Then("the newly created voicing should be active", async function (this: GuitarWorld) {
@@ -484,14 +495,14 @@ Then(
 When(
   "I save the current selection as a preset named {string}",
   async function (this: GuitarWorld, name: string) {
-    await this.page.getByRole("button", { name: "Enregistrer le préréglage actuel" }).click();
+    await this.page.getByRole("button", { name: t("chordsBuilder.savePresetAria") }).click();
     await this.page
-      .getByRole("dialog", { name: "Enregistrer le préréglage" })
-      .getByRole("textbox", { name: "Nom du préréglage" })
+      .getByRole("dialog", { name: t("modals.savePresetTitle") })
+      .getByRole("textbox", { name: t("modals.presetNameLabel") })
       .fill(name);
     await this.page
-      .getByRole("dialog", { name: "Enregistrer le préréglage" })
-      .getByRole("button", { name: "Enregistrer", exact: true })
+      .getByRole("dialog", { name: t("modals.savePresetTitle") })
+      .getByRole("button", { name: t("common.save"), exact: true })
       .click();
   },
 );
@@ -505,13 +516,34 @@ Then("the chip {string} should be active", async function (this: GuitarWorld, la
 });
 
 When("I delete the preset {string}", async function (this: GuitarWorld, label: string) {
-  await this.page.getByRole("button", { name: `Supprimer le préréglage ${label}` }).click();
   await this.page
-    .getByRole("dialog", { name: "Supprimer le préréglage" })
-    .getByRole("button", { name: "Supprimer", exact: true })
+    .getByRole("button", { name: t("chordsBuilder.deletePresetAria", { label }) })
+    .click();
+  await this.page
+    .getByRole("dialog", { name: t("modals.deletePresetTitle") })
+    .getByRole("button", { name: t("common.delete"), exact: true })
     .click();
 });
 
 Then("I should not see a chip labeled {string}", async function (this: GuitarWorld, label: string) {
   await expect(this.page.getByRole("button", { name: label, exact: true })).toHaveCount(0);
+});
+
+// ---- Language -----------------------------------------------------------
+
+When("I set the language to {string}", async function (this: GuitarWorld, label: string) {
+  await this.page
+    .getByRole("radiogroup", { name: t("settings.language") })
+    .getByRole("radio", { name: label })
+    .click();
+});
+
+Then("the settings screen should be in English", async function (this: GuitarWorld) {
+  await expect(
+    this.page.getByRole("heading", { name: t("settings.title", undefined, "en") }),
+  ).toBeVisible();
+});
+
+Then("the home screen should be in English", async function (this: GuitarWorld) {
+  await expect(this.page.getByText(t("welcome.chooseMode", undefined, "en"))).toBeVisible();
 });
