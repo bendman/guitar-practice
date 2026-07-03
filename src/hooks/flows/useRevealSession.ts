@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type { PracticeItem } from "../../lib/constants";
 import type { NoteNaming } from "../../lib/util";
+import { cancelSpeech } from "../../lib/util";
 import { useCountdown } from "../primitives/useCountdown";
 import { useItemQueue } from "../primitives/useItemQueue";
 import { usePracticeClock } from "../primitives/usePracticeClock";
@@ -88,7 +89,7 @@ export function useRevealSession({
     setRevealed(false);
     queue.reset();
     score.reset();
-    speechSynthesis.cancel();
+    cancelSpeech();
     return { ...snap, practiceTime };
   }, [score, queue, practiceTime]);
 

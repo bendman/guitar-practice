@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ALL } from "../lib/constants";
 import type { NoteNaming } from "../lib/util";
 import type { ChordMode } from "./flows/types";
@@ -87,28 +87,45 @@ export function useSettings() {
     language,
   ]);
 
-  return {
-    intervalSecs,
-    setIntervalSecs,
-    enabled,
-    setEnabled,
-    tts,
-    setTts,
-    listening,
-    setListening,
-    chordMode,
-    setChordMode,
-    workingSetSize,
-    setWorkingSetSize,
-    noteNaming,
-    setNoteNaming,
-    spokenNaming,
-    setSpokenNaming,
-    voiceURI,
-    setVoiceURI,
-    showChordNotes,
-    setShowChordNotes,
-    language,
-    setLanguage,
-  };
+  // Stable identity while no setting changes, so context consumers only
+  // re-render on actual settings updates (setters from useState are stable).
+  return useMemo(
+    () => ({
+      intervalSecs,
+      setIntervalSecs,
+      enabled,
+      setEnabled,
+      tts,
+      setTts,
+      listening,
+      setListening,
+      chordMode,
+      setChordMode,
+      workingSetSize,
+      setWorkingSetSize,
+      noteNaming,
+      setNoteNaming,
+      spokenNaming,
+      setSpokenNaming,
+      voiceURI,
+      setVoiceURI,
+      showChordNotes,
+      setShowChordNotes,
+      language,
+      setLanguage,
+    }),
+    [
+      intervalSecs,
+      enabled,
+      tts,
+      listening,
+      chordMode,
+      workingSetSize,
+      noteNaming,
+      spokenNaming,
+      voiceURI,
+      showChordNotes,
+      language,
+    ],
+  );
 }

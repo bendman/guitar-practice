@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChordItem, PracticeItem } from "../../lib/constants";
 import type { Confusions } from "../../lib/stats";
 import type { NoteNaming } from "../../lib/util";
-import { pickDistractors, shuffle } from "../../lib/util";
+import { cancelSpeech, pickDistractors, shuffle } from "../../lib/util";
 import { useItemQueue } from "../primitives/useItemQueue";
 import { usePracticeClock } from "../primitives/usePracticeClock";
 import { useScore } from "../primitives/useScore";
@@ -109,7 +109,7 @@ export function useQuizSession({
     setChoices([]);
     setCorrectId(null);
     setSelectedId(null);
-    speechSynthesis.cancel();
+    cancelSpeech();
     return { ...snap, practiceTime };
   }, [score, queue, practiceTime]);
 

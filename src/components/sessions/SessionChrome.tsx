@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { formatTime } from "../../lib/util";
 import ControlBar, { type BtnSpec } from "./ControlBar";
@@ -35,12 +35,28 @@ export default function SessionChrome({
   children,
 }: SessionChromeProps) {
   const { t } = useTranslation();
+
+  // A progress decrease means the countdown restarted for the next item: the
+  // bar must snap back to the left, not animate leftwards through the CSS
+  // width transition (which only smooths the rightward fill). The previous
+  // value is tracked post-commit (not during render, which StrictMode runs
+  // twice and would see its own update).
+  const prevProgressRef = useRef(progress ?? 0);
+  const isReset = progress != null && progress < prevProgressRef.current;
+  useEffect(() => {
+    prevProgressRef.current = progress ?? 0;
+  }, [progress]);
+
   return (
     <div className={s.root}>
       {progress != null && (
         <div
           className={s.progressBar}
-          style={{ width: `${progress * 100}%`, opacity: paused ? 0.2 : 1 }}
+          style={{
+            width: `${progress * 100}%`,
+            opacity: paused ? 0.2 : 1,
+            ...(isReset ? { transition: "opacity 0.3s ease" } : {}),
+          }}
         />
       )}
 

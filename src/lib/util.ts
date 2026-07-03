@@ -116,11 +116,17 @@ export function pickDistractors<T extends HasId>(
   return chosen;
 }
 
+/** Stop any in-progress speech. Safe on browsers without the Web Speech API. */
+export function cancelSpeech(): void {
+  if (typeof speechSynthesis !== "undefined") speechSynthesis.cancel();
+}
+
 export function sayAloud(
   item: HasSpeakLabel,
   naming: NoteNaming = "solfege",
   voiceURI?: string | null,
 ): void {
+  if (typeof speechSynthesis === "undefined") return;
   speechSynthesis.cancel();
   const text = formatSpeak(item.speak || item.label, naming);
   const utt = new SpeechSynthesisUtterance(text);
