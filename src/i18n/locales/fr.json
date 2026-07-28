@@ -86,7 +86,7 @@
     "voice": "Voix",
     "defaultVoice": "Par défaut",
     "previewVoice": "Écouter un aperçu",
-    "workingSet": "Éléments actifs à la fois",
+    "workingSet": "Accords actifs à la fois",
     "progression": "Progression",
     "reset": "Réinitialiser",
     "sectionVersion": "Version",
@@ -119,6 +119,7 @@
     "toRework": "À retravailler",
     "allCorrect": "Toutes les notes correctes — excellent !",
     "workedChords": "Accords travaillés",
+    "notesSeen": "Notes vues",
     "replay": "Rejouer"
   },
   "session": {
@@ -153,6 +154,9 @@
     "duplicate": "Cet accord existe déjà"
   },
   "modals": {
+    "noteLevelsTitle": "Niveaux des notes",
+    "noteLevelsSubtitle": "Marque où tu en es pour chaque note.",
+    "noteLevelsHint": "Reprends la session pour fermer.",
     "savePresetTitle": "Enregistrer le préréglage",
     "presetNameLabel": "Nom du préréglage",
     "presetNamePlaceholder": "Nom…",
@@ -171,7 +175,7 @@
     "waitingSection": "En attente ({{n}})",
     "disabledSection": "Désactivés ({{n}})",
     "levelNew": "Nouveau",
-    "levelEasy": "Facile",
+    "levelHard": "Difficile",
     "levelMedium": "Moyen",
     "levelMastered": "Maîtrisé"
   },

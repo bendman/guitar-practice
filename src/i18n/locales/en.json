@@ -86,7 +86,7 @@
     "voice": "Voice",
     "defaultVoice": "Default",
     "previewVoice": "Play a preview",
-    "workingSet": "Active items at a time",
+    "workingSet": "Active chords at a time",
     "progression": "Progress",
     "reset": "Reset",
     "sectionVersion": "Version",
@@ -119,6 +119,7 @@
     "toRework": "To work on",
     "allCorrect": "All notes correct — excellent!",
     "workedChords": "Chords practiced",
+    "notesSeen": "Notes seen",
     "replay": "Replay"
   },
   "session": {
@@ -153,6 +154,9 @@
     "duplicate": "This chord already exists"
   },
   "modals": {
+    "noteLevelsTitle": "Note levels",
+    "noteLevelsSubtitle": "Mark where you are on each note.",
+    "noteLevelsHint": "Resume the session to close.",
     "savePresetTitle": "Save preset",
     "presetNameLabel": "Preset name",
     "presetNamePlaceholder": "Name…",
@@ -171,7 +175,7 @@
     "waitingSection": "Waiting ({{n}})",
     "disabledSection": "Disabled ({{n}})",
     "levelNew": "New",
-    "levelEasy": "Easy",
+    "levelHard": "Hard",
     "levelMedium": "Medium",
     "levelMastered": "Mastered"
   },

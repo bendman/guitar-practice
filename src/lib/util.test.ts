@@ -6,6 +6,7 @@ import {
   formatNoteLabel,
   formatSpeak,
   formatTime,
+  levelToWeight,
   pickDistractors,
   pickRandom,
   pickWeightedRandom,
@@ -32,6 +33,33 @@ describe("weightToLevel", () => {
     expect(weightToLevel(2.0)).toBe(2);
     expect(weightToLevel(2.01)).toBe(1);
     expect(weightToLevel(5)).toBe(1);
+  });
+});
+
+describe("levelToWeight", () => {
+  it("has no weight for level 0 — never assessed is the absence of a record", () => {
+    expect(levelToWeight(0)).toBeNull();
+  });
+
+  it("round-trips through weightToLevel for every assessable level", () => {
+    for (const level of [1, 2, 3] as const) {
+      const weight = levelToWeight(level);
+      expect(weight).not.toBeNull();
+      expect(weightToLevel(weight)).toBe(level);
+    }
+  });
+
+  it("orders weights so a harder level is picked more often", () => {
+    // Weight drives pickWeightedRandom, so declaring a note hard must raise it.
+    expect(levelToWeight(1)!).toBeGreaterThan(levelToWeight(2)!);
+    expect(levelToWeight(2)!).toBeGreaterThan(levelToWeight(3)!);
+  });
+
+  it("stays inside the range applyResult can produce", () => {
+    for (const level of [1, 2, 3] as const) {
+      expect(levelToWeight(level)!).toBeGreaterThanOrEqual(0.1);
+      expect(levelToWeight(level)!).toBeLessThanOrEqual(5.0);
+    }
   });
 });
 

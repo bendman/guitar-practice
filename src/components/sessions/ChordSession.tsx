@@ -97,17 +97,18 @@ function RevealAdapter(props: ChordSessionProps) {
 
 /** Timer-advanced flow: reveal is local UI state that pauses the timer. */
 function AutoAdapter(props: ChordSessionProps) {
-  const { pool, weights, interval, tts, spokenNaming, voiceURI, onResult, onStop } = props;
+  const { pool, interval, tts, spokenNaming, voiceURI, onStop } = props;
   const { t } = useTranslation();
   const btn = useMemo(() => makeSessionButtons(t), [t]);
+  // An ungraded carousel: nothing is scored here, so it neither reads progress
+  // weights (omitting them makes the draw uniform over the whole selection) nor
+  // reports results back into them.
   const session = useTimedSession({
     interval,
     pool,
-    weights,
     tts,
     spokenNaming,
     voiceURI,
-    onResult,
   });
   useStartOnMount(session.start);
   const stop = () => onStop(session.finish());

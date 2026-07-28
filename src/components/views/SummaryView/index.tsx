@@ -3,9 +3,10 @@ import type { TFunction } from "i18next";
 import { formatTime, formatDuration, weightToLevel } from "../../../lib/util";
 import { useFormatLabel } from "../../../lib/noteNaming";
 import { mergeSessionIntoStats, accuracyPercent } from "../../../lib/stats";
-import type { SessionSummary } from "../../../lib/stats";
+import type { SessionSummary, NoteExposureItem } from "../../../lib/stats";
 import { useProgress, useSessionHandoff } from "../../../AppState";
 import ProgressDot from "../../ui/ProgressDot";
+import LevelPicker from "../../ui/LevelPicker";
 import shared from "../../shared.module.css";
 import s from "./index.module.css";
 import { useCountUp, useDelayedLevel } from "./hooks";
@@ -102,6 +103,68 @@ interface SummaryViewProps {
   onReplay: () => void;
 }
 
+interface NoteExposureChartProps {
+  items: NoteExposureItem[];
+}
+
+function NoteExposureRow({ item, max }: { item: NoteExposureItem; max: number }) {
+  const formatLabel = useFormatLabel();
+  const { weights, setLevel } = useProgress();
+  const label = formatLabel(item.label);
+
+  return (
+    <div className={s.exposureRow}>
+      <span className={s.exposureLabel}>{label}</span>
+      {/* Bar and count are one reading, so they group tightly against each other
+          and sit further from the level buttons, which are a separate control. */}
+      <div className={s.exposureMeasure}>
+        <div
+          className={s.exposureTrack}
+          role="meter"
+          aria-label={label}
+          aria-valuenow={item.count}
+          aria-valuemin={0}
+          aria-valuemax={max}
+        >
+          <div
+            className={`${s.exposureFill} ${item.count === 0 ? s.exposureFillEmpty : ""}`}
+            style={{ width: `${(item.count / max) * 100}%` }}
+          />
+        </div>
+        <span className={s.exposureCount}>{item.count}</span>
+      </div>
+      <LevelPicker
+        value={weightToLevel(weights[item.id])}
+        onChange={(level) => setLevel(item.id, level)}
+        label={label}
+      />
+    </div>
+  );
+}
+
+/**
+ * How often each note in the session's pool came up — a horizontal histogram
+ * over the whole selection, so the notes that never appeared read as empty bars
+ * rather than going missing.
+ */
+function NoteExposureChart({ items }: NoteExposureChartProps) {
+  const { t } = useTranslation();
+  // Bars are scaled against the most-seen note; an all-zero pool would divide by
+  // zero, so floor the denominator at 1.
+  const max = Math.max(1, ...items.map((i) => i.count));
+
+  return (
+    <section className={s.exposureSection} aria-label={t("summary.notesSeen")}>
+      <span className={`${shared.eyebrow} ${s.sectionTitle}`}>{t("summary.notesSeen")}</span>
+      <div className={s.exposureList}>
+        {items.map((item) => (
+          <NoteExposureRow key={item.id} item={item} max={max} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 interface ChordProgressRowProps {
   label: string;
   before: 0 | 1 | 2 | 3;
@@ -170,6 +233,7 @@ export default function SummaryView({ summary, onDismiss, onReplay }: SummaryVie
     totalChords,
     chordAccuracy,
     chordPracticedItems,
+    noteExposure,
   } = summary;
   const formatLabel = useFormatLabel();
 
@@ -267,6 +331,8 @@ export default function SummaryView({ summary, onDismiss, onReplay }: SummaryVie
               </div>
             </div>
           )}
+
+          {!wasListening && noteExposure.length > 0 && <NoteExposureChart items={noteExposure} />}
 
           {wasListening && missedItems.length > 0 && (
             <div className={s.workonSection}>

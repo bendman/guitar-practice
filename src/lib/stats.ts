@@ -28,6 +28,8 @@ export interface SessionSummary {
   chordAccuracy: number;
   chordMissedItems: MissedChordItem[];
   chordPracticedItems: PracticedChordItem[];
+  /** Every note in the session's pool with how often it came up, zeroes included. */
+  noteExposure: NoteExposureItem[];
 }
 
 export interface PracticedChordItem {
@@ -35,6 +37,12 @@ export interface PracticedChordItem {
   label: string;
   attempts: number;
   misses: number;
+}
+
+export interface NoteExposureItem {
+  id: string;
+  label: string;
+  count: number;
 }
 
 export interface MissedNoteItem {

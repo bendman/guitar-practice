@@ -40,7 +40,7 @@ export default function ConfigView({
     setShowChordNotes,
   } = useSettings();
   const { setEnabledManual: setEnabled } = useChordConfig();
-  const { activePool: pool } = usePracticePool(mode);
+  const { pool } = usePracticePool(mode);
 
   const isNotesMode = mode !== "chords";
   const title = isNotesMode ? t("config.titleNotes") : t("config.titleChords");

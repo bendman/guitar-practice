@@ -11,11 +11,38 @@ export function pickRandom<T extends HasId>(items: T[], lastId: string | null): 
   return pick;
 }
 
-export function weightToLevel(weight: number | null | undefined): 0 | 1 | 2 | 3 {
+/** Mastery rungs, ascending: never assessed → hard → medium → mastered. */
+export type Level = 0 | 1 | 2 | 3;
+
+export const LEVELS: Level[] = [0, 1, 2, 3];
+
+export function weightToLevel(weight: number | null | undefined): Level {
   if (weight == null) return 0;
   if (weight < 0.6) return 3;
   if (weight <= 2.0) return 2;
   return 1;
+}
+
+/**
+ * The weight to store when the user declares a level themselves. Each value sits
+ * mid-band so `weightToLevel` round-trips it, and because weight also drives
+ * selection, declaring a note hard makes it come around more often — the
+ * judgement steers the next session instead of only labelling the last one.
+ *
+ * Level 0 maps to no weight at all: "never assessed" is the absence of a
+ * record, not a value, so setting it clears the entry.
+ */
+export function levelToWeight(level: Level): number | null {
+  switch (level) {
+    case 0:
+      return null;
+    case 1:
+      return 3.0;
+    case 2:
+      return 1.3;
+    case 3:
+      return 0.35;
+  }
 }
 
 export function buildActivePool<T extends HasId>(

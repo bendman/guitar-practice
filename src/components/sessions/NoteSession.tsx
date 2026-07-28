@@ -1,7 +1,8 @@
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import type { NoteNaming } from "../../lib/util";
+import type { Level, NoteNaming } from "../../lib/util";
 import type { PracticeItem } from "../../lib/constants";
+import LevelsPanel from "../ui/LevelsPanel";
 import { useTimedSession } from "../../hooks/flows/useTimedSession";
 import { usePitchDetection } from "../../hooks/usePitchDetection";
 import type { SessionRawResult } from "../../hooks/flows/types";
@@ -22,6 +23,7 @@ interface NoteSessionProps {
   onResult: (itemId: string, correct: boolean) => void;
   onStop: (raw: SessionRawResult) => void;
   onShowLearning: () => void;
+  onSetLevel: (itemId: string, level: Level) => void;
 }
 
 export default function NoteSession({
@@ -35,6 +37,7 @@ export default function NoteSession({
   onResult,
   onStop,
   onShowLearning,
+  onSetLevel,
 }: NoteSessionProps) {
   const { t } = useTranslation();
   const btn = useMemo(() => makeSessionButtons(t), [t]);
@@ -46,7 +49,9 @@ export default function NoteSession({
     tts,
     spokenNaming,
     voiceURI,
-    onResult,
+    // Only the mic flow grades: without it every timer tick would log a miss and
+    // inflate the note's weight toward "difficile" just for being displayed.
+    onResult: listening ? onResult : undefined,
   });
 
   useStartOnMount(session.start);
@@ -70,25 +75,30 @@ export default function NoteSession({
       ];
 
   return (
-    <SessionChrome
-      practiceTime={session.practiceTime}
-      count={session.count}
-      streak={session.streak}
-      showStreak={listening}
-      progress={session.progress}
-      paused={session.paused}
-      recognized={recognized}
-      interval={interval}
-      onShowLearning={onShowLearning}
-      buttons={buttons}
-    >
-      <NoteDisplay
-        current={session.current}
-        showPauseBadge={session.paused}
+    <>
+      <SessionChrome
+        practiceTime={session.practiceTime}
+        count={session.count}
+        streak={session.streak}
+        showStreak={listening}
+        progress={session.progress}
+        paused={session.paused}
         recognized={recognized}
-        showListenHint={listening && !recognized && !session.paused}
-        detectedNote={detectedNote}
-      />
-    </SessionChrome>
+        interval={interval}
+        onShowLearning={onShowLearning}
+        buttons={buttons}
+      >
+        <NoteDisplay
+          current={session.current}
+          showPauseBadge={session.paused}
+          recognized={recognized}
+          showListenHint={listening && !recognized && !session.paused}
+          detectedNote={detectedNote}
+        />
+      </SessionChrome>
+      {/* Pausing *is* opening this — no button, and nothing to close: resuming
+          from the control bar underneath puts it away. */}
+      <LevelsPanel open={session.paused} items={pool} weights={weights} onSetLevel={onSetLevel} />
+    </>
   );
 }

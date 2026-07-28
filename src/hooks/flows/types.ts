@@ -21,6 +21,15 @@ export function flowForMode(mode: SessionMode, chordMode: ChordMode): SessionFlo
   return mode === "notes" ? "timed" : CHORD_MODE_FLOW[chordMode];
 }
 
+/**
+ * The working-set bucket only governs the graded chord flows: they earn weights,
+ * so mastery can rotate the bucket. Notes and the ungraded chord carousel draw
+ * from the whole selection — a bucket that can never rotate is just a blindfold.
+ */
+export function usesWorkingSet(mode: SessionMode, flow: SessionFlow): boolean {
+  return mode === "chords" && flow !== "timed";
+}
+
 export interface SessionRawResult {
   results: SessionResult[];
   bestStreak: number;

@@ -1,4 +1,4 @@
-import type { SessionSummary, MissedNoteItem, MissedChordItem } from "./stats";
+import type { SessionSummary, MissedNoteItem, MissedChordItem, NoteExposureItem } from "./stats";
 
 export interface SessionResult {
   id: string;
@@ -14,6 +14,11 @@ export interface SessionInput {
   practiceTime: number;
   wasListening: boolean;
   wasManualChord: boolean;
+  /**
+   * The pool the session drew from. Only the results say what actually came up,
+   * so this is what lets the summary also report the notes that never did.
+   */
+  poolItems?: { id: string; label: string; type: "note" | "chord" }[];
 }
 
 export function summarizeSession({
@@ -22,6 +27,7 @@ export function summarizeSession({
   practiceTime,
   wasListening,
   wasManualChord,
+  poolItems = [],
 }: SessionInput): SessionSummary {
   const noteResults = results.filter((r) => r.type === "note");
   const correctCount = noteResults.filter((r) => r.correct).length;
@@ -57,6 +63,19 @@ export function summarizeSession({
     allResponseTimes.length > 0
       ? allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length
       : null;
+
+  // Seeded from the pool so notes that never came up still report a zero, in
+  // the pool's own order — the point is to show the whole selection at a glance.
+  const exposure = new Map<string, NoteExposureItem>();
+  for (const item of poolItems) {
+    if (item.type === "note") exposure.set(item.id, { id: item.id, label: item.label, count: 0 });
+  }
+  for (const r of noteResults) {
+    const seen = exposure.get(r.id);
+    if (seen) seen.count += 1;
+    else exposure.set(r.id, { id: r.id, label: r.label, count: 1 });
+  }
+  const noteExposure = [...exposure.values()];
 
   const chordResults = wasManualChord ? results.filter((r) => r.type === "chord") : [];
   const chordCorrectCount = chordResults.filter((r) => r.correct).length;
@@ -101,5 +120,6 @@ export function summarizeSession({
     chordAccuracy,
     chordMissedItems,
     chordPracticedItems,
+    noteExposure,
   };
 }

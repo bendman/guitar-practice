@@ -33,7 +33,7 @@ function SessionScreen() {
     showChordNotes,
     chordMode,
   } = useSettings();
-  const { stats, weights, confusions, recordResult, recordConfusion, commitSession } =
+  const { stats, weights, confusions, recordResult, setLevel, recordConfusion, commitSession } =
     useProgress();
   const { customVoicings, preferredVoicings, setPreferredVoicing } = useVoicings();
   const { capturePreSession, setLastSummary } = useSessionHandoff();
@@ -46,7 +46,7 @@ function SessionScreen() {
 
   useIntervalHotkeys(true, setIntervalSecs);
 
-  const { pool, activePool } = usePracticePool(mode);
+  const { pool, activePool } = usePracticePool(mode, flow);
 
   const closeOverlay = () => navigate({ to: ".", params: { mode }, search: { flow } });
   const openBuilder = (rootId: string, qualityId: string) =>
@@ -63,6 +63,9 @@ function SessionScreen() {
       ...raw,
       wasListening: mode === "notes" && listening,
       wasManualChord: mode === "chords" && (chordMode === "manual" || chordMode === "quiz"),
+      // The pool the flows actually drew from, so the summary can report the
+      // items that never came up as well as the ones that did.
+      poolItems: activePool,
     });
     commitSession(summary);
     setLastSummary(summary, mode);
@@ -89,6 +92,7 @@ function SessionScreen() {
           onResult={recordResult}
           onStop={handleSessionStop}
           onShowLearning={openLearning}
+          onSetLevel={setLevel}
         />
       );
     }

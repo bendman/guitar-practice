@@ -243,6 +243,96 @@ When("I open the learning details", async function (this: GuitarWorld) {
   await this.page.getByRole("button", { name: t("session.details") }).click();
 });
 
+Then(
+  "the {string} learning section should list {int} items",
+  async function (this: GuitarWorld, section: string, count: number) {
+    const name = t(`learning.${section}Section`, { n: count });
+    await expect(this.page.getByRole("region", { name })).toBeVisible();
+  },
+);
+
+Then("the learning details should show a working set limit", async function (this: GuitarWorld) {
+  await expect(this.page.getByText(t("learning.simultaneous"), { exact: true })).toBeVisible();
+});
+
+Then(
+  "the learning details should not show a working set limit",
+  async function (this: GuitarWorld) {
+    await expect(this.page.getByText(t("learning.simultaneous"), { exact: true })).toHaveCount(0);
+  },
+);
+
+Then(
+  "the summary should chart {int} notes seen",
+  async function (this: GuitarWorld, count: number) {
+    const chart = this.page.getByRole("region", { name: t("summary.notesSeen") });
+    await expect(chart).toBeVisible();
+    await expect(chart.getByRole("meter")).toHaveCount(count);
+  },
+);
+
+Then(
+  "the summary should chart {string} as seen {int} times",
+  async function (this: GuitarWorld, label: string, count: number) {
+    const chart = this.page.getByRole("region", { name: t("summary.notesSeen") });
+    await expect(chart.getByRole("meter", { name: label, exact: true })).toHaveAttribute(
+      "aria-valuenow",
+      String(count),
+    );
+  },
+);
+
+Then("the summary should not chart the notes seen", async function (this: GuitarWorld) {
+  await expect(this.page.getByRole("region", { name: t("summary.notesSeen") })).toHaveCount(0);
+});
+
+// ---- Mastery levels -----------------------------------------------------
+
+Then("I should see the note levels dialog", async function (this: GuitarWorld) {
+  await expect(this.page.getByRole("dialog", { name: t("modals.noteLevelsTitle") })).toBeVisible();
+});
+
+Then("I should not see the note levels dialog", async function (this: GuitarWorld) {
+  await expect(this.page.getByRole("dialog", { name: t("modals.noteLevelsTitle") })).toBeHidden();
+});
+
+When(
+  "I mark {string} as {string}",
+  async function (this: GuitarWorld, label: string, level: string) {
+    await this.page
+      // Exact: an inexact "Fa" also matches the "Fa#" row.
+      .getByRole("radiogroup", { name: label, exact: true })
+      .last()
+      .getByRole("radio", { name: level, exact: true })
+      .click();
+  },
+);
+
+Then(
+  "{string} should be marked as {string}",
+  async function (this: GuitarWorld, label: string, level: string) {
+    await expect(
+      this.page
+        .getByRole("radiogroup", { name: label })
+        .last()
+        .getByRole("radio", { name: level, exact: true }),
+    ).toHaveAttribute("aria-checked", "true");
+  },
+);
+
+Then(
+  "the stored weight for {string} should be {string}",
+  async function (this: GuitarWorld, itemId: string, value: string) {
+    const weights = await this.readStorage<Record<string, number>>("guitar-practice-weights");
+    expect(String(weights?.[itemId] ?? "")).toBe(value);
+  },
+);
+
+Then("the progress weights should be empty", async function (this: GuitarWorld) {
+  const weights = await this.readStorage<Record<string, number>>("guitar-practice-weights");
+  expect(Object.keys(weights ?? {})).toHaveLength(0);
+});
+
 Then("the detected note should be {string}", async function (this: GuitarWorld, label: string) {
   await expect(this.page.getByText(t("session.listenHint", { label }))).toBeVisible({
     timeout: 15_000,

@@ -164,6 +164,70 @@
   color: var(--success);
 }
 
+/* ── Notes vues (histogramme) ────────────────────────────────────────────────── */
+.exposureSection {
+  display: block;
+  margin-bottom: 24px;
+}
+
+.exposureList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exposureRow {
+  display: grid;
+  grid-template-columns: 3.5ch 1fr auto;
+  align-items: center;
+  gap: 16px;
+}
+
+/* The bar and its count read as one unit; the tight gap here against the wide
+   row gap is what groups them apart from the level buttons. */
+.exposureMeasure {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exposureLabel {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.exposureTrack {
+  flex: 1;
+  height: 8px;
+  background: var(--surface-3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.exposureFill {
+  height: 100%;
+  min-width: 2px;
+  border-radius: 4px;
+  background: var(--accent);
+  transition: width 0.4s var(--ease);
+}
+
+/* A note that never came up still gets a row, but nothing to read as a value. */
+.exposureFillEmpty {
+  min-width: 0;
+}
+
+.exposureCount {
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text-dim);
+  min-width: 2ch;
+  text-align: right;
+}
+
 /* ── À retravailler ──────────────────────────────────────────────────────────── */
 .workonSection {
   margin-bottom: 24px;

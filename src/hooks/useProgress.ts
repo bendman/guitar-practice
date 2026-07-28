@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
-import { applyResult } from "../lib/util";
+import { applyResult, levelToWeight } from "../lib/util";
+import type { Level } from "../lib/util";
 import {
   loadStats,
   saveStats,
@@ -29,6 +30,22 @@ export function useProgress() {
   const recordResult = useCallback((itemId: string, correct: boolean) => {
     setWeights((prev) => {
       const next = applyResult(prev, itemId, correct);
+      saveWeights(next);
+      return next;
+    });
+  }, []);
+
+  /**
+   * Set an item's mastery directly, as declared by the user. Writes the same
+   * weight the graded flows do — a self-assessment and a measured one are the
+   * same kind of fact here, so they share one store.
+   */
+  const setLevel = useCallback((itemId: string, level: Level) => {
+    setWeights((prev) => {
+      const weight = levelToWeight(level);
+      const next = { ...prev };
+      if (weight == null) delete next[itemId];
+      else next[itemId] = weight;
       saveWeights(next);
       return next;
     });
@@ -66,6 +83,7 @@ export function useProgress() {
       weights,
       confusions,
       recordResult,
+      setLevel,
       recordConfusion,
       commitSession,
       resetAllStats,
@@ -76,6 +94,7 @@ export function useProgress() {
       weights,
       confusions,
       recordResult,
+      setLevel,
       recordConfusion,
       commitSession,
       resetAllStats,

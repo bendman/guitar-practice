@@ -1,0 +1,97 @@
+/* Anchored near the top with room reserved at the bottom: this panel is shown
+   non-modally so the control bar underneath stays live, and it must never cover
+   the Reprendre button that dismisses it. */
+/* The dialog itself is just a full-viewport centring frame. A non-modal dialog
+   is not in the top layer, so it has to out-stack the session chrome (max
+   z-index 2) by hand. */
+.dialog {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  width: auto;
+  max-width: none;
+  height: auto;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  /* Only the panel is interactive; taps anywhere else fall through. */
+  pointer-events: none;
+}
+
+/* Only lay it out when actually open — an unscoped `display` here would beat the
+   UA's `dialog:not([open]) { display: none }` and leave it on screen always. */
+.dialog[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  width: min(360px, calc(100vw - 32px));
+  /* Centred vertically, so a panel of height h spans (100vh ± h) / 2. The
+     control bar occupies roughly the bottom 95px, so capping h at 100vh - 190px
+     keeps the panel clear of it however many notes are enabled. */
+  max-height: calc(100vh - 190px - 2 * env(safe-area-inset-bottom));
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 20px 20px 16px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+  color: var(--text);
+}
+
+.title {
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  margin: 0 -8px 16px;
+  padding: 0 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 8px;
+  border-radius: var(--r-sm);
+}
+
+.row:nth-child(odd) {
+  background: var(--surface-2);
+}
+
+.label {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--text-faint);
+  text-align: center;
+}

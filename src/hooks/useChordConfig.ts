@@ -8,6 +8,8 @@ import {
 import type { ChordItem, PracticeItem, Voicing } from "../lib/constants";
 import { buildActivePool } from "../lib/util";
 import { useSettings, useVoicings, useProgress, useSessionHandoff } from "../AppState";
+import { flowForMode, usesWorkingSet } from "./flows/types";
+import type { SessionFlow } from "./flows/types";
 
 type Mode = "notes" | "chords";
 
@@ -15,9 +17,17 @@ type Mode = "notes" | "chords";
  * Derives the practice pool for a mode from the enabled set, custom voicings and
  * spaced-repetition weights. Shared verbatim by the config, session and learning
  * screens so the derivation lives in exactly one place.
+ *
+ * `activePool` is narrowed to the working set only for the flows that grade —
+ * for every other flow it *is* the full pool, so nothing the user selected can
+ * be silently withheld. Pass `flow` where it is authoritative (the session route
+ * reads it from the URL); elsewhere it is derived from the chord-mode setting.
  */
-export function usePracticePool(mode: Mode): { pool: PracticeItem[]; activePool: PracticeItem[] } {
-  const { enabled, workingSetSize } = useSettings();
+export function usePracticePool(
+  mode: Mode,
+  flow?: SessionFlow,
+): { pool: PracticeItem[]; activePool: PracticeItem[] } {
+  const { enabled, workingSetSize, chordMode } = useSettings();
   const { customVoicings } = useVoicings();
   const { weights } = useProgress();
 
@@ -27,7 +37,9 @@ export function usePracticePool(mode: Mode): { pool: PracticeItem[]; activePool:
     targetType === "chord"
       ? mergeCustomVoicings(basePool as ChordItem[], customVoicings)
       : basePool;
-  const activePool = buildActivePool(pool, weights, workingSetSize);
+  const activePool = usesWorkingSet(mode, flow ?? flowForMode(mode, chordMode))
+    ? buildActivePool(pool, weights, workingSetSize)
+    : pool;
 
   return { pool, activePool };
 }
