@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { ALL } from "../../../lib/constants";
 import type { PracticeItem } from "../../../lib/constants";
 import type { Weights } from "../../../lib/stats";
@@ -14,20 +16,24 @@ interface LearningViewProps {
   onBack: () => void;
 }
 
-const LEVEL_LABEL: Record<0 | 1 | 2 | 3, string> = {
-  0: "New",
-  1: "Easy",
-  2: "Medium",
-  3: "Mastered",
-};
+const LEVEL_LABEL_KEY = {
+  0: "learning.levelNew",
+  1: "learning.levelEasy",
+  2: "learning.levelMedium",
+  3: "learning.levelMastered",
+} as const;
+
+function levelLabel(t: TFunction, level: 0 | 1 | 2 | 3): string {
+  return t(LEVEL_LABEL_KEY[level]);
+}
 
 function weightBar(weight: number) {
   const clamped = Math.min(Math.max(weight, 0), 5);
   const pct = (clamped / 5) * 100;
   const level = weightToLevel(weight);
   const colors: Record<0 | 1 | 2 | 3, string> = {
-    0: "var(--dim)",
-    1: "var(--green)",
+    0: "var(--text-faint)",
+    1: "var(--success)",
     2: "var(--accent)",
     3: "var(--accent)",
   };
@@ -35,6 +41,7 @@ function weightBar(weight: number) {
 }
 
 export default function LearningView({ mode, onBack }: LearningViewProps) {
+  const { t } = useTranslation();
   const { workingSetSize } = useSettings();
   const { weights } = useProgress();
   const { pool, activePool } = usePracticePool(mode);
@@ -54,21 +61,21 @@ export default function LearningView({ mode, onBack }: LearningViewProps) {
         <div className={shared.screenBodyInner}>
           <div className={s.header}>
             <button onClick={onBack} className={s.backBtn}>
-              ← Back
+              {t("learning.backArrow")}
             </button>
-            <span className={s.headerLabel}>Learning details</span>
+            <span className={s.headerLabel}>{t("learning.title")}</span>
           </div>
 
           <div className={s.poolSummary}>
-            <Stat label="Pool size" value={pool.length} />
-            <Stat label="Active" value={activePool.length} />
-            <Stat label="Mastered" value={masteredInPool.length} />
-            <Stat label="Working set" value={workingSetSize} dim />
+            <Stat label={t("learning.selection")} value={pool.length} />
+            <Stat label={t("learning.active")} value={activePool.length} />
+            <Stat label={t("learning.mastered")} value={masteredInPool.length} />
+            <Stat label={t("learning.simultaneous")} value={workingSetSize} dim />
           </div>
 
           {activeUnmastered.length > 0 && (
             <ItemSection
-              title={`Active (${activeUnmastered.length})`}
+              title={t("learning.activeSection", { n: activeUnmastered.length })}
               items={activeUnmastered}
               weights={weights}
               highlight
@@ -77,7 +84,7 @@ export default function LearningView({ mode, onBack }: LearningViewProps) {
 
           {masteredInPool.length > 0 && (
             <ItemSection
-              title={`Mastered (${masteredInPool.length})`}
+              title={t("learning.masteredSection", { n: masteredInPool.length })}
               items={masteredInPool}
               weights={weights}
             />
@@ -85,7 +92,7 @@ export default function LearningView({ mode, onBack }: LearningViewProps) {
 
           {waitingUnmastered.length > 0 && (
             <ItemSection
-              title={`Waiting (${waitingUnmastered.length})`}
+              title={t("learning.waitingSection", { n: waitingUnmastered.length })}
               items={waitingUnmastered}
               weights={weights}
               muted
@@ -94,7 +101,7 @@ export default function LearningView({ mode, onBack }: LearningViewProps) {
 
           {outsidePool.length > 0 && (
             <ItemSection
-              title={`Disabled (${outsidePool.length})`}
+              title={t("learning.disabledSection", { n: outsidePool.length })}
               items={outsidePool}
               weights={weights}
               muted
@@ -105,7 +112,7 @@ export default function LearningView({ mode, onBack }: LearningViewProps) {
 
       <div className={shared.screenFooter}>
         <button onClick={onBack} className={shared.footerBtnSecondary}>
-          Back
+          {t("common.back")}
         </button>
       </div>
     </div>
@@ -130,6 +137,7 @@ interface ItemSectionProps {
 }
 
 function ItemSection({ title, items, weights, highlight, muted }: ItemSectionProps) {
+  const { t } = useTranslation();
   const formatLabel = useFormatLabel();
   return (
     <div className={s.section}>
@@ -146,7 +154,7 @@ function ItemSection({ title, items, weights, highlight, muted }: ItemSectionPro
             >
               <ProgressDot level={level} size={10} />
               <span className={s.itemLabel}>{formatLabel(item.label)}</span>
-              <span className={s.levelBadge}>{LEVEL_LABEL[level]}</span>
+              <span className={s.levelBadge}>{levelLabel(t, level)}</span>
               <div className={s.weightCell}>
                 <div className={s.weightTrack}>
                   <div

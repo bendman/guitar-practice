@@ -25,15 +25,6 @@
   --r-md: 14px;
   --r-lg: 20px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-
-  /* legacy aliases used in a few places during transition */
-  --muted: var(--text-dim);
-  --dim: var(--text-faint);
-  --green: #6ecf72;
-  --red: var(--error);
-  --correct: var(--success);
-  --border-soft: var(--line);
-  --border-faint: var(--line);
 }
 
 * {

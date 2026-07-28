@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { PracticeItem } from "../../lib/constants";
 import { NOTES, CHROMATIC_SHARPS } from "../../lib/constants";
 import { useFormatLabel } from "../../lib/noteNaming";
@@ -28,18 +29,23 @@ export default function NoteDisplay({
   showListenHint = false,
   detectedNote = null,
 }: NoteDisplayProps) {
+  const { t } = useTranslation();
   const formatLabel = useFormatLabel();
   const detected = detectedLabel(detectedNote ?? null);
 
   return (
     <>
-      {showPauseBadge && <div className={s.pauseBadge}>En pause</div>}
+      {showPauseBadge && <div className={s.pauseBadge}>{t("session.paused")}</div>}
       <div className={`${s.noteName} ${recognized ? s.noteNameCorrect : ""}`}>
         {current ? formatLabel(current.label) : "—"}
       </div>
       {recognized && <div className={s.correctMark}>✓</div>}
       {showListenHint && (
-        <div className={s.listenHint}>Note · {detected ? formatLabel(detected) : "Écoute…"}</div>
+        <div className={s.listenHint}>
+          {t("session.listenHint", {
+            label: detected ? formatLabel(detected) : t("session.listening"),
+          })}
+        </div>
       )}
     </>
   );

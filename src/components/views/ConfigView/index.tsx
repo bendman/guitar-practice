@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { CHORDS, NOTES, CHROMATIC_NOTES } from "../../../lib/constants";
 import NotesPicker from "../../ui/NotesPicker";
 import Toggle from "../../ui/Toggle";
@@ -24,6 +25,7 @@ export default function ConfigView({
   onStart,
   onBack,
 }: ConfigViewProps) {
+  const { t } = useTranslation();
   const {
     intervalSecs: interval,
     setIntervalSecs: setInterval,
@@ -41,8 +43,8 @@ export default function ConfigView({
   const { activePool: pool } = usePracticePool(mode);
 
   const isNotesMode = mode !== "chords";
-  const title = isNotesMode ? "Notes" : "Accords";
-  const subtitle = isNotesMode ? "Configure ta session de notes" : "Configure ta session d'accords";
+  const title = isNotesMode ? t("config.titleNotes") : t("config.titleChords");
+  const subtitle = isNotesMode ? t("config.subtitleNotes") : t("config.subtitleChords");
 
   const noteCount = [...NOTES, ...CHROMATIC_NOTES].filter((n) => enabled[n.id]).length;
   const chordCount = CHORDS.filter((c) => enabled[c.id]).length;
@@ -69,14 +71,14 @@ export default function ConfigView({
                 selectedNoteCount={noteCount}
               />
               <Toggle
-                label="Annoncer à voix haute"
-                sublabel="Lit le nom au début de chaque carte"
+                label={t("config.ttsLabel")}
+                sublabel={t("config.ttsSublabel")}
                 value={tts}
                 onChange={setTts}
               />
               <Toggle
-                label="Détecter les notes (micro)"
-                sublabel="Valide automatiquement quand tu joues juste"
+                label={t("config.micLabel")}
+                sublabel={t("config.micSublabel")}
                 value={listening}
                 onChange={setListening}
               />
@@ -90,13 +92,13 @@ export default function ConfigView({
 
               <div className={s.toggleRow}>
                 <div>
-                  <div className={s.toggleLabel}>Progression</div>
+                  <div className={s.toggleLabel}>{t("config.progression")}</div>
                   <div className={s.toggleSublabel}>
                     {chordMode === "auto"
-                      ? "Auto · pratique la vitesse de transition"
+                      ? t("config.modeAutoDesc")
                       : chordMode === "quiz"
-                        ? "QCM · reconnais l'accord parmi 4 diagrammes"
-                        : "Manuelle · mémorise, évalue Trouvé / Raté"}
+                        ? t("config.modeQuizDesc")
+                        : t("config.modeManualDesc")}
                   </div>
                 </div>
                 <div className={s.segmented}>
@@ -104,34 +106,34 @@ export default function ConfigView({
                     className={`${s.seg} ${chordMode === "manual" ? s.segOn : ""}`}
                     onClick={() => setChordMode("manual")}
                   >
-                    Manuelle
+                    {t("config.modeManual")}
                   </button>
                   <button
                     className={`${s.seg} ${chordMode === "auto" ? s.segOn : ""}`}
                     onClick={() => setChordMode("auto")}
                   >
-                    Auto
+                    {t("config.modeAuto")}
                   </button>
                   <button
                     className={`${s.seg} ${chordMode === "quiz" ? s.segOn : ""}`}
                     onClick={() => setChordMode("quiz")}
                     disabled={quizDisabled}
-                    title={quizDisabled ? "QCM : au moins 4 accords" : undefined}
+                    title={quizDisabled ? t("config.quizMinChords") : undefined}
                   >
-                    QCM
+                    {t("config.modeQuiz")}
                   </button>
                 </div>
               </div>
 
               <Toggle
-                label="Afficher les notes"
-                sublabel="Montre le nom de chaque note sur le diagramme"
+                label={t("config.showNotesLabel")}
+                sublabel={t("config.showNotesSublabel")}
                 value={showChordNotes}
                 onChange={setShowChordNotes}
               />
               <Toggle
-                label="Annoncer à voix haute"
-                sublabel="Lit le nom au début de chaque carte"
+                label={t("config.ttsLabel")}
+                sublabel={t("config.ttsSublabel")}
                 value={tts}
                 onChange={setTts}
               />
@@ -142,14 +144,14 @@ export default function ConfigView({
 
       <div className={shared.screenFooter}>
         <button onClick={onBack} className={`${shared.footerBtnSecondary} ${s.backBtn}`}>
-          Retour
+          {t("common.back")}
         </button>
         <button
           onClick={onStart}
           disabled={pool.length === 0}
           className={`${shared.footerBtnPrimary} ${s.startBtn}`}
         >
-          Commencer
+          {t("common.start")}
         </button>
       </div>
     </div>

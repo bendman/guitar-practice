@@ -116,11 +116,17 @@ export function pickDistractors<T extends HasId>(
   return chosen;
 }
 
+/** Stop any in-progress speech. Safe on browsers without the Web Speech API. */
+export function cancelSpeech(): void {
+  if (typeof speechSynthesis !== "undefined") speechSynthesis.cancel();
+}
+
 export function sayAloud(
   item: HasSpeakLabel,
   naming: NoteNaming = "solfege",
   voiceURI?: string | null,
 ): void {
+  if (typeof speechSynthesis === "undefined") return;
   speechSynthesis.cancel();
   const text = formatSpeak(item.speak || item.label, naming);
   const utt = new SpeechSynthesisUtterance(text);
@@ -199,7 +205,11 @@ export function formatSpeak(speak: string, naming: NoteNaming): string {
     .trimStart()
     .replace(SOLFEGE_ROOT_RE, (m) => SOLFEGE_TO_LETTER[m] ?? m)
     .replace(/dièse/g, "sharp")
-    .replace(/bémol/g, "flat");
+    .replace(/bémol/g, "flat")
+    .replace(/Demi-diminué/gi, "half-diminished")
+    .replace(/Diminué/gi, "diminished")
+    .replace(/Majeur/gi, "major")
+    .replace(/Mineur/gi, "minor");
 }
 
 export function formatTime(secs: number): string {

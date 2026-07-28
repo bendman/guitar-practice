@@ -34,24 +34,21 @@ export interface ChordItem {
 export type PracticeItem = NoteItem | ChordItem;
 
 /**
- * Language codes (BCP-47 primary subtags) the app supports for spoken output.
- * Voice options are filtered to voices whose `lang` starts with one of these
- * (e.g. "fr" matches "fr-FR", "fr-CA").
+ * A voice is offered when its BCP-47 primary subtag matches the active UI
+ * language (e.g. app in "fr" lists "fr-FR", "fr-CA" voices).
  */
-export const SUPPORTED_LANGUAGES = ["fr"] as const;
-
-export function isSupportedVoiceLang(lang: string): boolean {
+export function isSupportedVoiceLang(lang: string, appLang: string): boolean {
   const primary = lang.toLowerCase().split("-")[0];
-  return (SUPPORTED_LANGUAGES as readonly string[]).includes(primary);
+  return primary === appLang.toLowerCase().split("-")[0];
 }
 
 /**
- * Human-friendly name for a BCP-47 locale, in French
+ * Human-friendly name for a BCP-47 locale, in the active UI language
  * (e.g. "fr-FR" -> "Français (France)"). Falls back to the raw code.
  */
-export function formatLocaleName(lang: string): string {
+export function formatLocaleName(lang: string, displayLang: string): string {
   try {
-    const display = new Intl.DisplayNames(["fr"], { type: "language" }).of(lang);
+    const display = new Intl.DisplayNames([displayLang], { type: "language" }).of(lang);
     if (display) return display.charAt(0).toUpperCase() + display.slice(1);
   } catch {
     /* Intl.DisplayNames unsupported */

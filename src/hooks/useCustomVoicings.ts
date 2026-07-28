@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Voicing } from "../lib/constants";
 import {
   load as loadBlob,
@@ -20,15 +20,15 @@ function loadCustomVoicings(): CustomVoicings {
 export function useCustomVoicings() {
   const [customVoicings, setCustomVoicings] = useState<CustomVoicings>(loadCustomVoicings);
 
-  const addVoicing = (chordId: string, voicing: Voicing) => {
+  const addVoicing = useCallback((chordId: string, voicing: Voicing) => {
     setCustomVoicings((prev) => {
       const next = { ...prev, [chordId]: [...(prev[chordId] ?? []), voicing] };
       saveCustomVoicings(next);
       return next;
     });
-  };
+  }, []);
 
-  const removeVoicing = (chordId: string, index: number) => {
+  const removeVoicing = useCallback((chordId: string, index: number) => {
     setCustomVoicings((prev) => {
       const remaining = (prev[chordId] ?? []).filter((_, i) => i !== index);
       const next = { ...prev };
@@ -37,7 +37,10 @@ export function useCustomVoicings() {
       saveCustomVoicings(next);
       return next;
     });
-  };
+  }, []);
 
-  return { customVoicings, addVoicing, removeVoicing };
+  return useMemo(
+    () => ({ customVoicings, addVoicing, removeVoicing }),
+    [customVoicings, addVoicing, removeVoicing],
+  );
 }

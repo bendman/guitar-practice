@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { useSettings as useSettingsEngine } from "./hooks/useSettings";
 import { useProgress as useProgressEngine } from "./hooks/useProgress";
 import { useCustomVoicings } from "./hooks/useCustomVoicings";
@@ -90,15 +90,18 @@ function VoicingsProvider({ children }: { children: ReactNode }) {
   const [preferredVoicings, setPreferredVoicings] =
     useState<Record<string, number>>(loadPreferredVoicings);
 
-  const setPreferredVoicing = (chordId: string, idx: number) => {
+  const setPreferredVoicing = useCallback((chordId: string, idx: number) => {
     setPreferredVoicings((prev) => {
       const next = { ...prev, [chordId]: idx };
       savePreferredVoicings(next);
       return next;
     });
-  };
+  }, []);
 
-  const value: Voicings = { ...voicings, ...presets, preferredVoicings, setPreferredVoicing };
+  const value: Voicings = useMemo(
+    () => ({ ...voicings, ...presets, preferredVoicings, setPreferredVoicing }),
+    [voicings, presets, preferredVoicings, setPreferredVoicing],
+  );
   return <VoicingsContext.Provider value={value}>{children}</VoicingsContext.Provider>;
 }
 
@@ -110,31 +113,43 @@ function SessionHandoffProvider({ children }: { children: ReactNode }) {
   const [chordPreset, setChordPreset] = useState<string | null>(null);
   const [chordProgression, setChordProgression] = useState<string | null>(null);
 
-  const setLastSummary = (
-    summary: SessionSummary | null,
-    mode: "notes" | "chords" | null = null,
-  ) => {
-    setLastSummaryRaw(summary);
-    setLastSessionMode(summary ? mode : null);
-  };
+  const setLastSummary = useCallback(
+    (summary: SessionSummary | null, mode: "notes" | "chords" | null = null) => {
+      setLastSummaryRaw(summary);
+      setLastSessionMode(summary ? mode : null);
+    },
+    [],
+  );
 
-  const capturePreSession = (stats: Stats, weights: Weights) => {
+  const capturePreSession = useCallback((stats: Stats, weights: Weights) => {
     setPreSessionStats(stats);
     setPreSessionWeights(weights);
-  };
+  }, []);
 
-  const value: SessionHandoff = {
-    lastSummary,
-    lastSessionMode,
-    setLastSummary,
-    preSessionStats,
-    preSessionWeights,
-    capturePreSession,
-    chordPreset,
-    setChordPreset,
-    chordProgression,
-    setChordProgression,
-  };
+  const value: SessionHandoff = useMemo(
+    () => ({
+      lastSummary,
+      lastSessionMode,
+      setLastSummary,
+      preSessionStats,
+      preSessionWeights,
+      capturePreSession,
+      chordPreset,
+      setChordPreset,
+      chordProgression,
+      setChordProgression,
+    }),
+    [
+      lastSummary,
+      lastSessionMode,
+      setLastSummary,
+      preSessionStats,
+      preSessionWeights,
+      capturePreSession,
+      chordPreset,
+      chordProgression,
+    ],
+  );
   return <SessionHandoffContext.Provider value={value}>{children}</SessionHandoffContext.Provider>;
 }
 

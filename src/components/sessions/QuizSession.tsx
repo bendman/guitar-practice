@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { PracticeItem } from "../../lib/constants";
 import { useFormatLabel } from "../../lib/noteNaming";
 import type { NoteNaming } from "../../lib/util";
@@ -7,6 +9,7 @@ import type { SessionRawResult } from "../../hooks/flows/types";
 import QuizGrid from "./QuizGrid";
 import SessionChrome from "./SessionChrome";
 import type { BtnSpec } from "./ControlBar";
+import { makeSessionButtons } from "./sessionButtons";
 import { useStartOnMount } from "./useSessionScaffold";
 import s from "./session.module.css";
 
@@ -42,6 +45,8 @@ export default function QuizSession({
   showChordNotes,
 }: QuizSessionProps) {
   const formatLabel = useFormatLabel();
+  const { t } = useTranslation();
+  const btn = useMemo(() => makeSessionButtons(t), [t]);
   const session = useQuizSession({
     pool,
     fullPool,
@@ -59,22 +64,9 @@ export default function QuizSession({
   const stop = () => onStop(session.finish());
 
   const buttons: BtnSpec[] = [
-    {
-      key: "pause",
-      icon: session.paused ? "play" : "pause",
-      label: session.paused ? "Reprendre" : "Pause",
-      variant: session.paused ? "primary" : "accent-line",
-      onClick: session.pauseToggle,
-    },
-    {
-      key: "next",
-      icon: "next",
-      label: "Suivant",
-      variant: "primary",
-      onClick: session.next,
-      disabled: session.selectedId == null,
-    },
-    { key: "stop", icon: "stop", label: "Arrêter", variant: "danger", onClick: stop },
+    session.paused ? btn.resume(session.pauseToggle) : btn.pause(session.pauseToggle),
+    { ...btn.next(session.next), variant: "primary", disabled: session.selectedId == null },
+    btn.stop(stop),
   ];
 
   return (

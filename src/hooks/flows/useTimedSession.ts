@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PracticeItem } from "../../lib/constants";
 import type { NoteNaming } from "../../lib/util";
+import { cancelSpeech } from "../../lib/util";
 import { useCountdown } from "../primitives/useCountdown";
 import { useItemQueue } from "../primitives/useItemQueue";
 import { usePracticeClock } from "../primitives/usePracticeClock";
@@ -153,9 +154,13 @@ export function useTimedSession({
     setHitStatus(null);
     queue.reset();
     score.reset();
-    speechSynthesis.cancel();
+    cancelSpeech();
     return { ...snap, practiceTime };
   }, [score, queue, practiceTime]);
+
+  // If the screen unmounts mid-gap (e.g. browser back), the pending advance
+  // must not fire against an unmounted tree.
+  useEffect(() => () => clearTimeout(gapTimerRef.current ?? undefined), []);
 
   const pauseToggle = useCallback(() => setPaused((p) => !p), []);
 

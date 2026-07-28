@@ -1,0 +1,12 @@
+{
+  "interval": 2.5,
+  "enabled": { "mi": true, "la": true, "do_sharp": false, "mi_maj": true },
+  "tts": true,
+  "listening": false,
+  "chordMode": "manual",
+  "workingSetSize": 5,
+  "noteNaming": "solfege",
+  "spokenNaming": "solfege",
+  "voiceURI": null,
+  "showChordNotes": false
+}

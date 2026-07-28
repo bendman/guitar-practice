@@ -24,7 +24,8 @@ AfterAll(async () => {
 // Default: a fresh, isolated context per scenario (clean localStorage).
 Before({ tags: "not @audio" }, async function (this: GuitarWorld) {
   this.browser = browser;
-  this.context = await browser.newContext();
+  // Pin the browser locale so i18next's navigator detection always yields French.
+  this.context = await browser.newContext({ locale: "fr-FR" });
   this.page = await this.context.newPage();
 });
 
@@ -47,6 +48,7 @@ Before({ tags: "@audio" }, async function (this: GuitarWorld) {
   this.browser = audioBrowser;
   this.context = await audioBrowser.newContext({
     permissions: ["microphone"],
+    locale: "fr-FR",
   });
   this.page = await this.context.newPage();
 });

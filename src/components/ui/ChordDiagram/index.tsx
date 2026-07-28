@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useRef, useState } from "react";
 import type { Voicing } from "../../../lib/constants";
 import type { NoteRole } from "../../../lib/chordAnalysis";
@@ -49,8 +50,6 @@ interface ChordDiagramProps {
   noteRole?: (stringIndex: number, fret: number) => NoteRole;
 }
 
-const STRING_LABEL = (i: number) => `corde ${i + 1}`;
-
 /** Renders a role-appropriate SVG shape centered at (cx, cy) with radius r. */
 function NoteShape({ role, cx, cy, r }: { role: NoteRole; cx: number; cy: number; r: number }) {
   switch (role) {
@@ -89,6 +88,8 @@ export default function ChordDiagram({
   showNotes = false,
   noteRole,
 }: ChordDiagramProps) {
+  const { t } = useTranslation();
+  const stringLabel = (i: number) => t("diagram.string", { n: i + 1 });
   const svgRef = useRef<SVGSVGElement>(null);
   const dragStart = useRef<{ i: number; fret: number } | null>(null);
   // Live preview of the pending gesture (ghost dot or barre) shown while the
@@ -284,7 +285,7 @@ export default function ChordDiagram({
               strokeWidth={DOT_R * 2}
               strokeLinecap="round"
               role={editable ? "img" : undefined}
-              aria-label={editable ? `barré case ${b.fret}` : undefined}
+              aria-label={editable ? t("diagram.barre", { fret: b.fret }) : undefined}
             />
             {(showNotes || noteRole) &&
               Array.from({ length: z - a + 1 }, (_, k) => {
@@ -393,7 +394,7 @@ export default function ChordDiagram({
                 className={s.hitZone}
                 role="button"
                 tabIndex={0}
-                aria-label={`${STRING_LABEL(i)} : ouverte ou étouffée`}
+                aria-label={t("diagram.openOrMuted", { string: stringLabel(i) })}
                 x={stringX(i) - STRING_SPACING / 2}
                 y={0}
                 width={STRING_SPACING}
@@ -422,8 +423,8 @@ export default function ChordDiagram({
                   tabIndex={0}
                   aria-label={
                     isDot
-                      ? `retirer la note ${STRING_LABEL(i)}`
-                      : `${STRING_LABEL(i)} case ${absoluteFret}`
+                      ? t("diagram.removeNote", { string: stringLabel(i) })
+                      : t("diagram.stringFret", { string: stringLabel(i), fret: absoluteFret })
                   }
                   x={stringX(i) - STRING_SPACING / 2}
                   y={fretLineY(row - 1)}

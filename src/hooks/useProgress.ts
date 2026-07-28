@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { applyResult } from "../lib/util";
 import {
   loadStats,
@@ -26,15 +26,15 @@ export function useProgress() {
   const [weights, setWeights] = useState<Weights>(loadWeights);
   const [confusions, setConfusions] = useState<Confusions>(loadConfusions);
 
-  const recordResult = (itemId: string, correct: boolean) => {
+  const recordResult = useCallback((itemId: string, correct: boolean) => {
     setWeights((prev) => {
       const next = applyResult(prev, itemId, correct);
       saveWeights(next);
       return next;
     });
-  };
+  }, []);
 
-  const recordConfusion = (correctId: string, chosenWrongId: string) => {
+  const recordConfusion = useCallback((correctId: string, chosenWrongId: string) => {
     setConfusions((prev) => {
       const forTarget = { ...(prev[correctId] ?? {}) };
       forTarget[chosenWrongId] = (forTarget[chosenWrongId] ?? 0) + 1;
@@ -42,30 +42,44 @@ export function useProgress() {
       saveConfusions(next);
       return next;
     });
-  };
+  }, []);
 
-  const commitSession = (summary: SessionSummary) => {
+  const commitSession = useCallback((summary: SessionSummary) => {
     setStats((prev) => {
       const next = mergeSessionIntoStats(prev, summary);
       saveStats(next);
       return next;
     });
-  };
+  }, []);
 
-  const resetAllStats = () => setStats(resetStats());
-  const resetAllWeights = () => {
+  const resetAllStats = useCallback(() => setStats(resetStats()), []);
+  const resetAllWeights = useCallback(() => {
     setWeights(resetWeights());
     setConfusions(resetConfusions());
-  };
+  }, []);
 
-  return {
-    stats,
-    weights,
-    confusions,
-    recordResult,
-    recordConfusion,
-    commitSession,
-    resetAllStats,
-    resetAllWeights,
-  };
+  // Stable identity while the learning record is unchanged, so context
+  // consumers only re-render on actual progress updates.
+  return useMemo(
+    () => ({
+      stats,
+      weights,
+      confusions,
+      recordResult,
+      recordConfusion,
+      commitSession,
+      resetAllStats,
+      resetAllWeights,
+    }),
+    [
+      stats,
+      weights,
+      confusions,
+      recordResult,
+      recordConfusion,
+      commitSession,
+      resetAllStats,
+      resetAllWeights,
+    ],
+  );
 }

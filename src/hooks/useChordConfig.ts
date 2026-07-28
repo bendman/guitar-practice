@@ -5,7 +5,7 @@ import {
   CHORD_PROGRESSIONS,
   mergeCustomVoicings,
 } from "../lib/constants";
-import type { ChordItem, PracticeItem } from "../lib/constants";
+import type { ChordItem, PracticeItem, Voicing } from "../lib/constants";
 import { buildActivePool } from "../lib/util";
 import { useSettings, useVoicings, useProgress, useSessionHandoff } from "../AppState";
 
@@ -30,6 +30,23 @@ export function usePracticePool(mode: Mode): { pool: PracticeItem[]; activePool:
   const activePool = buildActivePool(pool, weights, workingSetSize);
 
   return { pool, activePool };
+}
+
+/**
+ * Saves a chord-builder voicing and makes it the preferred one for that chord.
+ * The new voicing lands after the built-in + existing custom voicings, so its
+ * index is the merged count before the add. Shared by the settings and session
+ * routes (both host the chord builder overlay).
+ */
+export function useSaveVoicing(onSaved?: () => void) {
+  const { customVoicings, addVoicing, setPreferredVoicing } = useVoicings();
+  return (id: string, voicing: Voicing) => {
+    const merged = mergeCustomVoicings(CHORDS, customVoicings);
+    const newIdx = merged.find((c) => c.id === id)?.voicings?.length ?? 0;
+    addVoicing(id, voicing);
+    setPreferredVoicing(id, newIdx);
+    onSaved?.();
+  };
 }
 
 /**

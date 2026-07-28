@@ -1,8 +1,8 @@
 import { createVersionedBlob } from "../createVersionedBlob";
 import { LATEST_VERSION, latestSchema, migrations } from "./migrate";
-import type { StoredSettings } from "./schemas/v1";
+import type { StoredSettings } from "./schemas/v2";
 
-export type { StoredSettings } from "./schemas/v1";
+export type { StoredSettings } from "./schemas/v2";
 
 export const blob = createVersionedBlob<StoredSettings>({
   key: "guitar-practice-settings",

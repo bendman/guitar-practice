@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { effectiveLanguage, type Language } from "../../../i18n";
 import {
   ALL,
   CHORDS,
@@ -49,7 +51,9 @@ export default function SettingsView({
     setSpokenNaming,
     voiceURI,
     setVoiceURI,
+    setLanguage,
   } = useSettings();
+  const { t } = useTranslation();
   const { weights, resetAllWeights: onResetWeights } = useProgress();
   const {
     customVoicings,
@@ -62,14 +66,17 @@ export default function SettingsView({
   const [voicingIndices, setVoicingIndices] = useState<Record<string, number>>({});
   const formatLabel = useFormatLabel();
 
+  const activeLanguage = effectiveLanguage();
   useEffect(() => {
     if (typeof speechSynthesis === "undefined") return;
     const load = () =>
-      setVoices(speechSynthesis.getVoices().filter((v) => isSupportedVoiceLang(v.lang)));
+      setVoices(
+        speechSynthesis.getVoices().filter((v) => isSupportedVoiceLang(v.lang, activeLanguage)),
+      );
     load();
     speechSynthesis.addEventListener("voiceschanged", load);
     return () => speechSynthesis.removeEventListener("voiceschanged", load);
-  }, []);
+  }, [activeLanguage]);
 
   const previewVoice = () => {
     const sample = pickRandom(ALL, null);
@@ -101,34 +108,59 @@ export default function SettingsView({
     <div className={shared.screen}>
       <div className={shared.screenBody}>
         <div className={shared.screenBodyInner}>
-          <h1 className={shared.title}>Paramètres</h1>
-          <p className={shared.subtitle}>Préférences et progression</p>
+          <h1 className={shared.title}>{t("settings.title")}</h1>
+          <p className={shared.subtitle}>{t("settings.subtitle")}</p>
 
           <div className={s.settingsSection}>
-            <span className={shared.eyebrow}>Réglages</span>
+            <span className={shared.eyebrow}>{t("settings.sectionSettings")}</span>
+            <div className={s.settingRow}>
+              <span className={s.settingLabel}>{t("settings.language")}</span>
+              <div className={s.segmented} role="radiogroup" aria-label={t("settings.language")}>
+                <button
+                  className={`${s.segBtn} ${activeLanguage === "fr" ? s.segBtnActive : ""}`}
+                  role="radio"
+                  aria-checked={activeLanguage === "fr"}
+                  onClick={() => setLanguage("fr" as Language)}
+                >
+                  Français
+                </button>
+                <button
+                  className={`${s.segBtn} ${activeLanguage === "en" ? s.segBtnActive : ""}`}
+                  role="radio"
+                  aria-checked={activeLanguage === "en"}
+                  onClick={() => setLanguage("en" as Language)}
+                >
+                  English
+                </button>
+              </div>
+            </div>
             {setNoteNaming && (
-              <NamingControl label="Notes écrites" value={noteNaming} onChange={setNoteNaming} />
+              <NamingControl
+                label={t("settings.writtenNotes")}
+                value={noteNaming}
+                onChange={setNoteNaming}
+              />
             )}
             {setSpokenNaming && (
               <NamingControl
-                label="Notes parlées"
+                label={t("settings.spokenNotes")}
                 value={spokenNaming}
                 onChange={setSpokenNaming}
               />
             )}
             {setVoiceURI && (
               <div className={s.settingRow}>
-                <span className={s.settingLabel}>Voix</span>
+                <span className={s.settingLabel}>{t("settings.voice")}</span>
                 <div className={s.voiceControl}>
                   <select
                     className={s.voiceSelect}
-                    aria-label="Voix"
+                    aria-label={t("settings.voice")}
                     value={voiceURI ?? ""}
                     onChange={(e) => setVoiceURI(e.target.value || null)}
                   >
-                    <option value="">Par défaut</option>
+                    <option value="">{t("settings.defaultVoice")}</option>
                     {groupVoicesByLocale(voices).map(([locale, localeVoices]) => (
-                      <optgroup key={locale} label={formatLocaleName(locale)}>
+                      <optgroup key={locale} label={formatLocaleName(locale, activeLanguage)}>
                         {localeVoices.map((v) => (
                           <option key={v.voiceURI} value={v.voiceURI}>
                             {v.name}
@@ -140,8 +172,8 @@ export default function SettingsView({
                   <button
                     className={s.previewBtn}
                     onClick={previewVoice}
-                    aria-label="Écouter un aperçu"
-                    title="Écouter un aperçu"
+                    aria-label={t("settings.previewVoice")}
+                    title={t("settings.previewVoice")}
                   >
                     ▶
                   </button>
@@ -150,7 +182,7 @@ export default function SettingsView({
             )}
             {setWorkingSetSize && (
               <div className={s.settingRow}>
-                <span className={s.settingLabel}>Éléments actifs à la fois</span>
+                <span className={s.settingLabel}>{t("settings.workingSet")}</span>
                 <div className={s.stepper}>
                   <button
                     className={s.stepBtn}
@@ -170,18 +202,18 @@ export default function SettingsView({
             )}
             {onResetWeights && (
               <div className={s.settingRow}>
-                <span className={s.settingLabel}>Progression</span>
+                <span className={s.settingLabel}>{t("settings.progression")}</span>
                 <button className={shared.resetLink} onClick={onResetWeights}>
-                  Réinitialiser
+                  {t("settings.reset")}
                 </button>
               </div>
             )}
           </div>
 
           <div className={s.settingsSection}>
-            <span className={shared.eyebrow}>Version</span>
+            <span className={shared.eyebrow}>{t("settings.sectionVersion")}</span>
             <div className={s.settingRow}>
-              <span className={s.settingLabel}>Build</span>
+              <span className={s.settingLabel}>{t("settings.build")}</span>
               <button
                 className={s.buildDate}
                 onClick={onShowDebug ?? undefined}
@@ -193,7 +225,7 @@ export default function SettingsView({
           </div>
 
           <div className={s.section}>
-            <span className={shared.eyebrow}>Accords</span>
+            <span className={shared.eyebrow}>{t("settings.sectionChords")}</span>
             <div className={s.list}>
               {sortedChords.map((chord) => {
                 const level = weightToLevel(weights[chord.id]);
@@ -223,11 +255,11 @@ export default function SettingsView({
                               <div
                                 className={s.voicingSwitcher}
                                 role="group"
-                                aria-label="Positions"
+                                aria-label={t("common.positions")}
                               >
                                 <button
                                   className={s.cycleBtn}
-                                  aria-label="Position précédente"
+                                  aria-label={t("common.prevPosition")}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setVoicingIdx(
@@ -241,13 +273,16 @@ export default function SettingsView({
                                 <span
                                   className={s.voicingCount}
                                   role="status"
-                                  aria-label={`Position ${voicingIdx + 1} sur ${voicings.length}`}
+                                  aria-label={t("common.positionOf", {
+                                    n: voicingIdx + 1,
+                                    total: voicings.length,
+                                  })}
                                 >
                                   {voicingIdx + 1}/{voicings.length}
                                 </span>
                                 <button
                                   className={s.cycleBtn}
-                                  aria-label="Position suivante"
+                                  aria-label={t("common.nextPosition")}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setVoicingIdx(chord.id, (voicingIdx + 1) % voicings.length);
@@ -259,7 +294,7 @@ export default function SettingsView({
                             )}
                           </>
                         ) : (
-                          <p className={s.noVoicing}>Aucune position</p>
+                          <p className={s.noVoicing}>{t("settings.noVoicing")}</p>
                         )}
                         {customForChord.map(
                           (_v, customIdx) =>
@@ -267,20 +302,23 @@ export default function SettingsView({
                               <button
                                 key={customIdx}
                                 className={shared.resetLink}
-                                aria-label={`Supprimer la position ${customIdx + 1} ${formatLabel(chord.label)}`}
+                                aria-label={t("settings.deleteVoicingAria", {
+                                  n: customIdx + 1,
+                                  label: formatLabel(chord.label),
+                                })}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   onRemoveVoicing(chord.id, customIdx);
                                 }}
                               >
-                                Supprimer la position {customIdx + 1}
+                                {t("settings.deleteVoicing", { n: customIdx + 1 })}
                               </button>
                             ),
                         )}
                         {onAddVoicing && (
                           <button
                             className={shared.resetLink}
-                            aria-label={`Ajouter une position ${formatLabel(chord.label)}`}
+                            aria-label={`${t("common.addVoicingAria")} ${formatLabel(chord.label)}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               onAddVoicing(
@@ -289,7 +327,7 @@ export default function SettingsView({
                               );
                             }}
                           >
-                            + Ajouter une position
+                            {t("common.addVoicing")}
                           </button>
                         )}
                       </div>
@@ -303,7 +341,7 @@ export default function SettingsView({
           {onCreateChord && (
             <div className={s.section}>
               <button className={shared.resetLink} onClick={onCreateChord}>
-                + Créer un accord
+                {t("settings.createChord")}
               </button>
             </div>
           )}
@@ -312,7 +350,7 @@ export default function SettingsView({
 
       <div className={shared.screenFooter}>
         <button onClick={onBack} className={shared.footerBtnSecondary}>
-          Retour
+          {t("common.back")}
         </button>
       </div>
     </div>
