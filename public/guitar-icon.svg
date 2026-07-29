@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#1a1816"/>
-  <!-- Note head -->
-  <ellipse cx="196" cy="340" rx="88" ry="66"
-    transform="rotate(-20 196 340)" fill="#d4a574"/>
-  <!-- Stem: right edge (256+26=282) aligns with ellipse right edge -->
-  <rect x="256" y="128" width="26" height="220" rx="13" fill="#d4a574"/>
-  <!-- Flag: starts at stem top, short hook ending ~30% down -->
-  <path d="M269 128 C336 140 344 178 306 204 C292 194 269 196 269 196 Z"
-    fill="#d4a574"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#F0E4CE"/><g transform="translate(452.6 548.1) scale(5.5869) rotate(-28)"><path d="M 0 -50 A 136.3 136.3 0 0 0 0 50" fill="none" stroke="#2B2118" stroke-width="17" stroke-linecap="butt"/><path d="M 17.7 -43 A 117.3 117.3 0 0 0 17.7 43" fill="none" stroke="#2B2118" stroke-width="7" stroke-linecap="butt"/><circle cx="37.7" cy="-20" r="10" fill="#2B2118"/><circle cx="37.7" cy="20" r="10" fill="#2B2118"/></g></svg>
