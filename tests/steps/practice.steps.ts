@@ -637,3 +637,39 @@ Then("the settings screen should be in English", async function (this: GuitarWor
 Then("the home screen should be in English", async function (this: GuitarWorld) {
   await expect(this.page.getByText(t("welcome.chooseMode", undefined, "en"))).toBeVisible();
 });
+
+// ---- Colour scheme ------------------------------------------------------
+
+/** The two grounds defined by `--bg` in index.css, as the browser reports them. */
+const GROUND: Record<string, string> = {
+  light: "rgb(234, 220, 192)",
+  dark: "rgb(27, 21, 16)",
+};
+
+Given("the system prefers {string}", async function (this: GuitarWorld, scheme: string) {
+  await this.page.emulateMedia({ colorScheme: scheme as "light" | "dark" });
+});
+
+When("I set the theme to {string}", async function (this: GuitarWorld, label: string) {
+  await this.page
+    .getByRole("radiogroup", { name: t("settings.theme") })
+    .getByRole("radio", { name: label })
+    .click();
+});
+
+Then("the theme should be pinned to {string}", async function (this: GuitarWorld, value: string) {
+  await expect(this.page.locator("html")).toHaveAttribute("data-theme", value);
+});
+
+Then("the theme should not be pinned", async function (this: GuitarWorld) {
+  await expect(this.page.locator("html")).not.toHaveAttribute("data-theme", /.*/);
+});
+
+Then(
+  "the page background should be the {word} ground",
+  async function (this: GuitarWorld, scheme: string) {
+    await expect
+      .poll(() => this.page.evaluate(() => getComputedStyle(document.body).backgroundColor))
+      .toBe(GROUND[scheme]);
+  },
+);

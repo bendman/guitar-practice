@@ -4,6 +4,7 @@ import type { NoteNaming } from "../lib/util";
 import type { ChordMode } from "./flows/types";
 import { load as loadSettingsBlob, save as saveSettings } from "../persistence/settings";
 import i18n, { effectiveLanguage, type Language } from "../i18n";
+import { applyTheme, watchSystemTheme, type Theme } from "../lib/theme";
 
 function loadSettings() {
   return loadSettingsBlob().data;
@@ -30,9 +31,16 @@ function parseInitialSettings() {
     voiceURI: typeof s.voiceURI === "string" ? s.voiceURI : null,
     showChordNotes: s.showChordNotes ?? false,
     language: s.language,
+    // Absent means the user never chose, which is exactly what "system" is.
+    theme: (s.theme ?? "system") as Theme,
   };
 }
 const initialSettings = parseInitialSettings();
+
+// Paint the stored scheme before React mounts, so a pinned theme never flashes
+// the other one on load. This module is imported via AppState from main.tsx,
+// which runs ahead of the first render.
+applyTheme(initialSettings.theme);
 
 /**
  * Owns every user preference that survives reloads.
@@ -52,6 +60,14 @@ export function useSettings() {
   const [voiceURI, setVoiceURI] = useState<string | null>(initialSettings.voiceURI);
   const [showChordNotes, setShowChordNotes] = useState<boolean>(initialSettings.showChordNotes);
   const [language, setLanguage] = useState<Language | undefined>(initialSettings.language);
+  const [theme, setTheme] = useState<Theme>(initialSettings.theme);
+
+  // Stamp the scheme on <html> whenever it changes, and while following the OS,
+  // re-apply on system flips so the browser chrome colour keeps up.
+  useEffect(() => {
+    applyTheme(theme);
+    return watchSystemTheme(theme, () => applyTheme(theme));
+  }, [theme]);
 
   // The persisted setting drives i18next (never the reverse). When unset, the
   // detected language from init stays in effect.
@@ -72,6 +88,7 @@ export function useSettings() {
       voiceURI,
       showChordNotes,
       language,
+      theme,
     });
   }, [
     intervalSecs,
@@ -85,6 +102,7 @@ export function useSettings() {
     voiceURI,
     showChordNotes,
     language,
+    theme,
   ]);
 
   // Stable identity while no setting changes, so context consumers only
@@ -113,6 +131,8 @@ export function useSettings() {
       setShowChordNotes,
       language,
       setLanguage,
+      theme,
+      setTheme,
     }),
     [
       intervalSecs,
@@ -126,6 +146,7 @@ export function useSettings() {
       voiceURI,
       showChordNotes,
       language,
+      theme,
     ],
   );
 }

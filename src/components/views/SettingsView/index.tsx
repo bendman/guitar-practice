@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { effectiveLanguage, type Language } from "../../../i18n";
+import { THEMES } from "../../../lib/theme";
 import {
   ALL,
   CHORDS,
@@ -52,6 +53,8 @@ export default function SettingsView({
     voiceURI,
     setVoiceURI,
     setLanguage,
+    theme,
+    setTheme,
   } = useSettings();
   const { t } = useTranslation();
   const { weights, resetAllWeights: onResetWeights } = useProgress();
@@ -132,6 +135,22 @@ export default function SettingsView({
                 >
                   English
                 </button>
+              </div>
+            </div>
+            <div className={s.settingRow}>
+              <span className={s.settingLabel}>{t("settings.theme")}</span>
+              <div className={s.segmented} role="radiogroup" aria-label={t("settings.theme")}>
+                {THEMES.map((option) => (
+                  <button
+                    key={option}
+                    className={`${s.segBtn} ${theme === option ? s.segBtnActive : ""}`}
+                    role="radio"
+                    aria-checked={theme === option}
+                    onClick={() => setTheme(option)}
+                  >
+                    {t(`settings.theme_${option}`)}
+                  </button>
+                ))}
               </div>
             </div>
             {setNoteNaming && (
