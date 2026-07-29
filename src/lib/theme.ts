@@ -3,9 +3,12 @@
  *
  * Three settings, two outcomes: "light" and "dark" pin the scheme, "system"
  * follows the OS. Pinning is expressed by stamping `data-theme` on <html>;
- * "system" removes the attribute so the `prefers-color-scheme` media query in
- * index.css takes over. The stylesheet defines the tokens for all three cases,
- * so nothing here needs to know a single colour — except the browser chrome,
+ * "system" removes the attribute, leaving :root asking for `light dark` so the
+ * OS decides. Everything colour-related follows from `color-scheme`, which the
+ * stylesheet owns — deliberately not set inline here, because an inline value
+ * would outrank the CSS and pin light-dark() even in system mode.
+ *
+ * So nothing here needs to know a single colour, except the browser chrome,
  * which cannot read CSS and has to be told the resolved background.
  */
 export type Theme = "light" | "dark" | "system";
@@ -34,8 +37,6 @@ export function applyTheme(theme: Theme): void {
   else root.setAttribute("data-theme", theme);
 
   const resolved = resolveTheme(theme);
-  // `color-scheme` is what makes form controls and scrollbars follow suit.
-  root.style.colorScheme = resolved;
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", CHROME[resolved]);
 }
 

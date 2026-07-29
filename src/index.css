@@ -2,15 +2,53 @@
  * Colour comes from the app icon: its cream ground (#f0e4ce) and its dark brown
  * ink (#2b2118). Each scheme makes one of those the page and the other the
  * type, so the two themes are the icon read in either direction rather than two
- * unrelated palettes.
+ * unrelated palettes. Both values live on one line per token, which is the point
+ * of light-dark(): there is exactly one place to change a colour, and its
+ * counterpart is right beside it.
  *
- * Light is the base. `prefers-color-scheme` supplies dark for anyone following
- * their OS, and `[data-theme]` — stamped on <html> by lib/theme.ts — overrides
- * the media query in BOTH directions so an explicit choice always wins.
+ * Which side wins is decided entirely by `color-scheme`. Unpinned, :root asks
+ * for `light dark` and the OS chooses — with no JavaScript involved, so the
+ * first paint is already correct on a cold start. A `data-theme` stamped by
+ * lib/theme.ts pins one scheme and overrides the OS.
+ *
+ * Support floor: light-dark() is Baseline since May 2024 (Chrome 123,
+ * Safari 17.5, Firefox 120), comfortably below what this app already needs.
  */
 :root {
+  color-scheme: light dark;
+
   --mono: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
   --display: "Martian Mono", monospace;
+
+  /*                        light              dark */
+  --bg: light-dark(#eadcc0, #1b1510);
+  --surface: light-dark(#f0e4ce, #241c14); /* light surface = the icon's ground */
+  --surface-2: light-dark(#f7eede, #2b2118); /* dark surface = the icon's ink */
+  --surface-3: light-dark(#fdf8ee, #362a1e);
+
+  --text: light-dark(#2b2118, #f0e4ce); /* the icon's two colours, swapped */
+  --text-dim: light-dark(#5e4c39, #c0b096);
+  --text-faint: light-dark(#735e41, #8a7a62);
+  --line: light-dark(rgba(43, 33, 24, 0.16), rgba(240, 228, 206, 0.12));
+
+  --accent: light-dark(#b35a22, #d4753f);
+  /* low-emphasis accent TEXT: darker on cream, lighter on brown */
+  --accent-soft: light-dark(#8a4417, #e5a876);
+  --accent-deep: light-dark(#6e3410, #a55328);
+  --accent-ink: light-dark(#fdf8ee, #1b1510); /* type placed ON --accent */
+  --accent-glow: light-dark(rgba(179, 90, 34, 0.35), rgba(212, 117, 63, 0.45));
+
+  --success: light-dark(#4f6b39, #a9be8e);
+  --error: light-dark(#b4512a, #e08a5b);
+  --danger: light-dark(#b23a34, #c94a44);
+
+  --toggle-off: light-dark(#cdb893, #3a2d20);
+  --knob: light-dark(#fffdf7, #f0e4ce);
+
+  /* the flash a touch device paints over a tapped element, and the text
+     selection wash — both default to a platform blue if left unset */
+  --tap: light-dark(rgba(179, 90, 34, 0.15), rgba(212, 117, 63, 0.24));
+  --selection: light-dark(rgba(179, 90, 34, 0.24), rgba(212, 117, 63, 0.32));
 
   --r-sm: 10px;
   --r-md: 14px;
@@ -18,97 +56,12 @@
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---- light: the icon's ground becomes the page ---- */
-:root,
+/* An explicit choice pins the scheme; every token above follows from this. */
 :root[data-theme="light"] {
-  --bg: #eadcc0;
-  --surface: #f0e4ce; /* the icon's ground, exactly */
-  --surface-2: #f7eede;
-  --surface-3: #fdf8ee;
-
-  --text: #2b2118; /* the icon's ink, exactly */
-  --text-dim: #5e4c39;
-  /* darker than the obvious tint so the faintest type still clears 4.5:1 on
-     --surface, matching what the same token manages against the dark ground */
-  --text-faint: #735e41;
-  --line: rgba(43, 33, 24, 0.16);
-
-  --accent: #b35a22;
-  --accent-soft: #8a4417; /* low-emphasis accent TEXT: darker, so it reads on cream */
-  --accent-deep: #6e3410;
-  --accent-ink: #fdf8ee; /* type placed ON --accent */
-  --accent-glow: rgba(179, 90, 34, 0.35);
-
-  --success: #4f6b39;
-  --error: #b4512a;
-  --danger: #b23a34;
-
-  --toggle-off: #cdb893;
-  --knob: #fffdf7;
-
-  /* the flash a touch device paints over a tapped element, and the text
-     selection wash — both default to a platform blue if left unset */
-  --tap: rgba(179, 90, 34, 0.15);
-  --selection: rgba(179, 90, 34, 0.24);
+  color-scheme: light;
 }
-
-/* ---- dark: the icon's ink becomes the page ---- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1b1510;
-    --surface: #241c14;
-    --surface-2: #2b2118; /* the icon's ink, exactly */
-    --surface-3: #362a1e;
-
-    --text: #f0e4ce; /* the icon's ground, exactly */
-    --text-dim: #c0b096;
-    --text-faint: #8a7a62;
-    --line: rgba(240, 228, 206, 0.12);
-
-    --accent: #d4753f;
-    --accent-soft: #e5a876; /* low-emphasis accent TEXT: lighter, so it reads on brown */
-    --accent-deep: #a55328;
-    --accent-ink: #1b1510;
-    --accent-glow: rgba(212, 117, 63, 0.45);
-
-    --success: #a9be8e;
-    --error: #e08a5b;
-    --danger: #c94a44;
-
-    --toggle-off: #3a2d20;
-    --knob: #f0e4ce;
-
-    --tap: rgba(212, 117, 63, 0.24);
-    --selection: rgba(212, 117, 63, 0.32);
-  }
-}
-
 :root[data-theme="dark"] {
-  --bg: #1b1510;
-  --surface: #241c14;
-  --surface-2: #2b2118;
-  --surface-3: #362a1e;
-
-  --text: #f0e4ce;
-  --text-dim: #c0b096;
-  --text-faint: #8a7a62;
-  --line: rgba(240, 228, 206, 0.12);
-
-  --accent: #d4753f;
-  --accent-soft: #e5a876;
-  --accent-deep: #a55328;
-  --accent-ink: #1b1510;
-  --accent-glow: rgba(212, 117, 63, 0.45);
-
-  --success: #a9be8e;
-  --error: #e08a5b;
-  --danger: #c94a44;
-
-  --toggle-off: #3a2d20;
-  --knob: #f0e4ce;
-
-  --tap: rgba(212, 117, 63, 0.24);
-  --selection: rgba(212, 117, 63, 0.32);
+  color-scheme: dark;
 }
 
 * {
